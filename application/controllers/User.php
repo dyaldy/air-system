@@ -329,12 +329,14 @@ class User extends CI_Controller
                 set_message(['success', "Data berhasil diimport. {$result['inserted']} pengguna ditambahkan."]);
             } elseif ($result['inserted'] > 0) {
                 $errorDetails = implode('<br>', $result['errorMessages']);
-                set_message(['warning', 
+                set_message([
+                    'warning',
                     "Import selesai dengan peringatan. {$result['inserted']} pengguna ditambahkan, {$result['errors']} error.<br><br>Detail error:<br>{$errorDetails}"
                 ]);
             } else {
                 $errorDetails = implode('<br>', $result['errorMessages']);
-                set_message(['danger', 
+                set_message([
+                    'danger',
                     "Import gagal. {$result['errors']} error ditemukan.<br><br>Detail error:<br>{$errorDetails}"
                 ]);
             }
