@@ -3,7 +3,7 @@
  *
  * Sorts the table by submitting a temporary form with the given sort key.
  *
- * @param {string} sortKey - The key to sort the table by.
+ * @param {string} sortKey - The key to sort the table by, or empty string to reset to default.
  */
 function sortTable(sortKey) {
 	// Helper to create hidden input
@@ -19,9 +19,12 @@ function sortTable(sortKey) {
 	const form = document.createElement("form");
 	form.method = "post";
 
-	// Append required hidden inputs
-	form.appendChild(createHiddenInput("sort", sortKey));
-	form.appendChild(createHiddenInput("sort-send", "1"));
+	// If sortKey is empty, send reset signal, otherwise send sort value
+	if (sortKey === '') {
+		form.appendChild(createHiddenInput("reset", "1"));
+	} else {
+		form.appendChild(createHiddenInput("sort-send", sortKey));
+	}
 
 	// Add and submit the form
 	document.body.appendChild(form);

@@ -54,9 +54,13 @@
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>NIK</span>
                                 <?php if ($sortKeyword[0] === 'nik') : ?>
-                                    <img src="<?= base_url($sortKeyword[1] === 'ASC' ? 'assets/img/sort-asc.png' : 'assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('<?= $sortKeyword[1] === 'ASC' ? 'nik-DESC' : '' ?>')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan NIK">
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('nik-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan NIK (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan NIK">
+                                    <?php endif ?>
                                 <?php else : ?>
-                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('nik-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan NIK">
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('nik-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan NIK (Ascending)">
                                 <?php endif ?>
                             </div>
                         </th>
@@ -66,9 +70,13 @@
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>Nama</span>
                                 <?php if ($sortKeyword[0] === 'name') : ?>
-                                    <img src="<?= base_url($sortKeyword[1] === 'ASC' ? 'assets/img/sort-asc.png' : 'assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('<?= $sortKeyword[1] === 'ASC' ? 'name-DESC' : '' ?>')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Nama">
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('name-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Nama (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Nama">
+                                    <?php endif ?>
                                 <?php else : ?>
-                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('name-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Nama">
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('name-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Nama (Ascending)">
                                 <?php endif ?>
                             </div>
                         </th>
