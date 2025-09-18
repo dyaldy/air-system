@@ -63,6 +63,11 @@
                             <a class="nav-link" href="<?= site_url('user'); ?>">Pengguna</a>
                         </li>
 
+                        <!-- Link to Pneumatic Controller -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= site_url('pneumatic'); ?>">Pneumatic</a>
+                        </li>
+
                         <!-- Link to Report Controller -->
                         <li class="nav-item">
                             <a class="nav-link" href="<?= site_url('report'); ?>">Laporan</a>
