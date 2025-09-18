@@ -33,7 +33,7 @@ class User extends CI_Controller
      */
     private const CONFIG = [
         'pagination' => [
-            'items_per_page' => 10
+            'items_per_page' => 7
         ],
         'validation' => [
             'nik' => [
