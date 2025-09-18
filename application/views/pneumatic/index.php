@@ -1,6 +1,18 @@
 <?php if ($this->session->flashdata('action')) : ?>
     <!-- Flash Notification Alert -->
-    <div class="alert alert-<?= $this->session->flashdata('action')[0]; ?> alert-dismissible fade show cust-notification" id="notification" role="alert">
+    <div class="alert alert-<?= $this->session->flashdata('action')[0]; ?> alert-dismissible fade show                 
+    <!-- Action Buttons -->
+                <div class=" btn-group">
+        <!-- Reset All Filters -->
+        <?php if (!empty($searchKeyword) || !empty($filterKeyword) || !empty($sortKeyword[0])) : ?>
+            <form action="" method="post" class="d-inline">
+                <input type="hidden" name="clear" value="1">
+                <button type="submit" class="btn btn-outline-secondary rounded-start-pill">Reset</button>
+            </form>
+        <?php endif; ?>
+
+        <!-- Download Excel -->
+        <a href="<?= site_url('pneumatic/download'); ?>" class="btn btn-primary <?= (!empty($searchKeyword) || !empty($filterKeyword) || !empty($sortKeyword[0])) ? '' : 'rounded-start-pill' ?>">Download</a>ation" id="notification" role="alert">
         <?= $this->session->flashdata('action')[1]; ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -33,7 +45,7 @@
                             <select class="form-select form-select-sm" id="brand-filter" aria-label="Filter Brand">
                                 <option value="">Semua Brand</option>
                                 <?php foreach (($brand_options ?? []) as $brand) : ?>
-                                    <?php $selected = (!empty($filter_keyword['brand']) && in_array($brand, (array)$filter_keyword['brand'])) ? 'selected' : ''; ?>
+                                    <?php $selected = (!empty($filterKeyword['brand']) && in_array($brand, (array)$filterKeyword['brand'])) ? 'selected' : ''; ?>
                                     <option value="<?= $brand; ?>" <?= $selected; ?>><?= $brand; ?></option>
                                 <?php endforeach; ?>
                             </select>
@@ -42,7 +54,7 @@
                             <select class="form-select form-select-sm" id="type-filter" aria-label="Filter Type">
                                 <option value="">Semua Type</option>
                                 <?php foreach (($type_options ?? []) as $type) : ?>
-                                    <?php $selected = (!empty($filter_keyword['type']) && in_array($type, (array)$filter_keyword['type'])) ? 'selected' : ''; ?>
+                                    <?php $selected = (!empty($filterKeyword['type']) && in_array($type, (array)$filterKeyword['type'])) ? 'selected' : ''; ?>
                                     <option value="<?= $type; ?>" <?= $selected; ?>><?= $type; ?></option>
                                 <?php endforeach; ?>
                             </select>
@@ -65,6 +77,10 @@
     <?php else : ?>
         <!-- Data Table Container -->
         <div class="card-body p-0 table-responsive">
+            <!-- TEMP DEBUG -->
+            <div style="background: yellow; padding: 10px;">
+                DEBUG sortKeyword: <?= var_export($sortKeyword, true) ?>
+            </div>
             <table class="table table-borderless table-hover table-striped mb-0">
                 <!-- Table Header -->
                 <thead>
@@ -73,8 +89,8 @@
                         <th scope="col" class="text-center ps-lg-5 ps-4">
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>Pneumatic ID</span>
-                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'pneumatic_id') !== false) : ?>
-                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                <?php if ($sortKeyword[0] === 'pneumatic_id') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('pneumatic_id-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan ID (Descending)">
                                     <?php else : ?>
                                         <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan ID">
@@ -89,8 +105,8 @@
                         <th scope="col" class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>Brand</span>
-                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'brand') !== false) : ?>
-                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                <?php if ($sortKeyword[0] === 'brand') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('brand-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Brand (Descending)">
                                     <?php else : ?>
                                         <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Brand">
@@ -105,8 +121,8 @@
                         <th scope="col" class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>Type</span>
-                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'type') !== false) : ?>
-                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                <?php if ($sortKeyword[0] === 'type') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Descending)">
                                     <?php else : ?>
                                         <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Type">
@@ -121,8 +137,8 @@
                         <th scope="col" class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>Bore</span>
-                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'bore') !== false) : ?>
-                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                <?php if ($sortKeyword[0] === 'bore') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('bore-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Bore (Descending)">
                                     <?php else : ?>
                                         <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Bore">
@@ -137,8 +153,8 @@
                         <th scope="col" class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <span>Stroke</span>
-                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'stroke') !== false) : ?>
-                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                <?php if ($sortKeyword[0] === 'stroke') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('stroke-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Stroke (Descending)">
                                     <?php else : ?>
                                         <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Stroke">

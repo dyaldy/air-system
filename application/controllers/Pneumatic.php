@@ -95,6 +95,7 @@ class Pneumatic extends CI_Controller
 
         $this->load->model('Pneumatic_model');
         $this->load->library(['form_validation', 'pagination']);
+        $this->load->helper('common');
 
         // Reset session if controller changed
         if ($this->session->userdata('controller') !== 'pneumatic') {
@@ -137,14 +138,14 @@ class Pneumatic extends CI_Controller
             'pneumatics'     => $pneumatics,
             'pagination'     => $pagination,
             'total_rows'     => $totalRows,
-            'search_keyword' => $sessionData['search'],
-            'sort_keyword'   => $sessionData['sort'],
-            'filter_keyword' => $sessionData['filter'],
+            'searchKeyword'  => $sessionData['search'],
+            'sortKeyword'    => ($sessionData['sort'] && strpos($sessionData['sort'], '-') !== false) ? explode('-', $sessionData['sort'], 2) : ['', ''],
+            'filterKeyword'  => $sessionData['filter'],
             'brand_options'  => $brandOptions,
             'type_options'   => $typeOptions,
         ];
 
-        $this->render_view('pneumatic/index', $data);
+        render_view('pneumatic/index', $data);
     }
 
     /**
@@ -547,14 +548,24 @@ class Pneumatic extends CI_Controller
             $this->session->unset_userdata(['keyword', 'sort', 'filter']);
         }
 
-        if ($this->input->post('sort')) {
+        if ($this->input->post('sort-send')) {
             // Accept sort in format 'field-ORDER' where ORDER is ASC or DESC
-            $sortRaw = $this->input->post('sort', true);
+            $sortRaw = $this->input->post('sort-send', true);
             if (is_string($sortRaw) && preg_match('/^[a-z0-9_\-]+-(ASC|DESC)$/i', $sortRaw)) {
-                $this->session->set_userdata('sort', strtoupper($sortRaw));
+                // Keep field name as-is, but uppercase the direction
+                [$field, $direction] = explode('-', $sortRaw, 2);
+                $this->session->set_userdata('sort', $field . '-' . strtoupper($direction));
+                // Temporary debug: redirect to show it's working
+                redirect('pneumatic');
             } elseif ($sortRaw === '') {
                 $this->session->unset_userdata('sort');
+                redirect('pneumatic');
             }
+        }
+
+        if ($this->input->post('reset')) {
+            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
+            redirect('pneumatic');
         }
 
         if ($this->input->post('filter')) {
