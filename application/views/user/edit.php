@@ -5,7 +5,7 @@
         <!-- Container -->
         <div class="d-flex align-items-center justify-content-between">
             <!-- Title -->
-            <h4 class="m-0">Edit Pengguna</h4>
+            <h4 class="m-0">Edit Pengguna Air System</h4>
 
             <!-- Back Button-->
             <a href="<?= site_url('user'); ?>" class="btn btn-secondary rounded-pill">Kembali</a>
@@ -22,29 +22,13 @@
             </div>
 
             <!-- Name Input Section -->
-            <div class="mb-2">
+            <div class="mb-3">
                 <label for="name" class="form-label">Nama</label>
                 <div class="position-relative">
                     <input id="name" type="text" class="form-control rounded-pill pe-5 <?= form_error('name') ? 'is-invalid' : '' ?>" name="name" placeholder="John Doe" value="<?= set_value('name') ? set_value('name') : $user['name']; ?>" onkeyup="toggleClear('name', 'clear-button-name')" autocomplete="off">
                     <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-name" onclick="clearInput('name', 'clear-button-name')" style="top: 7px; <?= form_error('name') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
                     <?= form_error('name', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
-            </div>
-
-            <!-- (user_level removed for Air System) -->
-
-            <!-- Factory Select Input -->
-            <div class="mb-3">
-                <label for="factory" class="form-label">Factory</label>
-                <select id="factory" class="form-select rounded-pill" name="factory">
-                    <?php foreach ($factories as $factory) : ?>
-                        <?php if (set_value('factory')) : ?>
-                            <option value="<?= $factory; ?>" <?= set_value('factory') === $factory ? 'selected' : ''; ?>><?= $factory; ?></option>
-                        <?php else : ?>
-                            <option value="<?= $factory; ?>" <?= $user['factory'] === $factory ? 'selected' : ''; ?>><?= $factory; ?></option>
-                        <?php endif ?>
-                    <?php endforeach ?>
-                </select>
             </div>
 
             <?php if ($this->session->userdata('user_data')['nik'] !== $user['nik']) : ?>

@@ -73,23 +73,11 @@
                             </div>
                         </th>
 
-                        <!-- (user_level column removed for Air System) -->
-
-                        <!-- Factory Column with Filter -->
-                        <th scope="col" class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-1">
-                                <span>Factory</span>
-                                <svg id="factory-trigger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48.03 48.6" width="14.31px" height="14.48px" class="cursor-pointer" onclick="hidePop('factory')">
-                                    <path d="M47.38,3.78,29.59,21.85A2.24,2.24,0,0,0,29,23.41v23a2.22,2.22,0,0,1-3.61,1.73l-5.56-4.44A2.21,2.21,0,0,1,19,41.93V23.41a2.24,2.24,0,0,0-.64-1.56L.64,3.77A2.22,2.22,0,0,1,2.23,0H45.8A2.22,2.22,0,0,1,47.38,3.78Z" fill="<?= $filterKeyword && isset($filterKeyword['factory']) ? '#000000' : '#b3b3b3' ?>" />
-                                </svg>
-                            </div>
-                        </th>
-
                         <!-- Edit Column -->
                         <th scope="col" class="text-center">Edit</th>
 
-                        <!-- History Column -->
-                        <th scope="col" class="text-center pe-lg-5 pe-4">History</th>
+                        <!-- Delete Column -->
+                        <th scope="col" class="text-center pe-lg-5 pe-4">Delete</th>
                     </tr>
                 </thead>
 
@@ -99,18 +87,14 @@
                         <tr>
                             <th scope="row" class="text-center ps-lg-5 ps-4"><?= $user['nik']; ?></th>
                             <td class="text-center"><?= $user['name']; ?></td>
-                            <!-- user_level column removed -->
                             <td class="text-center">
-                                <span class="badge bg-info text-dark"><?= $user['factory']; ?></span>
-                            </td>
-                            <td class="text-center">
-                                <a href="<?= site_url('user/edit/') . urlencode(base64_encode($user['nik'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit pengguna">
+                                <a href="<?= site_url('user/edit/' . $user['nik']); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit pengguna">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
                                 </a>
                             </td>
                             <td class="text-center pe-lg-5 pe-4">
-                                <a href="<?= site_url('report/user_history/') . urlencode(base64_encode($user['nik'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat history pengguna">
-                                    <img src="<?= base_url('assets/img/clock-history.svg'); ?>" alt="history" class="action-button">
+                                <a href="<?= site_url('user/delete/' . $user['nik']); ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?')" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus pengguna">
+                                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button">
                                 </a>
                             </td>
                         </tr>
@@ -133,13 +117,15 @@
                 <!-- Action Buttons -->
                 <div class="btn-group">
                     <!-- Reset All Filters -->
-                    <form action="" method="post">
-                        <input type="hidden" name="reset" value="1">
-                        <button type="submit" class="btn btn-outline-secondary rounded-start-pill">Reset Filter</button>
-                    </form>
+                    <?php if ($hasFilters) : ?>
+                        <form action="" method="post" class="d-inline">
+                            <input type="hidden" name="reset" value="1">
+                            <button type="submit" class="btn btn-outline-secondary rounded-start-pill">Reset Filter</button>
+                        </form>
+                    <?php endif; ?>
 
                     <!-- Download Button -->
-                    <a href="<?= site_url('user/download'); ?>" class="btn btn-primary">Download</a>
+                    <a href="<?= site_url('user/download'); ?>" class="btn btn-primary <?= $hasFilters ? '' : 'rounded-start-pill' ?>">Download</a>
 
                     <!-- Upload Modal Trigger -->
                     <button type="button" class="btn btn-primary rounded-end-pill" data-bs-toggle="modal" data-bs-target="#uploadModal">
@@ -149,28 +135,6 @@
             </div>
         </div>
     <?php endif; ?>
-</div>
-
-<!-- Hidden Filter Forms -->
-
-<div hidden>
-    <!-- Factory Filter Form -->
-    <form action="" method="post" id="factory-filter" style="min-width: 150px;">
-        <p class="text-muted small mb-2">Pilih factory untuk filter:</p>
-        <?php foreach ($factories as $factory) : ?>
-            <div class="form-check">
-                <input class="form-check-input" id="check-factory-<?= strtolower(str_replace(' ', '-', $factory)); ?>" type="checkbox" name="filter-factory[]" value="<?= $factory; ?>" <?= ($filterKeyword && isset($filterKeyword['factory']) && in_array($factory, $filterKeyword['factory'])) ? 'checked' : '' ?>>
-                <label class="form-check-label" for="check-factory-<?= strtolower(str_replace(' ', '-', $factory)); ?>">
-                    <?= $factory; ?>
-                </label>
-            </div>
-        <?php endforeach ?>
-        <input type="hidden" name="factory" value="1">
-        <div class="d-flex justify-content-between mt-3">
-            <button type="button" class="btn btn-secondary btn-sm rounded-pill" onclick="resetFilter('factory-filter')">Reset</button>
-            <button type="submit" class="btn btn-primary btn-sm rounded-pill">Apply Filter</button>
-        </div>
-    </form>
 </div>
 
 <!-- Upload Modal -->
@@ -190,55 +154,45 @@
                         <li>Ketentuan pengisian tabel:
                             <ol>
                                 <li>NIK wajib menggunakan angka dan berjumlah 9 digit.</li>
-                                <li>Level Pengguna diisi dengan "OPERATOR" atau "SUPER USER".</li>
-                                <li>Factory diisi dengan "AOI 1", "AOI 2", "AOI 3", atau "AOI 5".</li>
+                                <li>Nama akan otomatis diformat menjadi Title Case.</li>
                             </ol>
                         </li>
                     </ul>
                 </div>
-                <form id="uploadForm" action="" method="POST" enctype="multipart/form-data">
+                <form id="uploadForm" action="<?= site_url('user/upload'); ?>" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="formFile" class="form-label">Pilih File Excel</label>
-                        <input class="form-control" type="file" id="formFile" name="file" accept=".xlsx,.xls">
+                        <input class="form-control" type="file" id="formFile" name="file" accept=".xlsx,.xls" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-success rounded-pill" id="uploadBtn">Upload Data</button>
+                <button type="submit" form="uploadForm" class="btn btn-success rounded-pill" id="uploadBtn">Upload Data</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- JavaScript Files -->
-<script src="<?= base_url('assets/js/searchbar.js'); ?>"></script>
-<script src="<?= base_url('assets/js/sortbutton.js'); ?>"></script>
-<script src="<?= base_url('assets/js/resetfilter.js'); ?>"></script>
-<script src="<?= base_url('assets/js/tooltip.js'); ?>"></script>
-
 <script>
     /**
-     * Global Configuration Variables
-     * These variables configure the behavior of various JavaScript components
+     * Global Configuration Variables for existing JS files
      */
-
-    // Set notification duration to 10 seconds (10000ms)
-    window.notificationDuration = "10000";
+    window.notificationDuration = "3000";
 
     /**
-     * Configuration array for initializing Bootstrap popovers.
-     * Each entry includes the element ID prefix and the popover title.
-     * 
-     * @type {Array<{id: string, title: string}>}
+     * Handle upload form submission
      */
-    window.popoverConfigs = [{
-        id: 'factory',
-        title: 'Filter Factory'
-    }];
+    (function() {
+        const uploadBtn = document.getElementById('uploadBtn');
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('formFile');
+        if (!uploadBtn || !form || !fileInput) return;
+        uploadBtn.addEventListener('click', function(e) {
+            if (fileInput.files.length === 0) {
+                e.preventDefault();
+                alert('Pilih file Excel terlebih dahulu!');
+            }
+        });
+    })();
 </script>
-
-<!-- Additional JavaScript Components -->
-<script src="<?= base_url('assets/js/notificationlogic.js'); ?>"></script>
-<script src="<?= base_url('assets/js/popoverlogic.js'); ?>"></script>
-<script src="<?= base_url('assets/js/uploadlogic.js'); ?>"></script>

@@ -4,7 +4,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /**
  * User_model for air-system.
  *
- * Handles all database operations for the `as_user` table.
+ * This model handles all database operations for the `as_user` table,
+ * including user management (CRUD) and data retrieval with search,
+ * pagination, and filtering capabilities.
  *
  * @package AirSystem
  * @subpackage Models
@@ -39,8 +41,8 @@ class User_model extends CI_Model
     {
         $this->userSearchAndFilters($searchKeyword, $filterKeyword);
 
-        if ($sortKeyword) {
-            [$field, $order] = explode('-', $sortKeyword);
+        if ($sortKeyword && strpos($sortKeyword, '-') !== false) {
+            [$field, $order] = explode('-', $sortKeyword, 2);
             $this->db->order_by($field, $order);
         } else {
             $this->db->order_by('updated_at', 'DESC');
@@ -173,13 +175,13 @@ class User_model extends CI_Model
      */
     private function userSearchAndFilters(?string $searchKeyword, ?array $filterKeyword): void
     {
-        if ($searchKeyword) {
+        if ($searchKeyword && trim($searchKeyword) !== '') {
             $this->db->group_start()
-                ->like('nik', $searchKeyword)
-                ->or_like('name', $searchKeyword)
+                ->like('nik', trim($searchKeyword))
+                ->or_like('name', trim($searchKeyword))
                 ->group_end();
         }
-        if ($filterKeyword) {
+        if ($filterKeyword && is_array($filterKeyword)) {
             foreach ($filterKeyword as $key => $value) {
                 if (is_array($value) && !empty($value)) {
                     $this->db->where_in($key, $value);

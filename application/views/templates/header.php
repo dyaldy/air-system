@@ -8,7 +8,6 @@
     <link rel="icon" type="image/png" href="<?= base_url('assets/img/favicon.png'); ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css'); ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css'); ?>">
-    <script src="<?= base_url('assets/js/bootstrap.bundle.min.js'); ?>"></script>
 </head>
 
 <body style="background-color: #caeefb;">

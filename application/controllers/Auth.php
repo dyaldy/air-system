@@ -18,7 +18,7 @@ class Auth extends CI_Controller
     public function index(): void
     {
         if ($this->session->userdata('user_data')) {
-            redirect('warehouse');
+            redirect('user');
         }
 
         // air-system does not use machine registration. Skip machine checks.
@@ -70,7 +70,8 @@ class Auth extends CI_Controller
         ];
 
         $this->session->set_userdata($data);
-        redirect('warehouse');
+        // After successful login redirect the user to the user page
+        redirect('user');
     }
 
     public function logout(): void
