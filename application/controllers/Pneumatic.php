@@ -141,6 +141,7 @@ class Pneumatic extends CI_Controller
             'searchKeyword'  => $sessionData['search'],
             'sortKeyword'    => ($sessionData['sort'] && strpos($sessionData['sort'], '-') !== false) ? explode('-', $sessionData['sort'], 2) : ['', ''],
             'filterKeyword'  => $sessionData['filter'],
+            'hasFilters'     => (!empty($sessionData['search']) || !empty($sessionData['filter']) || !empty($sessionData['sort'])),
             'brand_options'  => $brandOptions,
             'type_options'   => $typeOptions,
         ];
@@ -544,10 +545,6 @@ class Pneumatic extends CI_Controller
             $this->session->set_userdata('keyword', $this->input->post('keyword', true));
         }
 
-        if ($this->input->post('clear')) {
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
-
         if ($this->input->post('sort-send')) {
             // Accept sort in format 'field-ORDER' where ORDER is ASC or DESC
             $sortRaw = $this->input->post('sort-send', true);
@@ -555,17 +552,13 @@ class Pneumatic extends CI_Controller
                 // Keep field name as-is, but uppercase the direction
                 [$field, $direction] = explode('-', $sortRaw, 2);
                 $this->session->set_userdata('sort', $field . '-' . strtoupper($direction));
-                // Temporary debug: redirect to show it's working
-                redirect('pneumatic');
             } elseif ($sortRaw === '') {
                 $this->session->unset_userdata('sort');
-                redirect('pneumatic');
             }
         }
 
         if ($this->input->post('reset')) {
             $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-            redirect('pneumatic');
         }
 
         if ($this->input->post('filter')) {
