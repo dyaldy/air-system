@@ -33,8 +33,6 @@ class User extends CI_Controller
 
         $this->load->model('User_model');
         $this->load->library(['form_validation', 'pagination']);
-        // load common helpers (render_view, set_message) — copied from ASRS
-        $this->load->helper('common');
     }
 
     /**
@@ -69,7 +67,6 @@ class User extends CI_Controller
             'keyword' => $keyword,
         ];
 
-        // ASRS-style rendering helper (renders header, the view, and footer)
         render_view('user_list', $data);
     }
 
