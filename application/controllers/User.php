@@ -327,8 +327,16 @@ class User extends CI_Controller
 
             if ($result['success']) {
                 set_message(['success', "Data berhasil diimport. {$result['inserted']} pengguna ditambahkan."]);
+            } elseif ($result['inserted'] > 0) {
+                $errorDetails = implode('<br>', $result['errorMessages']);
+                set_message(['warning', 
+                    "Import selesai dengan peringatan. {$result['inserted']} pengguna ditambahkan, {$result['errors']} error.<br><br>Detail error:<br>{$errorDetails}"
+                ]);
             } else {
-                set_message(['warning', "Import selesai dengan peringatan. {$result['inserted']} pengguna ditambahkan, {$result['errors']} error."]);
+                $errorDetails = implode('<br>', $result['errorMessages']);
+                set_message(['danger', 
+                    "Import gagal. {$result['errors']} error ditemukan.<br><br>Detail error:<br>{$errorDetails}"
+                ]);
             }
         } catch (Exception $e) {
             unlink($filePath);
@@ -453,12 +461,13 @@ class User extends CI_Controller
         $rows = $sheet->toArray();
 
         $inserted = 0;
-        $errors = 0;
+        $errorMessages = [];
         $userData = [];
 
         // Skip header row, start from row 2
         for ($i = 1; $i < count($rows); $i++) {
             $row = $rows[$i];
+            $rowNumber = $i + 1; // Add 1 to account for header row
 
             // Skip empty rows
             if (empty($row[0]) && empty($row[1])) {
@@ -468,15 +477,31 @@ class User extends CI_Controller
             $nik = $row[0] ?? '';
             $name = $row[1] ?? '';
 
-            // Validate data
-            if (!$this->validateImportData($nik, $name)) {
-                $errors++;
+            // Validate required fields
+            if (empty($nik)) {
+                $errorMessages[] = "Baris {$rowNumber}: NIK tidak boleh kosong";
+                continue;
+            }
+
+            if (empty($name)) {
+                $errorMessages[] = "Baris {$rowNumber}: Nama tidak boleh kosong";
+                continue;
+            }
+
+            // Validate NIK format
+            if (!is_numeric($nik)) {
+                $errorMessages[] = "Baris {$rowNumber}: NIK harus berupa angka: {$nik}";
+                continue;
+            }
+
+            if (strlen($nik) !== 9) {
+                $errorMessages[] = "Baris {$rowNumber}: NIK harus berjumlah 9 digit: {$nik}";
                 continue;
             }
 
             // Check if NIK already exists
             if ($this->User_model->isNikExists($nik)) {
-                $errors++;
+                $errorMessages[] = "Baris {$rowNumber}: NIK sudah terdaftar: {$nik}";
                 continue;
             }
 
@@ -496,24 +521,10 @@ class User extends CI_Controller
         }
 
         return [
-            'success' => $errors === 0,
+            'success' => count($errorMessages) === 0,
             'inserted' => $inserted,
-            'errors' => $errors
+            'errors' => count($errorMessages),
+            'errorMessages' => $errorMessages
         ];
-    }
-
-    /**
-     * Validates import data.
-     *
-     * @param string $nik
-     * @param string $name
-     * @return bool
-     */
-    private function validateImportData($nik, $name): bool
-    {
-        return !empty($nik) &&
-            !empty($name) &&
-            is_numeric($nik) &&
-            strlen($nik) === 9;
     }
 }

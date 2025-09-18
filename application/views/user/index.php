@@ -186,7 +186,7 @@
     /**
      * Global Configuration Variables for existing JS files
      */
-    window.notificationDuration = "3000";
+    window.notificationDuration = "10000";
 
     /**
      * Handle upload form submission
