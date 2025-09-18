@@ -94,10 +94,10 @@ class Pneumatic_model extends CI_Model
         $type = strtoupper($this->input->post('type', true));
         $bore = (int)$this->input->post('bore', true);
         $stroke = (int)$this->input->post('stroke', true);
-        
+
         // Generate pneumatic_id with format: pnm-{brand}-{type}-{bore}-{stroke}
         $pneumaticId = $this->generatePneumaticId($brand, $type, $bore, $stroke);
-        
+
         $pneumaticData = [
             'pneumatic_id' => $pneumaticId,
             'brand'        => $brand,
@@ -136,10 +136,10 @@ class Pneumatic_model extends CI_Model
         $type = strtoupper($this->input->post('type', true));
         $bore = (int)$this->input->post('bore', true);
         $stroke = (int)$this->input->post('stroke', true);
-        
+
         // Generate new pneumatic_id with format: pnm-{brand}-{type}-{bore}-{stroke}
         $newPneumaticId = $this->generatePneumaticId($brand, $type, $bore, $stroke);
-        
+
         $pneumaticData = [
             'pneumatic_id' => $newPneumaticId,
             'brand'        => $brand,

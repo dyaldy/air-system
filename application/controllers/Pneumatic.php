@@ -582,15 +582,16 @@ class Pneumatic extends CI_Controller
 
         if (!empty($brand) && !empty($type) && !empty($bore) && !empty($stroke)) {
             $pneumaticId = 'pnm-' . strtolower($brand) . '-' . strtolower($type) . '-' . $bore . '-' . $stroke;
-            
+
             if ($this->Pneumatic_model->isPneumaticIdExists($pneumaticId)) {
                 $this->form_validation->set_message('check_pneumatic_combination', 'Kombinasi pneumatic (Brand: {field}, Type: ' . $type . ', Bore: ' . $bore . ', Stroke: ' . $stroke . ') sudah terdaftar');
                 return false;
             }
         }
-        
+
         return true;
-    }    /**
+    }
+    /**
      * Renders view with common data.
      *
      * @param string $view The view file to render
