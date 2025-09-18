@@ -19,7 +19,7 @@
             <!-- Search Form + Add Pneumatic -->
             <div class="col-12 col-lg-6">
                 <div class="d-flex gap-2 align-items-center">
-                    <!-- Search Form -->
+                    <!-- Search + Filters Form -->
                     <form action="" method="post" class="flex-grow-1 position-relative" id="search-form">
                         <div class="input-group">
                             <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, brand, type..." name="keyword" value="<?= $this->session->userdata('keyword') ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
@@ -27,6 +27,26 @@
                             <button class="btn btn-secondary rounded-end-pill px-4" type="submit">Cari</button>
                         </div>
                         <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button top-50 translate-middle-y" id="clear-button" onclick="clearKeyword()" style="right: 5.5rem;">
+
+                        <div class="mt-2 d-flex gap-2">
+                            <!-- Brand Filter -->
+                            <select class="form-select form-select-sm" id="brand-filter" aria-label="Filter Brand">
+                                <option value="">Semua Brand</option>
+                                <?php foreach (($brand_options ?? []) as $brand) : ?>
+                                    <?php $selected = (!empty($filter_keyword['brand']) && in_array($brand, (array)$filter_keyword['brand'])) ? 'selected' : ''; ?>
+                                    <option value="<?= $brand; ?>" <?= $selected; ?>><?= $brand; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+
+                            <!-- Type Filter -->
+                            <select class="form-select form-select-sm" id="type-filter" aria-label="Filter Type">
+                                <option value="">Semua Type</option>
+                                <?php foreach (($type_options ?? []) as $type) : ?>
+                                    <?php $selected = (!empty($filter_keyword['type']) && in_array($type, (array)$filter_keyword['type'])) ? 'selected' : ''; ?>
+                                    <option value="<?= $type; ?>" <?= $selected; ?>><?= $type; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </form>
 
                     <!-- Add Pneumatic Button -->
@@ -82,13 +102,52 @@
                         </th>
 
                         <!-- Type Column -->
-                        <th scope="col" class="text-center">Type</th>
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Type</span>
+                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'type') !== false) : ?>
+                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Type">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
 
                         <!-- Bore Column -->
-                        <th scope="col" class="text-center">Bore</th>
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Bore</span>
+                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'bore') !== false) : ?>
+                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('bore-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Bore (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Bore">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('bore-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Bore (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
 
                         <!-- Stroke Column -->
-                        <th scope="col" class="text-center">Stroke</th>
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Stroke</span>
+                                <?php if (isset($sort_keyword) && strpos($sort_keyword, 'stroke') !== false) : ?>
+                                    <?php if (strpos($sort_keyword, 'ASC') !== false) : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('stroke-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Stroke (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Stroke">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('stroke-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Stroke (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
 
                         <!-- Edit Column -->
                         <th scope="col" class="text-center">Edit</th>
@@ -271,5 +330,36 @@
     // Initialize clear button display on page load
     document.addEventListener('DOMContentLoaded', function() {
         displayClear();
+    });
+
+    // Submit filter selections via POST (uses hidden form created on the fly)
+    function applyFilters() {
+        const brand = document.getElementById('brand-filter').value;
+        const type = document.getElementById('type-filter').value;
+
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'filter';
+        // Build a JSON-encoded associative array for PHP to decode
+        const filterObj = {};
+        if (brand) filterObj.brand = [brand];
+        if (type) filterObj.type = [type];
+        input.value = JSON.stringify(filterObj);
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Wire change events
+    document.addEventListener('DOMContentLoaded', function() {
+        const brandSelect = document.getElementById('brand-filter');
+        const typeSelect = document.getElementById('type-filter');
+        if (brandSelect) brandSelect.addEventListener('change', applyFilters);
+        if (typeSelect) typeSelect.addEventListener('change', applyFilters);
     });
 </script>

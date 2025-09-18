@@ -118,6 +118,10 @@ class Pneumatic extends CI_Controller
             'sort'   => $this->session->userdata('sort'),
         ];
 
+        // Provide distinct values for filter dropdowns (respect current search/filter state)
+        $brandOptions = $this->Pneumatic_model->getPneumaticFilter('brand', $sessionData['search'], $sessionData['filter']);
+        $typeOptions = $this->Pneumatic_model->getPneumaticFilter('type', $sessionData['search'], $sessionData['filter']);
+
         $totalRows = $this->Pneumatic_model->countPneumatic($sessionData['search'], $sessionData['filter']);
         $pagination = $this->setupPagination($totalRows);
 
@@ -136,6 +140,8 @@ class Pneumatic extends CI_Controller
             'search_keyword' => $sessionData['search'],
             'sort_keyword'   => $sessionData['sort'],
             'filter_keyword' => $sessionData['filter'],
+            'brand_options'  => $brandOptions,
+            'type_options'   => $typeOptions,
         ];
 
         $this->render_view('pneumatic/index', $data);
@@ -542,11 +548,23 @@ class Pneumatic extends CI_Controller
         }
 
         if ($this->input->post('sort')) {
-            $this->session->set_userdata('sort', $this->input->post('sort', true));
+            // Accept sort in format 'field-ORDER' where ORDER is ASC or DESC
+            $sortRaw = $this->input->post('sort', true);
+            if (is_string($sortRaw) && preg_match('/^[a-z0-9_\-]+-(ASC|DESC)$/i', $sortRaw)) {
+                $this->session->set_userdata('sort', strtoupper($sortRaw));
+            } elseif ($sortRaw === '') {
+                $this->session->unset_userdata('sort');
+            }
         }
 
         if ($this->input->post('filter')) {
-            $this->session->set_userdata('filter', $this->input->post('filter', true));
+            $filterRaw = $this->input->post('filter', true);
+            // If JSON string submitted by JS, decode it to associative array
+            if (is_string($filterRaw) && ($json = json_decode($filterRaw, true)) !== null) {
+                $this->session->set_userdata('filter', $json);
+            } elseif (is_array($filterRaw)) {
+                $this->session->set_userdata('filter', $filterRaw);
+            }
         }
     }
 
