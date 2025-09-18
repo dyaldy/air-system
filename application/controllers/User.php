@@ -118,7 +118,7 @@ class User extends CI_Controller
         // Prepare view data
         $userCount = count($users);
         $data = [
-            'title'         => 'Data Pengguna Air System',
+            'title'         => 'Data Pengguna',
             'users'         => $users,
             'display'       => ($startData + 1) . ' - ' . ($startData + $userCount) . ' dari ' . $config['total_rows'],
             'sortKeyword'   => ($sessionData['sort'] && strpos($sessionData['sort'], '-') !== false) ? explode('-', $sessionData['sort'], 2) : ['', ''],
