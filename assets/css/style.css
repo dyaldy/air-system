@@ -1,0 +1,86 @@
+.navbar-logo-aoi {
+	height: 2.25rem;
+}
+
+.action-button {
+	width: 1.5rem;
+}
+
+.clear-button {
+	position: absolute;
+	z-index: 40;
+	cursor: pointer;
+	display: none;
+}
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.page-item:first-child .page-link {
+	border-top-left-radius: 999px;
+	border-bottom-left-radius: 999px;
+}
+
+.page-item:last-child .page-link {
+	border-top-right-radius: 999px;
+	border-bottom-right-radius: 999px;
+}
+
+.cust-notification {
+	position: absolute;
+	z-index: 50;
+	left: 1rem;
+	right: 1rem;
+	border-radius: 20px;
+}
+
+.cust-fade-out {
+	-webkit-animation: cust-fade-out 250ms ease-out both;
+	animation: cust-fade-out 250ms ease-out both;
+}
+
+.alert {
+	border-radius: 20px;
+}
+
+@-webkit-keyframes cust-fade-out {
+	0% {
+		opacity: 1;
+	}
+	99% {
+		opacity: 0;
+	}
+	100% {
+		display: none;
+	}
+}
+@keyframes cust-fade-out {
+	0% {
+		opacity: 1;
+	}
+	99% {
+		opacity: 0;
+	}
+	100% {
+		display: none;
+	}
+}
+
+@media (max-width: 768px) {
+	.cust-action-card-container {
+		gap: 3rem;
+	}
+}
+
+.cust-action-card {
+	width: 80%;
+	height: 35vh;
+}
+
+@media (min-width: 768px) {
+	.cust-action-card {
+		width: 40%;
+		height: 80vh;
+	}
+}
