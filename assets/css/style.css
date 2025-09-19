@@ -28,11 +28,16 @@
 }
 
 .cust-notification {
-	position: absolute;
-	z-index: 50;
-	left: 1rem;
-	right: 1rem;
-	border-radius: 20px;
+	 /* Use fixed positioning and a high z-index so notifications appear
+		 above the fixed header (Bootstrap's fixed-top uses z-index ~1030). */
+	 position: fixed;
+	 z-index: 1100;
+	 /* Default top offset chosen to sit below a typical fixed header.
+		 Adjust if your header is taller/shorter. */
+	 top: 4rem;
+	 left: 1rem;
+	 right: 1rem;
+	 border-radius: 20px;
 }
 
 .cust-fade-out {
@@ -107,6 +112,14 @@
 @media (max-width: 768px) {
 	.cust-action-card-container {
 		gap: 3rem;
+	}
+
+	/* On small screens the header is usually taller; reduce horizontal margins
+	   and top offset so the notification stays visible and not too large. */
+	.cust-notification {
+		left: 0.5rem;
+		right: 0.5rem;
+		top: 3.25rem;
 	}
 }
 

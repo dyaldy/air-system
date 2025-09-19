@@ -1,8 +1,10 @@
 <?php if ($this->session->flashdata('action')) : ?>
-    <!-- Flash Notification Alert -->
-    <div class="alert alert-<?= $this->session->flashdata('action')[0]; ?> alert-dismissible fade show" id="notification" role="alert">
-        <?= $this->session->flashdata('action')[1]; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Flash Notification Alert (ASRS-style positioned so it appears below fixed header) -->
+    <div class="cust-notification m-3">
+        <div class="alert alert-<?= $this->session->flashdata('action')[0]; ?> alert-dismissible fade show" id="notification" role="alert">
+            <?= $this->session->flashdata('action')[1]; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>
 <?php endif; ?>
 

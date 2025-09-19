@@ -1,3 +1,14 @@
+<?php // Place the notification block above the card to match ASRS layout and set duration to 3s 
+?>
+<?php if ($this->session->flashdata('action')) : ?>
+    <div class="cust-notification m-3">
+        <div class="alert alert-<?= $this->session->flashdata('action')[0] ?> alert-dismissible fade show" id="notification" role="alert">
+            <?= $this->session->flashdata('action')[1] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+<?php endif; ?>
+
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title -->
@@ -7,13 +18,8 @@
 
     <!-- Card Body with Form -->
     <div class="card-body px-lg-5 px-4 py-4">
-        <?php if (!empty($this->session->flashdata('message'))):
-            $msg = $this->session->flashdata('message');
-            // expected format: [level, text]
-            if (is_array($msg) && count($msg) === 2): ?>
-                <div class="alert alert-<?= htmlspecialchars($msg[0]) ?>"><?= $msg[1] ?></div>
-        <?php endif;
-        endif; ?>
+        <?php // flash alert is rendered above the card (see top of file)
+        ?>
 
         <?php if (function_exists('validation_errors') && validation_errors()): ?>
             <div class="alert alert-danger"><?= validation_errors(); ?></div>
@@ -77,3 +83,10 @@
         reader.readAsDataURL(file);
     });
 </script>
+
+<?php if ($this->session->flashdata('action')) : ?>
+    <script>
+        // ensure duration is 3 seconds (string) to match ASRS exactly
+        window.notificationDuration = "3000";
+    </script>
+<?php endif; ?>
