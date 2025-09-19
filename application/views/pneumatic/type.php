@@ -1,15 +1,3 @@
-/**
-* Pneumatic type selection view
-* Expects: $type_options (array of rows with keys 'type' and optional 'image')
-*/
-?>
-<?php
-/**
- * Pneumatic type selection view (improved UI)
- * Expects: $type_options (array of rows with keys 'type' and 'image_url')
- */
-?>
-
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title and Action -->

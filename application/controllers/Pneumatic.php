@@ -174,22 +174,16 @@ class Pneumatic extends CI_Controller
      */
     public function type(): void
     {
-        // Fetch types from the types table and show only those used by pneumatics.
+        // Fetch all types from the types table - show all available types, not just those with pneumatic records
         $allTypes = $this->Pneumatic_type_model->getAllTypes();
-        // Get distinct types that actually exist in as_pneumatic
-        $dbTypes = $this->Pneumatic_model->getPneumaticFilter('type', null, null);
-        $dbTypesUpper = array_map('strtoupper', $dbTypes ?: []);
 
-        // Build list of type rows (with image filename when available) filtered by actual pneumatics
+        // Build list of type rows with image information
         $typeOptions = [];
         $imgPath = FCPATH . 'assets/img/pneumatic_types/';
         $defaultUrl = base_url('assets/img/pneumatic-default.jpg');
         foreach ($allTypes as $row) {
             $t = (string)($row['type'] ?? '');
             if ($t === '') continue;
-            if (!empty($dbTypesUpper) && !in_array(strtoupper($t), $dbTypesUpper, true)) {
-                continue;
-            }
 
             $image = $row['image'] ?? null;
             $imageUrl = $defaultUrl;
