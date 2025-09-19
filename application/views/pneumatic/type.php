@@ -45,46 +45,22 @@
 </div>
 
 <style>
-    /* Scoped styles for pneumatic type pages */
-    .pneumatic-thumb {
-        width: 100%;
-        height: 160px;
-        overflow: hidden;
-        background: #f5f6f7;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .pneumatic-thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .pneumatic-type-grid .card {
-        border-radius: 0.6rem;
-        overflow: hidden;
-        transition: transform .12s ease, box-shadow .12s ease;
-    }
-
-    .pneumatic-type-grid .card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
-    }
-
+    /* Additional pneumatic type-specific styles */
     .pneumatic-type-label {
         font-weight: 600;
         letter-spacing: .2px;
+        color: #495057;
     }
 
     .pneumatic-type-grid a:focus .card {
         outline: 3px solid rgba(0, 123, 255, 0.12);
+        border-color: #007bff;
     }
-</style>
 
-<!-- Small accessibility tweak: ensure keyboard focus shows card state -->
+    .pneumatic-type-grid a {
+        text-decoration: none !important;
+    }
+</style><!-- Small accessibility tweak: ensure keyboard focus shows card state -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.pneumatic-type-grid a').forEach(function(a) {
