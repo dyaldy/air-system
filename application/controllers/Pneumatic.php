@@ -48,10 +48,10 @@ class Pneumatic extends CI_Controller
             'type' => [
                 'field' => 'type',
                 'label' => 'Type',
-                'rules' => 'required|trim|max_length[5]',
+                'rules' => 'required|trim|max_length[15]|callback_check_type_exists',
                 'errors' => [
                     'required'   => '%s harus diisi',
-                    'max_length' => '%s maksimal 5 karakter',
+                    'max_length' => '%s maksimal 15 karakter',
                 ],
             ],
             'bore' => [
@@ -240,7 +240,17 @@ class Pneumatic extends CI_Controller
             }
         }
 
-        $data = ['title' => 'Tambah Pneumatic'];
+        // Fetch available pneumatic types for dropdown
+        $pneumaticTypes = $this->Pneumatic_type_model->getAllTypes();
+
+        // Check if type is pre-selected from URL parameter
+        $preselectedType = $this->input->get('type', true);
+
+        $data = [
+            'title' => 'Tambah Pneumatic',
+            'pneumatic_types' => $pneumaticTypes,
+            'preselected_type' => $preselectedType
+        ];
         render_view('pneumatic/add', $data);
     }
 
@@ -269,8 +279,12 @@ class Pneumatic extends CI_Controller
             }
         }
 
+        // Fetch available pneumatic types for dropdown
+        $pneumaticTypes = $this->Pneumatic_type_model->getAllTypes();
+
         $data['pneumatic'] = $pneumatic;
         $data['title'] = 'Edit Pneumatic';
+        $data['pneumatic_types'] = $pneumaticTypes;
         render_view('pneumatic/edit', $data);
     }
 
@@ -791,6 +805,25 @@ class Pneumatic extends CI_Controller
 
         return true;
     }
+
+    /**
+     * Custom validation callback to check if selected type exists in pneumatic_types table.
+     *
+     * @param string $type The selected type value
+     * @return bool
+     */
+    public function check_type_exists(string $type): bool
+    {
+        if (!empty($type)) {
+            $typeExists = $this->Pneumatic_type_model->getByType($type);
+            if (!$typeExists) {
+                $this->form_validation->set_message('check_type_exists', 'Type {field} tidak tersedia. Silakan pilih type yang valid.');
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Renders view with common data.
      *

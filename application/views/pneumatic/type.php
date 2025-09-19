@@ -5,7 +5,7 @@
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <h3 class="m-0 mb-1">Pilih Type Pneumatic</h3>
-                <p class="text-muted mb-0">Klik sebuah type untuk melihat daftar pneumatic pada type tersebut.</p>
+                <p class="text-muted mb-0">Pilih sebuah type untuk melihat daftar atau menambah pneumatic baru pada type tersebut.</p>
             </div>
             <div>
                 <a href="<?= site_url('pneumatic') . '?clear_type=1'; ?>" class="btn btn-outline-secondary rounded-pill px-4">Lihat Semua</a>
@@ -25,17 +25,18 @@
                     $typeSafe = htmlspecialchars($type, ENT_QUOTES, 'UTF-8');
                 ?>
                     <div class="col">
-                        <a href="<?= site_url('pneumatic') . '?type=' . urlencode($type); ?>" class="text-decoration-none">
-                            <div class="card h-100 shadow-sm">
-                                <div class="pneumatic-thumb">
-                                    <img src="<?= htmlspecialchars($imgUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $typeSafe ?>" class="img-fluid">
-                                </div>
-                                <div class="card-body text-center">
-                                    <h5 class="card-title pneumatic-type-label mb-1"><?= $typeSafe ?></h5>
-                                    <p class="text-muted small mb-0">Klik untuk lihat daftar</p>
+                        <div class="card h-100 shadow-sm">
+                            <div class="pneumatic-thumb">
+                                <img src="<?= htmlspecialchars($imgUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $typeSafe ?>" class="img-fluid">
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title pneumatic-type-label mb-2"><?= $typeSafe ?></h5>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= site_url('pneumatic') . '?type=' . urlencode($type); ?>" class="btn btn-outline-primary btn-sm">Lihat Daftar</a>
+                                    <a href="<?= site_url('pneumatic/add') . '?type=' . urlencode($type); ?>" class="btn btn-primary btn-sm">Tambah Baru</a>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>

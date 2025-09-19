@@ -32,12 +32,18 @@
                 </div>
             </div>
 
-            <!-- Type Input Section -->
+            <!-- Type Dropdown Section -->
             <div class="mb-2">
                 <label for="type" class="form-label">Type</label>
                 <div class="position-relative">
-                    <input id="type" type="text" class="form-control rounded-pill pe-5 <?= form_error('type') ? 'is-invalid' : '' ?>" name="type" placeholder="DA" value="<?= set_value('type') ? set_value('type') : $pneumatic['type']; ?>" onkeyup="toggleClear('type', 'clear-button-type')" autocomplete="off">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-type" onclick="clearInput('type', 'clear-button-type')" style="top: 7px; <?= form_error('type') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
+                    <select id="type" name="type" class="form-select rounded-pill <?= form_error('type') ? 'is-invalid' : '' ?>">
+                        <option value="">Pilih Type...</option>
+                        <?php foreach ($pneumatic_types as $ptype): ?>
+                            <option value="<?= html_escape($ptype['type']) ?>" <?= set_select('type', $ptype['type'], (set_value('type') ? set_value('type') : $pneumatic['type']) == $ptype['type']) ?>>
+                                <?= html_escape($ptype['type']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                     <?= form_error('type', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
             </div>
@@ -80,10 +86,6 @@
     window.inputConfigs = [{
             id: 'brand',
             button: 'clear-button-brand'
-        },
-        {
-            id: 'type',
-            button: 'clear-button-type'
         },
         {
             id: 'bore',
