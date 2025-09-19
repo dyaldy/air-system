@@ -11,8 +11,11 @@
     <!-- Card Header with Title and Search -->
     <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4">
         <div class="row g-3 align-items-center">
-            <!-- Page Title -->
+            <!-- Kembali Button above Page Title -->
             <div class="col-12 col-lg-6">
+                <div class="mb-2">
+                    <a href="<?= site_url('pneumatic/type'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali ke Pilih Type</a>
+                </div>
                 <h3 class="m-0">Data Pneumatic</h3>
             </div>
 
