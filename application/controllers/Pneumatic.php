@@ -540,7 +540,7 @@ class Pneumatic extends CI_Controller
             $inserted++;
         }
 
-        // Batch insert
+        // Batch insert (after validating types) - insert only if there are no row-level DB risks
         if (!empty($pneumaticData)) {
             $this->Pneumatic_model->insertBatch($pneumaticData);
         }
@@ -655,11 +655,29 @@ class Pneumatic extends CI_Controller
                 ];
             }
 
-            $insertCount  = count($insertData);
+            $insertCount  = 0;
             $skippedCount = count($skippedData);
 
+            // Pre-validate types for each insert row to provide row-level errors instead of DB errors
+            $validInsertData = [];
+            foreach ($insertData as $rowIndex => $row) {
+                $type = $row['type'] ?? '';
+                if (empty($type) || !$this->Pneumatic_type_model->getByType($type)) {
+                    $skippedCount++;
+                    $skippedData[] = "Type tidak tersedia atau tidak terdaftar: {$type}";
+                    continue;
+                }
+                $validInsertData[] = $row;
+            }
+
+            $insertCount = count($validInsertData);
+
+            if ($insertCount > 0) {
+                $this->Pneumatic_model->insertBatch($validInsertData);
+            }
+
+            // Now set flash messages based on skipped/insert counts
             if ($insertCount > 0 && $skippedCount > 0) {
-                $this->Pneumatic_model->insertBatch($insertData);
                 set_message([
                     'warning',
                     "{$insertCount} data berhasil ditambahkan.<br>{$skippedCount} data gagal ditambahkan.<br>" . implode('<br>', $skippedData)
@@ -670,7 +688,6 @@ class Pneumatic extends CI_Controller
                     "{$skippedCount} data gagal ditambahkan.<br>" . implode('<br>', $skippedData)
                 ]);
             } elseif ($insertCount > 0) {
-                $this->Pneumatic_model->insertBatch($insertData);
                 set_message(['success', "Data berhasil ditambahkan! ({$insertCount} data baru)"]);
             } else {
                 set_message(['danger', 'Data kosong!']);
