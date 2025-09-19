@@ -63,9 +63,14 @@
                             <a class="nav-link" href="<?= site_url('user'); ?>">Pengguna</a>
                         </li>
 
-                        <!-- Link to Pneumatic Controller -->
+                        <!-- Link to Pneumatic Controller (goes to type selection) -->
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= site_url('pneumatic'); ?>">Pneumatic</a>
+                            <a class="nav-link" href="<?= site_url('pneumatic/type'); ?>">Pneumatic</a>
+                        </li>
+
+                        <!-- Link to manage types (available to all users) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= site_url('pneumatic_type'); ?>">Kelola Type</a>
                         </li>
 
                         <!-- Link to Report Controller -->

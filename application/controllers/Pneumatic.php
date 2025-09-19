@@ -94,6 +94,7 @@ class Pneumatic extends CI_Controller
         }
 
         $this->load->model('Pneumatic_model');
+        $this->load->model('Pneumatic_type_model');
         $this->load->library(['form_validation', 'pagination']);
         $this->load->helper('common');
 
@@ -113,6 +114,19 @@ class Pneumatic extends CI_Controller
     {
         // Handle Excel uploads using the ASRS-style helper
         $this->handleFileUpload();
+
+        // If a type is provided via GET (from the type selection page), set it as a session filter
+        $getType = $this->input->get('type', true);
+        $clearType = $this->input->get('clear_type', true);
+        if (!empty($clearType)) {
+            // clear any existing filter
+            $this->session->unset_userdata('filter');
+        }
+        if (!empty($getType)) {
+            // normalize to uppercase since types are stored uppercase in DB
+            $this->session->set_userdata('filter', ['type' => [strtoupper($getType)]]);
+        }
+
         $this->handleSessionState();
 
         $sessionData = [
@@ -150,6 +164,69 @@ class Pneumatic extends CI_Controller
         ];
 
         render_view('pneumatic/index', $data);
+    }
+
+    /**
+     * Show type selection page before entering pneumatic index.
+     * Displays available types as image cards; clicking a type navigates to index filtered by that type.
+     *
+     * @return void
+     */
+    public function type(): void
+    {
+        // Fetch types from the types table and show only those used by pneumatics.
+        $allTypes = $this->Pneumatic_type_model->getAllTypes();
+        // Get distinct types that actually exist in as_pneumatic
+        $dbTypes = $this->Pneumatic_model->getPneumaticFilter('type', null, null);
+        $dbTypesUpper = array_map('strtoupper', $dbTypes ?: []);
+
+        // Build list of type rows (with image filename when available) filtered by actual pneumatics
+        $typeOptions = [];
+        $imgPath = FCPATH . 'assets/img/pneumatic_types/';
+        $defaultUrl = base_url('assets/img/pneumatic-default.jpg');
+        foreach ($allTypes as $row) {
+            $t = (string)($row['type'] ?? '');
+            if ($t === '') continue;
+            if (!empty($dbTypesUpper) && !in_array(strtoupper($t), $dbTypesUpper, true)) {
+                continue;
+            }
+
+            $image = $row['image'] ?? null;
+            $imageUrl = $defaultUrl;
+
+            // Prefer stored filename if it exists
+            if (!empty($image)) {
+                $candidate = $imgPath . $image;
+                if (is_file($candidate)) {
+                    $imageUrl = base_url('assets/img/pneumatic_types/' . $image);
+                }
+            }
+
+            // Try type-based filenames if still using default
+            if ($imageUrl === $defaultUrl) {
+                $typeSafe = strtolower($t);
+                foreach (['.jpg', '.png', '.jpeg', '.gif'] as $ext) {
+                    $candidate = $imgPath . $typeSafe . $ext;
+                    if (is_file($candidate)) {
+                        $imageUrl = base_url('assets/img/pneumatic_types/' . $typeSafe . $ext);
+                        break;
+                    }
+                }
+            }
+
+            $typeOptions[] = [
+                'type' => $t,
+                'image' => $image,
+                'image_url' => $imageUrl,
+            ];
+        }
+
+        $data = [
+            'title' => 'Pilih Type Pneumatic',
+            'type_options' => $typeOptions,
+        ];
+
+        render_view('pneumatic/type', $data);
     }
 
     /**
