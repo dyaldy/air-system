@@ -111,6 +111,8 @@ class Pneumatic extends CI_Controller
      */
     public function index(): void
     {
+        // Handle Excel uploads using the ASRS-style helper
+        $this->handleFileUpload();
         $this->handleSessionState();
 
         $sessionData = [
@@ -135,6 +137,7 @@ class Pneumatic extends CI_Controller
         );
 
         $data = [
+            'title'          => 'Data Pneumatic',
             'pneumatics'     => $pneumatics,
             'pagination'     => $pagination,
             'total_rows'     => $totalRows,
@@ -166,7 +169,8 @@ class Pneumatic extends CI_Controller
             }
         }
 
-        $this->render_view('pneumatic/add');
+        $data = ['title' => 'Tambah Pneumatic'];
+        render_view('pneumatic/add', $data);
     }
 
     /**
@@ -195,7 +199,8 @@ class Pneumatic extends CI_Controller
         }
 
         $data['pneumatic'] = $pneumatic;
-        $this->render_view('pneumatic/edit', $data);
+        $data['title'] = 'Edit Pneumatic';
+        render_view('pneumatic/edit', $data);
     }
 
     /**
@@ -246,11 +251,11 @@ class Pneumatic extends CI_Controller
         try {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
-            $headers = ['Brand', 'Type', 'Bore', 'Stroke'];
-
-            foreach ($headers as $index => $header) {
-                $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
-            }
+            // Use letter-style headers like ASRS
+            $sheet->setCellValue('A1', 'Brand');
+            $sheet->setCellValue('B1', 'Type');
+            $sheet->setCellValue('C1', 'Bore');
+            $sheet->setCellValue('D1', 'Stroke');
 
             $filename = 'Template Data Pneumatic.xlsx';
             $this->outputExcelFile($spreadsheet, $filename);
@@ -265,68 +270,16 @@ class Pneumatic extends CI_Controller
      *
      * @return void
      */
+    // Upload handling is performed in index() via handleFileUpload() to match ASRS (no separate public upload endpoint)
+    /**
+     * Public wrapper for upload POSTs — delegates to handleFileUpload().
+     * Prevents 404 for forms that POST to /pneumatic/upload while keeping logic centralized.
+     *
+     * @return void
+     */
     public function upload(): void
     {
-        // Accept file-only multipart POST submissions; don't rely on $this->input->post()
-        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-            redirect('pneumatic');
-            return;
-        }
-
-        // Basic server-side guard if no file provided
-        if (empty($_FILES['file']) || (int)($_FILES['file']['error'] ?? UPLOAD_ERR_OK) === UPLOAD_ERR_NO_FILE) {
-            set_message(['danger', 'Tidak ada file yang diunggah. Pilih file Excel terlebih dahulu.']);
-            redirect('pneumatic');
-            return;
-        }
-
-        $config['upload_path'] = './uploads/';
-        $config['allowed_types'] = 'xlsx|xls';
-        $config['max_size'] = 2048; // 2MB
-        $config['file_name'] = 'pneumatic_upload_' . time();
-
-        // Create upload directory if it doesn't exist
-        if (!is_dir($config['upload_path'])) {
-            mkdir($config['upload_path'], 0777, true);
-        }
-
-        $this->load->library('upload', $config);
-
-        if (!$this->upload->do_upload('file')) {
-            set_message(['danger', 'Upload error: ' . $this->upload->display_errors()]);
-            redirect('pneumatic');
-            return;
-        }
-
-        $uploadData = $this->upload->data();
-        $filePath = $uploadData['full_path'];
-
-        try {
-            $result = $this->processExcelFile($filePath);
-            unlink($filePath); // Remove uploaded file
-
-            if ($result['success']) {
-                set_message(['success', "Data berhasil diimport. {$result['inserted']} pneumatic ditambahkan."]);
-            } elseif ($result['inserted'] > 0) {
-                $errorDetails = implode('<br>', $result['errorMessages']);
-                set_message([
-                    'warning',
-                    "Import selesai dengan peringatan. {$result['inserted']} pneumatic ditambahkan, {$result['errors']} error.<br><br>Detail error:<br>{$errorDetails}"
-                ]);
-            } else {
-                $errorDetails = implode('<br>', $result['errorMessages']);
-                set_message([
-                    'danger',
-                    "Import gagal. {$result['errors']} error ditemukan.<br><br>Detail error:<br>{$errorDetails}"
-                ]);
-            }
-        } catch (Exception $e) {
-            unlink($filePath);
-            log_message('error', 'Excel processing error: ' . $e->getMessage());
-            set_message(['danger', 'Error processing file: ' . $e->getMessage()]);
-        }
-
-        redirect('pneumatic');
+        $this->handleFileUpload();
     }
 
     ## Private Helper Methods
@@ -342,24 +295,46 @@ class Pneumatic extends CI_Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Set headers
-        $headers = ['Pneumatic ID', 'Brand', 'Type', 'Bore', 'Stroke', 'Created At', 'Updated At', 'Editor'];
-        foreach ($headers as $index => $header) {
-            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
-        }
+        // Set headers (letter style like ASRS)
+        $sheet->setCellValue('A1', 'Pneumatic ID');
+        $sheet->setCellValue('B1', 'Brand');
+        $sheet->setCellValue('C1', 'Type');
+        $sheet->setCellValue('D1', 'Bore');
+        $sheet->setCellValue('E1', 'Stroke');
+        $sheet->setCellValue('F1', 'Created At');
+        $sheet->setCellValue('G1', 'Updated At');
+        $sheet->setCellValue('H1', 'Editor');
+
+        // Style headers similar to ASRS
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E9ECEF']
+            ]
+        ];
+        // Apply style to header row (A1:..)
+        $highestColumn = $sheet->getHighestColumn();
+        $sheet->getStyle("A1:{$highestColumn}1")->applyFromArray($headerStyle);
 
         // Add data
         $row = 2;
         foreach ($pneumatics as $pneumatic) {
-            $sheet->setCellValueByColumnAndRow(1, $row, $pneumatic['pneumatic_id']);
-            $sheet->setCellValueByColumnAndRow(2, $row, $pneumatic['brand']);
-            $sheet->setCellValueByColumnAndRow(3, $row, $pneumatic['type']);
-            $sheet->setCellValueByColumnAndRow(4, $row, $pneumatic['bore']);
-            $sheet->setCellValueByColumnAndRow(5, $row, $pneumatic['stroke']);
-            $sheet->setCellValueByColumnAndRow(6, $row, $pneumatic['created_at']);
-            $sheet->setCellValueByColumnAndRow(7, $row, $pneumatic['updated_at']);
-            $sheet->setCellValueByColumnAndRow(8, $row, $pneumatic['editor']);
+            $sheet->setCellValue("A{$row}", $pneumatic['pneumatic_id']);
+            $sheet->setCellValue("B{$row}", $pneumatic['brand']);
+            $sheet->setCellValue("C{$row}", $pneumatic['type']);
+            $sheet->setCellValue("D{$row}", $pneumatic['bore']);
+            $sheet->setCellValue("E{$row}", $pneumatic['stroke']);
+            $sheet->setCellValue("F{$row}", $pneumatic['created_at']);
+            $sheet->setCellValue("G{$row}", $pneumatic['updated_at']);
+            $sheet->setCellValue("H{$row}", $pneumatic['editor']);
             $row++;
+        }
+
+        // Auto-filter and auto-size columns (ASRS style)
+        $sheet->setAutoFilter('A1:H1');
+        foreach (range('A', 'H') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
         $filename = 'Data Pneumatic.xlsx';
@@ -382,6 +357,7 @@ class Pneumatic extends CI_Controller
         header('Cache-Control: max-age=0');
 
         $writer->save('php://output');
+        exit;
     }
 
     /**
@@ -490,6 +466,137 @@ class Pneumatic extends CI_Controller
             'errors' => count($errorMessages),
             'errorMessages' => $errorMessages
         ];
+    }
+
+    /**
+     * Handle file upload posted to index (ASRS-style).
+     * This mirrors the upload handling in ASRS User controller but for pneumatic data.
+     *
+     * @return void
+     */
+    private function handleFileUpload(): void
+    {
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !isset($_FILES['file'])) {
+            return;
+        }
+
+        if (
+            $_FILES['file']['error'] !== UPLOAD_ERR_OK ||
+            empty($_FILES['file']['tmp_name']) ||
+            !is_uploaded_file($_FILES['file']['tmp_name'])
+        ) {
+            set_message(['danger', 'File upload tidak valid']);
+            return;
+        }
+
+        $file = $_FILES['file']['tmp_name'];
+
+        try {
+            $spreadsheet = @IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray(null, true, true, true);
+            array_shift($data); // remove header row
+
+            $skippedData = [];
+            $insertData  = [];
+
+            foreach ($data as $rowIndex => $row) {
+                // Validate required fields
+                if (!$row['A'] && !$row['B'] && !$row['C'] && !$row['D']) {
+                    continue; // skip empty row
+                }
+
+                if (!$row['A']) {
+                    $skippedData[] = "Brand tidak boleh kosong";
+                    continue;
+                }
+
+                if (!$row['B']) {
+                    $skippedData[] = "Type tidak boleh kosong";
+                    continue;
+                }
+
+                if (!$row['C']) {
+                    $skippedData[] = "Bore tidak boleh kosong";
+                    continue;
+                }
+
+                if (!$row['D']) {
+                    $skippedData[] = "Stroke tidak boleh kosong";
+                    continue;
+                }
+
+                $brand = $row['A'] ?? '';
+                $type = $row['B'] ?? '';
+                $bore = $row['C'] ?? '';
+                $stroke = $row['D'] ?? '';
+
+                if (strlen($brand) > 15) {
+                    $skippedData[] = "Brand maksimal 15 karakter: {$brand}";
+                    continue;
+                }
+
+                if (strlen($type) > 5) {
+                    $skippedData[] = "Type maksimal 5 karakter: {$type}";
+                    continue;
+                }
+
+                if (!is_numeric($bore) || $bore <= 0) {
+                    $skippedData[] = "Bore harus berupa angka positif: {$bore}";
+                    continue;
+                }
+
+                if (!is_numeric($stroke) || $stroke <= 0) {
+                    $skippedData[] = "Stroke harus berupa angka positif: {$stroke}";
+                    continue;
+                }
+
+                $pneumaticId = 'pnm-' . strtolower(trim($brand)) . '-' . strtolower(trim($type)) . '-' . $bore . '-' . $stroke;
+
+                if ($this->Pneumatic_model->isPneumaticIdExists($pneumaticId)) {
+                    $skippedData[] = "Kombinasi pneumatic sudah terdaftar (Brand: {$brand}, Type: {$type}, Bore: {$bore}, Stroke: {$stroke})";
+                    continue;
+                }
+
+                $insertData[] = [
+                    'pneumatic_id' => $pneumaticId,
+                    'brand'        => strtoupper(trim($brand)),
+                    'type'         => strtoupper(trim($type)),
+                    'bore'         => (int)$bore,
+                    'stroke'       => (int)$stroke,
+                    'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'editor'       => $this->session->userdata('user_data')['nik']
+                ];
+            }
+
+            $insertCount  = count($insertData);
+            $skippedCount = count($skippedData);
+
+            if ($insertCount > 0 && $skippedCount > 0) {
+                $this->Pneumatic_model->insertBatch($insertData);
+                set_message([
+                    'warning',
+                    "{$insertCount} data berhasil ditambahkan.<br>{$skippedCount} data gagal ditambahkan.<br>" . implode('<br>', $skippedData)
+                ]);
+            } elseif ($skippedCount > 0) {
+                set_message([
+                    'danger',
+                    "{$skippedCount} data gagal ditambahkan.<br>" . implode('<br>', $skippedData)
+                ]);
+            } elseif ($insertCount > 0) {
+                $this->Pneumatic_model->insertBatch($insertData);
+                set_message(['success', "Data berhasil ditambahkan! ({$insertCount} data baru)"]);
+            } else {
+                set_message(['danger', 'Data kosong!']);
+            }
+
+            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
+            redirect('pneumatic');
+        } catch (Exception $e) {
+            log_message('error', 'File upload error: ' . $e->getMessage());
+            set_message(['danger', 'Terjadi kesalahan dalam membaca file Excel.']);
+        }
     }
 
     /**
@@ -620,11 +727,5 @@ class Pneumatic extends CI_Controller
      * @param array $data Additional data to pass to view
      * @return void
      */
-    private function render_view(string $view, array $data = []): void
-    {
-        $data['title'] = 'Data Pneumatic';
-        $this->load->view('templates/header', $data);
-        $this->load->view($view, $data);
-        $this->load->view('templates/footer');
-    }
+    // Removed private render_view to use the common helper `render_view()` across controllers
 }

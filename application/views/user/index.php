@@ -167,7 +167,7 @@
                         </li>
                     </ul>
                 </div>
-                <form id="uploadForm" action="<?= site_url('user/upload'); ?>" method="POST" enctype="multipart/form-data">
+                <form id="uploadForm" action="" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="formFile" class="form-label">Pilih File Excel</label>
                         <input class="form-control" type="file" id="formFile" name="file" accept=".xlsx,.xls" required>

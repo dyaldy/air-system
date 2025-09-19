@@ -8,10 +8,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
- * User controller for air-system.
- *
- * Manage users: listing, search/filter/sort, CRUD operations, and Excel import/export following ASRS conventions.
- *
  * @package AirSystem
  * @subpackage Controllers
  * @category User
@@ -91,6 +87,8 @@ class User extends CI_Controller
      */
     public function index(): void
     {
+        // Handle possible Excel file upload like ASRS implementation
+        $this->handleFileUpload();
         $this->handleSessionState();
 
         $sessionData = [
@@ -285,68 +283,17 @@ class User extends CI_Controller
      *
      * @return void
      */
+    // Upload handling is performed in index() via handleFileUpload() to match ASRS (no separate public upload endpoint)
+    /**
+     * Public wrapper for upload POSTs — delegates to handleFileUpload().
+     * Keeps a single implementation while preventing 404 when a form posts to /user/upload.
+     *
+     * @return void
+     */
     public function upload(): void
     {
-        // Accept file-only multipart POST submissions; don't rely on $this->input->post()
-        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-            redirect('user');
-            return;
-        }
-
-        // Basic server-side guard if no file provided
-        if (empty($_FILES['file']) || (int)($_FILES['file']['error'] ?? UPLOAD_ERR_OK) === UPLOAD_ERR_NO_FILE) {
-            set_message(['danger', 'Tidak ada file yang diunggah. Pilih file Excel terlebih dahulu.']);
-            redirect('user');
-            return;
-        }
-
-        $config['upload_path'] = './uploads/';
-        $config['allowed_types'] = 'xlsx|xls';
-        $config['max_size'] = 2048; // 2MB
-        $config['file_name'] = 'user_upload_' . time();
-
-        // Create upload directory if it doesn't exist
-        if (!is_dir($config['upload_path'])) {
-            mkdir($config['upload_path'], 0777, true);
-        }
-
-        $this->load->library('upload', $config);
-
-        if (!$this->upload->do_upload('file')) {
-            set_message(['danger', 'Upload error: ' . $this->upload->display_errors()]);
-            redirect('user');
-            return;
-        }
-
-        $uploadData = $this->upload->data();
-        $filePath = $uploadData['full_path'];
-
-        try {
-            $result = $this->processExcelFile($filePath);
-            unlink($filePath); // Remove uploaded file
-
-            if ($result['success']) {
-                set_message(['success', "Data berhasil diimport. {$result['inserted']} pengguna ditambahkan."]);
-            } elseif ($result['inserted'] > 0) {
-                $errorDetails = implode('<br>', $result['errorMessages']);
-                set_message([
-                    'warning',
-                    "Import selesai dengan peringatan. {$result['inserted']} pengguna ditambahkan, {$result['errors']} error.<br><br>Detail error:<br>{$errorDetails}"
-                ]);
-            } else {
-                $errorDetails = implode('<br>', $result['errorMessages']);
-                set_message([
-                    'danger',
-                    "Import gagal. {$result['errors']} error ditemukan.<br><br>Detail error:<br>{$errorDetails}"
-                ]);
-            }
-        } catch (Exception $e) {
-            unlink($filePath);
-            log_message('error', 'Excel processing error: ' . $e->getMessage());
-            set_message(['danger', 'Error processing file: ' . $e->getMessage()]);
-        }
-
-        redirect('user');
+        // Delegate to the central handler which expects a file in \\$_FILES['file']
+        $this->handleFileUpload();
     }
 
     ## Private Helper Methods
@@ -448,6 +395,108 @@ class User extends CI_Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+    }
+
+    /**
+     * Process uploaded Excel file and insert valid user records (mirrors ASRS implementation).
+     *
+     * This method will run when a file is POSTed to the index route.
+     *
+     * @return void
+     */
+    private function handleFileUpload(): void
+    {
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !isset($_FILES['file'])) {
+            return;
+        }
+
+        if (
+            $_FILES['file']['error'] !== UPLOAD_ERR_OK ||
+            empty($_FILES['file']['tmp_name']) ||
+            !is_uploaded_file($_FILES['file']['tmp_name'])
+        ) {
+            set_message(['danger', 'File upload tidak valid']);
+            return;
+        }
+
+        $file = $_FILES['file']['tmp_name'];
+
+        try {
+            $spreadsheet = @IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray(null, true, true, true);
+            array_shift($data); // remove header row
+
+            $skippedData = [];
+            $insertData  = [];
+
+            foreach ($data as $row) {
+                // Validate required fields
+                if (!$row['A']) {
+                    $skippedData[] = "NIK tidak boleh kosong";
+                    continue;
+                }
+
+                if (!$row['B']) {
+                    $skippedData[] = "Nama tidak boleh kosong";
+                    continue;
+                }
+
+                $rowNik = trim($row['A'] ?? '');
+                $rowName = ucwords(strtolower(trim($row['B'] ?? '')));
+
+                // Validate NIK format
+                if (!ctype_digit($rowNik)) {
+                    $skippedData[] = "NIK harus angka: {$rowNik}";
+                    continue;
+                }
+                if (strlen($rowNik) !== 9) {
+                    $skippedData[] = "NIK harus berjumlah 9 digit: {$rowNik}";
+                    continue;
+                }
+
+                // Check if NIK already exists
+                if ($this->User_model->isNikExists($rowNik)) {
+                    $skippedData[] = "NIK sudah terdaftar: {$rowNik}";
+                    continue;
+                }
+
+                $insertData[] = [
+                    'nik'        => $rowNik,
+                    'name'       => $rowName,
+                    'created_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'editor'     => $this->session->userdata('user_data')['nik'],
+                ];
+            }
+
+            $insertCount  = count($insertData);
+            $skippedCount = count($skippedData);
+
+            if ($insertCount > 0 && $skippedCount > 0) {
+                $this->User_model->insertBatch($insertData);
+                set_message([
+                    'warning',
+                    "{$insertCount} data berhasil ditambahkan.<br>{$skippedCount} data gagal ditambahkan.<br>" . implode('<br>', $skippedData)
+                ]);
+            } elseif ($skippedCount > 0) {
+                set_message([
+                    'danger',
+                    "{$skippedCount} data gagal ditambahkan.<br>" . implode('<br>', $skippedData)
+                ]);
+            } elseif ($insertCount > 0) {
+                $this->User_model->insertBatch($insertData);
+                set_message(['success', "Data berhasil ditambahkan! ({$insertCount} data baru)"]);
+            } else {
+                set_message(['danger', 'Data kosong!']);
+            }
+
+            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
+            redirect('user');
+        } catch (Exception $e) {
+            log_message('error', 'File upload error: ' . $e->getMessage());
+            set_message(['danger', 'Terjadi kesalahan dalam membaca file Excel.']);
+        }
     }
 
     /**
