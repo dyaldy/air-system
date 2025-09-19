@@ -21,9 +21,36 @@
                             </div>
                             <div class="card-body text-center">
                                 <h5 class="card-title mb-2"><?= htmlspecialchars($t['type'], ENT_QUOTES, 'UTF-8') ?></h5>
+
+                                <?php if ($t['is_in_use']): ?>
+                                    <!-- Show usage count if type is in use -->
+                                    <small class="text-muted mb-2 d-block">Digunakan oleh <?= $t['usage_count'] ?> pneumatic</small>
+                                <?php endif; ?>
+
                                 <div class="d-flex justify-content-center gap-2">
                                     <a href="<?= site_url('pneumatic_type/edit/' . $t['id']) ?>" class="btn btn-sm btn-outline-warning">Edit</a>
-                                    <a href="<?= site_url('pneumatic_type/delete/' . $t['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus type ini?')">Hapus</a>
+
+                                    <?php if ($t['is_in_use']): ?>
+                                        <!-- Wrapper for disabled button to ensure tooltip works -->
+                                        <span class="d-inline-block"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Tidak dapat dihapus karena sedang digunakan oleh <?= $t['usage_count'] ?> pneumatic">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                disabled
+                                                style="pointer-events: none;">
+                                                Hapus
+                                            </button>
+                                        </span>
+                                    <?php else: ?>
+                                        <!-- Normal delete button for unused types -->
+                                        <a href="<?= site_url('pneumatic_type/delete/' . $t['id']) ?>"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Hapus type ini?')">
+                                            Hapus
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -35,3 +62,13 @@
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+    // Initialize Bootstrap tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>

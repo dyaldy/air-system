@@ -16,8 +16,16 @@ class Pneumatic_type extends CI_Controller
 
     public function index(): void
     {
+        $types = $this->Pneumatic_type_model->getAllTypes();
+
+        // Add usage information to each type
+        foreach ($types as &$type) {
+            $type['usage_count'] = $this->Pneumatic_type_model->getUsageCount($type['type']);
+            $type['is_in_use'] = $type['usage_count'] > 0;
+        }
+
         $data['title'] = 'Kelola Type Pneumatic';
-        $data['types'] = $this->Pneumatic_type_model->getAllTypes();
+        $data['types'] = $types;
         render_view('pneumatic/manage_types', $data);
     }
 
@@ -75,14 +83,28 @@ class Pneumatic_type extends CI_Controller
             redirect('pneumatic_type');
         }
 
+        // Check if type is being used by any pneumatic records
+        if ($this->Pneumatic_type_model->isTypeInUse($typeRow['type'])) {
+            $usageCount = $this->Pneumatic_type_model->getUsageCount($typeRow['type']);
+            set_message(['warning', "Type '{$typeRow['type']}' tidak dapat dihapus karena sedang digunakan oleh {$usageCount} pneumatic. Hapus terlebih dahulu pneumatic yang menggunakan type ini."]);
+            redirect('pneumatic_type');
+        }
+
         // delete image file if exists
         if (!empty($typeRow['image'])) {
             $filePath = FCPATH . 'assets/img/pneumatic_types/' . $typeRow['image'];
             if (is_file($filePath)) @unlink($filePath);
         }
 
-        $this->Pneumatic_type_model->deleteType($id);
-        set_message(['success', 'Type berhasil dihapus']);
+        try {
+            $this->Pneumatic_type_model->deleteType($id);
+            set_message(['success', 'Type berhasil dihapus']);
+        } catch (Exception $e) {
+            // Handle any database constraint errors as fallback
+            log_message('error', 'Error deleting pneumatic type: ' . $e->getMessage());
+            set_message(['danger', 'Gagal menghapus type. Type ini mungkin sedang digunakan oleh pneumatic lain.']);
+        }
+
         redirect('pneumatic_type');
     }
 

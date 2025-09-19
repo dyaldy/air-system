@@ -62,4 +62,28 @@ class Pneumatic_type_model extends CI_Model
         }
         return $this->db->count_all_results($this->table) > 0;
     }
+
+    /**
+     * Check if a pneumatic type is being used by any pneumatic records.
+     *
+     * @param string $type The type to check
+     * @return bool True if type is being used, false otherwise
+     */
+    public function isTypeInUse(string $type): bool
+    {
+        $this->db->where('type', strtoupper($type));
+        return $this->db->count_all_results('as_pneumatic') > 0;
+    }
+
+    /**
+     * Get count of pneumatic records using this type.
+     *
+     * @param string $type The type to check
+     * @return int Number of pneumatic records using this type
+     */
+    public function getUsageCount(string $type): int
+    {
+        $this->db->where('type', strtoupper($type));
+        return $this->db->count_all_results('as_pneumatic');
+    }
 }
