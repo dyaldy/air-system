@@ -155,10 +155,7 @@
                         </th>
 
                         <!-- Edit Column -->
-                        <th scope="col" class="text-center">Edit</th>
-
-                        <!-- Delete Column -->
-                        <th scope="col" class="text-center pe-lg-5 pe-4">Delete</th>
+                        <th scope="col" class="text-center pe-lg-5 pe-4">Edit</th>
                     </tr>
                 </thead>
 
@@ -171,14 +168,9 @@
                             <td class="text-center"><?= $pneumatic['type']; ?></td>
                             <td class="text-center"><?= $pneumatic['bore']; ?></td>
                             <td class="text-center"><?= $pneumatic['stroke']; ?></td>
-                            <td class="text-center">
+                            <td class="text-center pe-lg-5 pe-4">
                                 <a href="<?= site_url('pneumatic/edit/' . urlencode($pneumatic['pneumatic_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit pneumatic">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
-                                </a>
-                            </td>
-                            <td class="text-center pe-lg-5 pe-4">
-                                <a href="<?= site_url('pneumatic/delete/' . urlencode($pneumatic['pneumatic_id'])); ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus pneumatic ini?')" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus pneumatic">
-                                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button">
                                 </a>
                             </td>
                         </tr>
