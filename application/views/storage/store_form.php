@@ -39,91 +39,85 @@
         <!-- Store Form -->
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card rounded-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Form Simpan Barang</h5>
-                    </div>
-                    <div class="card-body">
-                        <?= form_open('storage/store', ['class' => 'needs-validation', 'novalidate' => '']); ?>
+                <h5 class="mb-4">Form Simpan Barang</h5>
+                <?= form_open('storage/store', ['class' => 'needs-validation', 'novalidate' => '']); ?>
 
-                        <!-- Location ID -->
-                        <div class="mb-3">
-                            <label for="location_id" class="form-label">ID Lokasi <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control <?= form_error('location_id') ? 'is-invalid' : ''; ?>"
-                                id="location_id" name="location_id" value="<?= set_value('location_id'); ?>"
-                                maxlength="3" placeholder="Masukkan ID lokasi 3 karakter (mis: A01)" required>
-                            <div class="form-text">Masukkan pengidentifikasi lokasi 3 karakter</div>
-                            <?php if (form_error('location_id')): ?>
-                                <div class="invalid-feedback"><?= form_error('location_id'); ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Category -->
-                        <div class="mb-3">
-                            <label for="category" class="form-label">Kategori <span class="text-danger">*</span></label>
-                            <select class="form-select <?= form_error('category') ? 'is-invalid' : ''; ?>"
-                                id="category" name="category" required onchange="updateTypeOptions()">
-                                <option value="">Pilih Kategori</option>
-                                <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
-                                <option value="valve" <?= set_select('category', 'valve'); ?>>Valve</option>
-                                <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
-                                <option value="sensor" <?= set_select('category', 'sensor'); ?>>Sensor</option>
-                                <option value="other" <?= set_select('category', 'other'); ?>>Other</option>
-                            </select>
-                            <?php if (form_error('category')): ?>
-                                <div class="invalid-feedback"><?= form_error('category'); ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Type ID -->
-                        <div class="mb-3">
-                            <label for="type_id" class="form-label">ID Tipe <span class="text-danger">*</span></label>
-                            <select class="form-select <?= form_error('type_id') ? 'is-invalid' : ''; ?>"
-                                id="type_id" name="type_id" required>
-                                <option value="">Pilih ID Tipe</option>
-                                <!-- Options will be populated based on category selection -->
-                            </select>
-                            <div class="form-text">Pilih tipe/model spesifik dari barang</div>
-                            <?php if (form_error('type_id')): ?>
-                                <div class="invalid-feedback"><?= form_error('type_id'); ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Quantity -->
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Jumlah <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control <?= form_error('quantity') ? 'is-invalid' : ''; ?>"
-                                id="quantity" name="quantity" value="<?= set_value('quantity'); ?>"
-                                min="1" step="1" placeholder="Masukkan jumlah" required>
-                            <div class="form-text">Masukkan jumlah barang yang akan disimpan</div>
-                            <?php if (form_error('quantity')): ?>
-                                <div class="invalid-feedback"><?= form_error('quantity'); ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Note -->
-                        <div class="mb-3">
-                            <label for="note" class="form-label">Catatan (Opsional)</label>
-                            <textarea class="form-control <?= form_error('note') ? 'is-invalid' : ''; ?>"
-                                id="note" name="note" rows="3" maxlength="255"
-                                placeholder="Tambahkan catatan tambahan tentang operasi penyimpanan ini"><?= set_value('note'); ?></textarea>
-                            <div class="form-text">Catatan opsional tentang operasi penyimpanan</div>
-                            <?php if (form_error('note')): ?>
-                                <div class="invalid-feedback"><?= form_error('note'); ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Batal</button>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> Simpan Barang
-                            </button>
-                        </div>
-
-                        <?= form_close(); ?>
-                    </div>
+                <!-- Location ID -->
+                <div class="mb-3">
+                    <label for="location_id" class="form-label">ID Lokasi <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control <?= form_error('location_id') ? 'is-invalid' : ''; ?>"
+                        id="location_id" name="location_id" value="<?= set_value('location_id'); ?>"
+                        maxlength="3" placeholder="Masukkan ID lokasi 3 karakter (mis: A01)" required>
+                    <div class="form-text">Masukkan pengidentifikasi lokasi 3 karakter</div>
+                    <?php if (form_error('location_id')): ?>
+                        <div class="invalid-feedback"><?= form_error('location_id'); ?></div>
+                    <?php endif; ?>
                 </div>
+
+                <!-- Category -->
+                <div class="mb-3">
+                    <label for="category" class="form-label">Kategori <span class="text-danger">*</span></label>
+                    <select class="form-select <?= form_error('category') ? 'is-invalid' : ''; ?>"
+                        id="category" name="category" required onchange="updateTypeOptions()">
+                        <option value="">Pilih Kategori</option>
+                        <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
+                        <option value="valve" <?= set_select('category', 'valve'); ?>>Valve</option>
+                        <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
+                        <option value="sensor" <?= set_select('category', 'sensor'); ?>>Sensor</option>
+                        <option value="other" <?= set_select('category', 'other'); ?>>Other</option>
+                    </select>
+                    <?php if (form_error('category')): ?>
+                        <div class="invalid-feedback"><?= form_error('category'); ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Type ID -->
+                <div class="mb-3">
+                    <label for="type_id" class="form-label">ID Tipe <span class="text-danger">*</span></label>
+                    <select class="form-select <?= form_error('type_id') ? 'is-invalid' : ''; ?>"
+                        id="type_id" name="type_id" required>
+                        <option value="">Pilih ID Tipe</option>
+                        <!-- Options will be populated based on category selection -->
+                    </select>
+                    <div class="form-text">Pilih tipe/model spesifik dari barang</div>
+                    <?php if (form_error('type_id')): ?>
+                        <div class="invalid-feedback"><?= form_error('type_id'); ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Quantity -->
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Jumlah <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control <?= form_error('quantity') ? 'is-invalid' : ''; ?>"
+                        id="quantity" name="quantity" value="<?= set_value('quantity'); ?>"
+                        min="1" step="1" placeholder="Masukkan jumlah" required>
+                    <div class="form-text">Masukkan jumlah barang yang akan disimpan</div>
+                    <?php if (form_error('quantity')): ?>
+                        <div class="invalid-feedback"><?= form_error('quantity'); ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Note -->
+                <div class="mb-3">
+                    <label for="note" class="form-label">Catatan (Opsional)</label>
+                    <textarea class="form-control <?= form_error('note') ? 'is-invalid' : ''; ?>"
+                        id="note" name="note" rows="3" maxlength="255"
+                        placeholder="Tambahkan catatan tambahan tentang operasi penyimpanan ini"><?= set_value('note'); ?></textarea>
+                    <div class="form-text">Catatan opsional tentang operasi penyimpanan</div>
+                    <?php if (form_error('note')): ?>
+                        <div class="invalid-feedback"><?= form_error('note'); ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">Batal</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Simpan Barang
+                    </button>
+                </div>
+
+                <?= form_close(); ?>
             </div>
         </div>
 
