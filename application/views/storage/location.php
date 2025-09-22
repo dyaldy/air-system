@@ -19,18 +19,18 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="text-primary">Storage Location: <?= htmlspecialchars($location_id); ?></h2>
-                    <p class="text-muted">Items stored in this location</p>
+                    <h2 class="text-primary">Lokasi Penyimpanan: <?= htmlspecialchars($location_id); ?></h2>
+                    <p class="text-muted">Barang yang disimpan di lokasi ini</p>
                 </div>
                 <div class="d-flex gap-2">
                     <a href="<?= site_url('storage/store'); ?>" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Store Items
+                        <i class="fas fa-plus"></i> Simpan Barang
                     </a>
                     <a href="<?= site_url('storage/take'); ?>" class="btn btn-warning">
-                        <i class="fas fa-minus"></i> Take Items
+                        <i class="fas fa-minus"></i> Ambil Barang
                     </a>
                     <a href="<?= site_url('storage'); ?>" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Overview
+                        <i class="fas fa-arrow-left"></i> Kembali ke Overview
                     </a>
                 </div>
             </div>
@@ -44,7 +44,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Total Items</h6>
+                            <h6 class="card-title">Total Barang</h6>
                             <h3><?= count($storage_items); ?></h3>
                         </div>
                         <div class="align-self-center">
@@ -60,7 +60,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Total Quantity</h6>
+                            <h6 class="card-title">Total Jumlah</h6>
                             <h3><?= array_sum(array_column($storage_items, 'amount')); ?></h3>
                         </div>
                         <div class="align-self-center">
@@ -76,7 +76,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Categories</h6>
+                            <h6 class="card-title">Kategori</h6>
                             <h3><?= count(array_unique(array_column($storage_items, 'category'))); ?></h3>
                         </div>
                         <div class="align-self-center">
@@ -92,7 +92,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="card-title">Last Updated</h6>
+                            <h6 class="card-title">Terakhir Diperbarui</h6>
                             <small>
                                 <?php
                                 $latest = '';
@@ -101,7 +101,7 @@
                                         $latest = $item['updated_at'];
                                     }
                                 }
-                                echo $latest ? date('M d, Y', strtotime($latest)) : 'No data';
+                                echo $latest ? date('M d, Y', strtotime($latest)) : 'Tidak ada data';
                                 ?>
                             </small>
                         </div>
@@ -119,10 +119,10 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Items in Storage</h5>
+                    <h5 class="mb-0">Barang di Penyimpanan</h5>
                     <div class="btn-group">
                         <a href="<?= site_url('storage/export_location_excel/' . $location_id); ?>" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-download"></i> Export Excel
+                            <i class="fas fa-download"></i> Ekspor Excel
                         </a>
                     </div>
                 </div>
@@ -132,13 +132,13 @@
                             <table class="table table-striped table-hover" id="storageTable">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Category</th>
-                                        <th>Type ID</th>
-                                        <th>Quantity</th>
-                                        <th>Created</th>
-                                        <th>Last Updated</th>
+                                        <th>Kategori</th>
+                                        <th>ID Tipe</th>
+                                        <th>Jumlah</th>
+                                        <th>Dibuat</th>
+                                        <th>Terakhir Diperbarui</th>
                                         <th>Editor</th>
-                                        <th>Actions</th>
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -160,7 +160,7 @@
                                                 <small><?= date('M d, Y H:i', strtotime($item['updated_at'])); ?></small>
                                             </td>
                                             <td>
-                                                <small><?= htmlspecialchars($item['editor_name'] ?? 'Unknown'); ?></small>
+                                                <small><?= htmlspecialchars($item['editor_name'] ?? 'Tidak Diketahui'); ?></small>
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm" role="group">
@@ -186,8 +186,8 @@
                     <?php else: ?>
                         <div class="alert alert-info text-center">
                             <i class="fas fa-inbox fa-3x mb-3"></i>
-                            <h5>No items stored in this location</h5>
-                            <p>Start by <a href="<?= site_url('storage/store'); ?>">storing some items</a> in this location.</p>
+                            <h5>Tidak ada barang disimpan di lokasi ini</h5>
+                            <p>Mulai dengan <a href="<?= site_url('storage/store'); ?>">menyimpan beberapa barang</a> di lokasi ini.</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -200,9 +200,9 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Recent Transactions</h5>
+                    <h5 class="mb-0">Transaksi Terbaru</h5>
                     <a href="<?= site_url('storage/reports?location=' . $location_id); ?>" class="btn btn-sm btn-outline-primary">
-                        View All Transactions
+                        Lihat Semua Transaksi
                     </a>
                 </div>
                 <div class="card-body">
@@ -211,12 +211,12 @@
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Date/Time</th>
-                                        <th>Action</th>
-                                        <th>Category</th>
-                                        <th>Type ID</th>
-                                        <th>User</th>
-                                        <th>Note</th>
+                                        <th>Tanggal/Waktu</th>
+                                        <th>Aksi</th>
+                                        <th>Kategori</th>
+                                        <th>ID Tipe</th>
+                                        <th>Pengguna</th>
+                                        <th>Catatan</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -225,14 +225,14 @@
                                             <td><?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?></td>
                                             <td>
                                                 <?php if ($transaction['action'] == 'store'): ?>
-                                                    <span class="badge bg-success">Store</span>
+                                                    <span class="badge bg-success">Simpan</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-warning">Take</span>
+                                                    <span class="badge bg-warning">Ambil</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td><?= htmlspecialchars($transaction['category']); ?></td>
                                             <td><?= htmlspecialchars($transaction['type_id']); ?></td>
-                                            <td><?= htmlspecialchars($transaction['user_name'] ?? 'Unknown'); ?></td>
+                                            <td><?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?></td>
                                             <td>
                                                 <?php if ($transaction['note']): ?>
                                                     <span class="text-muted" title="<?= htmlspecialchars($transaction['note']); ?>">
@@ -249,7 +249,7 @@
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info">
-                            No transactions recorded for this location yet.
+                            Belum ada transaksi tercatat untuk lokasi ini.
                         </div>
                     <?php endif; ?>
                 </div>
@@ -263,7 +263,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="quickActionTitle">Quick Action</h5>
+                <h5 class="modal-title" id="quickActionTitle">Aksi Cepat</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -274,29 +274,29 @@
                     <input type="hidden" name="location_id" value="<?= $location_id; ?>">
 
                     <div class="mb-3">
-                        <label class="form-label">Item:</label>
+                        <label class="form-label">Barang:</label>
                         <div id="actionItemInfo" class="form-control-plaintext"></div>
                     </div>
 
                     <div class="mb-3" id="availableStockDiv" style="display: none;">
-                        <label class="form-label">Available Stock:</label>
+                        <label class="form-label">Stok Tersedia:</label>
                         <div id="actionAvailableStock" class="form-control-plaintext text-primary"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="actionQuantity" class="form-label">Quantity:</label>
+                        <label for="actionQuantity" class="form-label">Jumlah:</label>
                         <input type="number" class="form-control" id="actionQuantity" name="quantity" min="1" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="actionNote" class="form-label">Note (Optional):</label>
+                        <label for="actionNote" class="form-label">Catatan (Opsional):</label>
                         <textarea class="form-control" id="actionNote" name="note" rows="2"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" id="quickActionSubmit" onclick="submitQuickAction()">Action</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn" id="quickActionSubmit" onclick="submitQuickAction()">Aksi</button>
             </div>
         </div>
     </div>
@@ -307,7 +307,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Item Details</h5>
+                <h5 class="modal-title">Detail Barang</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="itemDetailsContent">
@@ -323,8 +323,8 @@
         document.getElementById('actionCategory').value = category;
         document.getElementById('actionTypeId').value = typeId;
         document.getElementById('actionItemInfo').textContent = category + ' - ' + typeId;
-        document.getElementById('quickActionTitle').textContent = 'Quick Store';
-        document.getElementById('quickActionSubmit').textContent = 'Store Items';
+        document.getElementById('quickActionTitle').textContent = 'Simpan Cepat';
+        document.getElementById('quickActionSubmit').textContent = 'Simpan Barang';
         document.getElementById('quickActionSubmit').className = 'btn btn-success';
         document.getElementById('availableStockDiv').style.display = 'none';
 
@@ -337,8 +337,8 @@
         document.getElementById('actionCategory').value = category;
         document.getElementById('actionTypeId').value = typeId;
         document.getElementById('actionItemInfo').textContent = category + ' - ' + typeId;
-        document.getElementById('quickActionTitle').textContent = 'Quick Take';
-        document.getElementById('quickActionSubmit').textContent = 'Take Items';
+        document.getElementById('quickActionTitle').textContent = 'Ambil Cepat';
+        document.getElementById('quickActionSubmit').textContent = 'Ambil Barang';
         document.getElementById('quickActionSubmit').className = 'btn btn-warning';
         document.getElementById('availableStockDiv').style.display = 'block';
         document.getElementById('actionAvailableStock').textContent = availableStock + ' items';

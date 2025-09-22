@@ -19,11 +19,11 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="text-primary">Store Items</h2>
-                    <p class="text-muted">Add items to storage locations</p>
+                    <h2 class="text-primary">Simpan Barang</h2>
+                    <p class="text-muted">Tambah barang ke lokasi penyimpanan</p>
                 </div>
                 <a href="<?= site_url('storage'); ?>" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Storage
+                    <i class="fas fa-arrow-left"></i> Kembali ke Penyimpanan
                 </a>
             </div>
         </div>
@@ -34,18 +34,18 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Store Items Form</h5>
+                    <h5 class="mb-0">Form Simpan Barang</h5>
                 </div>
                 <div class="card-body">
                     <?= form_open('storage/store', ['class' => 'needs-validation', 'novalidate' => '']); ?>
 
                     <!-- Location ID -->
                     <div class="mb-3">
-                        <label for="location_id" class="form-label">Location ID <span class="text-danger">*</span></label>
+                        <label for="location_id" class="form-label">ID Lokasi <span class="text-danger">*</span></label>
                         <input type="text" class="form-control <?= form_error('location_id') ? 'is-invalid' : ''; ?>"
                             id="location_id" name="location_id" value="<?= set_value('location_id'); ?>"
-                            maxlength="3" placeholder="Enter 3-character location ID (e.g., A01)" required>
-                        <div class="form-text">Enter a 3-character location identifier</div>
+                            maxlength="3" placeholder="Masukkan ID lokasi 3 karakter (mis: A01)" required>
+                        <div class="form-text">Masukkan pengidentifikasi lokasi 3 karakter</div>
                         <?php if (form_error('location_id')): ?>
                             <div class="invalid-feedback"><?= form_error('location_id'); ?></div>
                         <?php endif; ?>
@@ -53,10 +53,10 @@
 
                     <!-- Category -->
                     <div class="mb-3">
-                        <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                        <label for="category" class="form-label">Kategori <span class="text-danger">*</span></label>
                         <select class="form-select <?= form_error('category') ? 'is-invalid' : ''; ?>"
                             id="category" name="category" required onchange="updateTypeOptions()">
-                            <option value="">Select Category</option>
+                            <option value="">Pilih Kategori</option>
                             <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
                             <option value="valve" <?= set_select('category', 'valve'); ?>>Valve</option>
                             <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
@@ -70,13 +70,13 @@
 
                     <!-- Type ID -->
                     <div class="mb-3">
-                        <label for="type_id" class="form-label">Type ID <span class="text-danger">*</span></label>
+                        <label for="type_id" class="form-label">ID Tipe <span class="text-danger">*</span></label>
                         <select class="form-select <?= form_error('type_id') ? 'is-invalid' : ''; ?>"
                             id="type_id" name="type_id" required>
-                            <option value="">Select Type ID</option>
+                            <option value="">Pilih ID Tipe</option>
                             <!-- Options will be populated based on category selection -->
                         </select>
-                        <div class="form-text">Select the specific type/model of the item</div>
+                        <div class="form-text">Pilih tipe/model spesifik dari barang</div>
                         <?php if (form_error('type_id')): ?>
                             <div class="invalid-feedback"><?= form_error('type_id'); ?></div>
                         <?php endif; ?>
@@ -84,11 +84,11 @@
 
                     <!-- Quantity -->
                     <div class="mb-3">
-                        <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                        <label for="quantity" class="form-label">Jumlah <span class="text-danger">*</span></label>
                         <input type="number" class="form-control <?= form_error('quantity') ? 'is-invalid' : ''; ?>"
                             id="quantity" name="quantity" value="<?= set_value('quantity'); ?>"
-                            min="1" step="1" placeholder="Enter quantity" required>
-                        <div class="form-text">Enter the number of items to store</div>
+                            min="1" step="1" placeholder="Masukkan jumlah" required>
+                        <div class="form-text">Masukkan jumlah barang yang akan disimpan</div>
                         <?php if (form_error('quantity')): ?>
                             <div class="invalid-feedback"><?= form_error('quantity'); ?></div>
                         <?php endif; ?>
@@ -96,11 +96,11 @@
 
                     <!-- Note -->
                     <div class="mb-3">
-                        <label for="note" class="form-label">Note (Optional)</label>
+                        <label for="note" class="form-label">Catatan (Opsional)</label>
                         <textarea class="form-control <?= form_error('note') ? 'is-invalid' : ''; ?>"
                             id="note" name="note" rows="3" maxlength="255"
-                            placeholder="Add any additional notes about this storage operation"><?= set_value('note'); ?></textarea>
-                        <div class="form-text">Optional notes about the storage operation</div>
+                            placeholder="Tambahkan catatan tambahan tentang operasi penyimpanan ini"><?= set_value('note'); ?></textarea>
+                        <div class="form-text">Catatan opsional tentang operasi penyimpanan</div>
                         <?php if (form_error('note')): ?>
                             <div class="invalid-feedback"><?= form_error('note'); ?></div>
                         <?php endif; ?>
@@ -108,9 +108,9 @@
 
                     <!-- Submit Button -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Batal</button>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Store Items
+                            <i class="fas fa-save"></i> Simpan Barang
                         </button>
                     </div>
 
@@ -125,11 +125,11 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Preview: Check Current Stock</h6>
+                    <h6 class="mb-0">Pratinjau: Periksa Stok Saat Ini</h6>
                 </div>
                 <div class="card-body">
                     <div id="stockPreview" class="text-muted">
-                        Select category and type to view current stock levels
+                        Pilih kategori dan tipe untuk melihat tingkat stok saat ini
                     </div>
                 </div>
             </div>
@@ -146,7 +146,7 @@
         const typeSelect = document.getElementById('type_id');
 
         // Clear existing options
-        typeSelect.innerHTML = '<option value="">Select Type ID</option>';
+        typeSelect.innerHTML = '<option value="">Pilih ID Tipe</option>';
 
         if (category === 'pneumatic') {
             // Populate with pneumatic items
@@ -164,7 +164,7 @@
             // Or you could implement similar lookups for other categories
             const option = document.createElement('option');
             option.value = 'manual';
-            option.textContent = 'Enter manually below';
+            option.textContent = 'Masukkan secara manual di bawah';
             typeSelect.appendChild(option);
 
             // Add input field for manual entry
@@ -173,7 +173,7 @@
                 manualInput.type = 'text';
                 manualInput.className = 'form-control mt-2';
                 manualInput.id = 'manual_type_id';
-                manualInput.placeholder = 'Enter type ID manually';
+                manualInput.placeholder = 'Masukkan ID tipe secara manual';
                 manualInput.maxLength = 30;
 
                 manualInput.addEventListener('input', function() {
@@ -199,7 +199,7 @@
                     const previewDiv = document.getElementById('stockPreview');
 
                     if (data.success && data.stock_locations.length > 0) {
-                        let html = '<h6>Current Stock:</h6>';
+                        let html = '<h6>Stok Saat Ini:</h6>';
                         html += '<div class="row">';
 
                         data.stock_locations.forEach(location => {
@@ -208,7 +208,7 @@
                                 <div class="card border-info">
                                     <div class="card-body p-2 text-center">
                                         <strong>${location.location_id}</strong><br>
-                                        <span class="text-info">${location.amount} items</span>
+                                        <span class="text-info">${location.amount} barang</span>
                                     </div>
                                 </div>
                             </div>
@@ -216,19 +216,19 @@
                         });
 
                         html += '</div>';
-                        html += `<div class="mt-2"><strong>Total Stock: ${data.total_stock} items</strong></div>`;
+                        html += `<div class="mt-2"><strong>Total Stok: ${data.total_stock} barang</strong></div>`;
 
                         previewDiv.innerHTML = html;
                     } else {
-                        previewDiv.innerHTML = '<div class="alert alert-info">No existing stock found for this item.</div>';
+                        previewDiv.innerHTML = '<div class="alert alert-info">Tidak ada stok yang ditemukan untuk barang ini.</div>';
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching stock:', error);
-                    document.getElementById('stockPreview').innerHTML = '<div class="alert alert-warning">Error loading stock information.</div>';
+                    document.getElementById('stockPreview').innerHTML = '<div class="alert alert-warning">Error memuat informasi stok.</div>';
                 });
         } else {
-            document.getElementById('stockPreview').innerHTML = '<div class="text-muted">Select category and type to view current stock levels</div>';
+            document.getElementById('stockPreview').innerHTML = '<div class="text-muted">Pilih kategori dan tipe untuk melihat tingkat stok saat ini</div>';
         }
     }
 

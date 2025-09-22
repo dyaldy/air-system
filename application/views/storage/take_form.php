@@ -19,11 +19,11 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="text-primary">Take Items</h2>
-                    <p class="text-muted">Remove items from storage locations</p>
+                    <h2 class="text-primary">Ambil Barang</h2>
+                    <p class="text-muted">Hapus barang dari lokasi penyimpanan</p>
                 </div>
                 <a href="<?= site_url('storage'); ?>" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Storage
+                    <i class="fas fa-arrow-left"></i> Kembali ke Penyimpanan
                 </a>
             </div>
         </div>
@@ -34,17 +34,17 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Take Items Form</h5>
+                    <h5 class="mb-0">Form Ambil Barang</h5>
                 </div>
                 <div class="card-body">
                     <?= form_open('storage/take', ['class' => 'needs-validation', 'novalidate' => '']); ?>
 
                     <!-- Category -->
                     <div class="mb-3">
-                        <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                        <label for="category" class="form-label">Kategori <span class="text-danger">*</span></label>
                         <select class="form-select <?= form_error('category') ? 'is-invalid' : ''; ?>"
                             id="category" name="category" required onchange="updateAvailableItems()">
-                            <option value="">Select Category</option>
+                            <option value="">Pilih Kategori</option>
                             <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
                             <option value="valve" <?= set_select('category', 'valve'); ?>>Valve</option>
                             <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
@@ -58,13 +58,13 @@
 
                     <!-- Type ID -->
                     <div class="mb-3">
-                        <label for="type_id" class="form-label">Type ID <span class="text-danger">*</span></label>
+                        <label for="type_id" class="form-label">ID Tipe <span class="text-danger">*</span></label>
                         <select class="form-select <?= form_error('type_id') ? 'is-invalid' : ''; ?>"
                             id="type_id" name="type_id" required onchange="updateLocationOptions()">
-                            <option value="">Select Type ID</option>
+                            <option value="">Pilih ID Tipe</option>
                             <!-- Options will be populated based on category selection -->
                         </select>
-                        <div class="form-text">Select the specific type/model of the item</div>
+                        <div class="form-text">Pilih tipe/model spesifik dari barang</div>
                         <?php if (form_error('type_id')): ?>
                             <div class="invalid-feedback"><?= form_error('type_id'); ?></div>
                         <?php endif; ?>
@@ -72,13 +72,13 @@
 
                     <!-- Location ID -->
                     <div class="mb-3">
-                        <label for="location_id" class="form-label">Location ID <span class="text-danger">*</span></label>
+                        <label for="location_id" class="form-label">ID Lokasi <span class="text-danger">*</span></label>
                         <select class="form-select <?= form_error('location_id') ? 'is-invalid' : ''; ?>"
                             id="location_id" name="location_id" required onchange="updateAvailableStock()">
-                            <option value="">Select Location</option>
+                            <option value="">Pilih Lokasi</option>
                             <!-- Options will be populated based on type selection -->
                         </select>
-                        <div class="form-text">Select the location to take items from</div>
+                        <div class="form-text">Pilih lokasi untuk mengambil barang</div>
                         <?php if (form_error('location_id')): ?>
                             <div class="invalid-feedback"><?= form_error('location_id'); ?></div>
                         <?php endif; ?>
@@ -88,7 +88,7 @@
                     <div class="mb-3">
                         <div class="card bg-light">
                             <div class="card-body py-2">
-                                <small class="text-muted">Available Stock: </small>
+                                <small class="text-muted">Stok Tersedia: </small>
                                 <strong id="availableStock" class="text-primary">-</strong>
                             </div>
                         </div>
@@ -96,11 +96,11 @@
 
                     <!-- Quantity -->
                     <div class="mb-3">
-                        <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                        <label for="quantity" class="form-label">Jumlah <span class="text-danger">*</span></label>
                         <input type="number" class="form-control <?= form_error('quantity') ? 'is-invalid' : ''; ?>"
                             id="quantity" name="quantity" value="<?= set_value('quantity'); ?>"
-                            min="1" step="1" placeholder="Enter quantity to take" required>
-                        <div class="form-text">Enter the number of items to take</div>
+                            min="1" step="1" placeholder="Masukkan jumlah yang akan diambil" required>
+                        <div class="form-text">Masukkan jumlah barang yang akan diambil</div>
                         <?php if (form_error('quantity')): ?>
                             <div class="invalid-feedback"><?= form_error('quantity'); ?></div>
                         <?php endif; ?>
@@ -108,11 +108,11 @@
 
                     <!-- Note -->
                     <div class="mb-3">
-                        <label for="note" class="form-label">Note (Optional)</label>
+                        <label for="note" class="form-label">Catatan (Opsional)</label>
                         <textarea class="form-control <?= form_error('note') ? 'is-invalid' : ''; ?>"
                             id="note" name="note" rows="3" maxlength="255"
-                            placeholder="Add any additional notes about this taking operation"><?= set_value('note'); ?></textarea>
-                        <div class="form-text">Optional notes about the taking operation</div>
+                            placeholder="Tambahkan catatan tambahan tentang operasi pengambilan ini"><?= set_value('note'); ?></textarea>
+                        <div class="form-text">Catatan opsional tentang operasi pengambilan</div>
                         <?php if (form_error('note')): ?>
                             <div class="invalid-feedback"><?= form_error('note'); ?></div>
                         <?php endif; ?>
@@ -120,9 +120,9 @@
 
                     <!-- Submit Button -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Batal</button>
                         <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-minus"></i> Take Items
+                            <i class="fas fa-minus"></i> Ambil Barang
                         </button>
                     </div>
 
@@ -137,11 +137,11 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Available Items in Storage</h6>
+                    <h6 class="mb-0">Barang Tersedia di Penyimpanan</h6>
                 </div>
                 <div class="card-body">
                     <div id="availableItemsPreview">
-                        <div class="text-muted">Select category to view available items</div>
+                        <div class="text-muted">Pilih kategori untuk melihat barang yang tersedia</div>
                     </div>
                 </div>
             </div>
@@ -159,8 +159,8 @@
         const locationSelect = document.getElementById('location_id');
 
         // Clear existing options
-        typeSelect.innerHTML = '<option value="">Select Type ID</option>';
-        locationSelect.innerHTML = '<option value="">Select Location</option>';
+        typeSelect.innerHTML = '<option value="">Pilih ID Tipe</option>';
+        locationSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
 
         // Clear available stock
         document.getElementById('availableStock').textContent = '-';
@@ -187,7 +187,7 @@
 
         // Clear preview if no category selected
         if (!category) {
-            document.getElementById('availableItemsPreview').innerHTML = '<div class="text-muted">Select category to view available items</div>';
+            document.getElementById('availableItemsPreview').innerHTML = '<div class="text-muted">Pilih kategori untuk melihat barang yang tersedia</div>';
         }
     }
 
@@ -197,7 +197,7 @@
         const locationSelect = document.getElementById('location_id');
 
         // Clear existing options
-        locationSelect.innerHTML = '<option value="">Select Location</option>';
+        locationSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
 
         // Clear available stock
         document.getElementById('availableStock').textContent = '-';
@@ -213,7 +213,7 @@
             filteredItems.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.location_id;
-                option.textContent = `${item.location_id} (Stock: ${item.amount})`;
+                option.textContent = `${item.location_id} (Stok: ${item.amount})`;
                 if (option.value === '<?= set_value('location_id'); ?>') {
                     option.selected = true;
                 }
@@ -237,7 +237,7 @@
 
             if (item) {
                 const stock = parseInt(item.amount);
-                document.getElementById('availableStock').textContent = stock + ' items';
+                document.getElementById('availableStock').textContent = stock + ' barang';
 
                 // Update quantity input constraints
                 const quantityInput = document.getElementById('quantity');
@@ -290,8 +290,8 @@
                             <div class="card-body">
                                 <h6 class="card-title">${typeId}</h6>
                                 <p class="card-text">
-                                    <strong>Total Stock: ${totalStock}</strong><br>
-                                    <small class="text-muted">Available in ${items.length} location(s)</small>
+                                    <strong>Total Stok: ${totalStock}</strong><br>
+                                    <small class="text-muted">Tersedia di ${items.length} lokasi</small>
                                 </p>
                                 <div class="locations">
                 `;
@@ -311,7 +311,7 @@
                 html += '</div>';
                 previewDiv.innerHTML = html;
             } else {
-                previewDiv.innerHTML = '<div class="alert alert-info">No items available in this category.</div>';
+                previewDiv.innerHTML = '<div class="alert alert-info">Tidak ada barang tersedia dalam kategori ini.</div>';
             }
         }
     }
@@ -327,7 +327,7 @@
         const enteredQuantity = parseInt(this.value);
 
         if (maxStock && enteredQuantity > maxStock) {
-            this.setCustomValidity(`Maximum available stock is ${maxStock}`);
+            this.setCustomValidity(`Stok maksimum yang tersedia adalah ${maxStock}`);
         } else {
             this.setCustomValidity('');
         }

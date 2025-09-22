@@ -17,8 +17,8 @@
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="text-primary">Storage Overview</h2>
-            <p class="text-muted">Manage your inventory across all storage locations</p>
+            <h2 class="text-primary">Overview Penyimpanan</h2>
+            <p class="text-muted">Kelola inventaris Anda di semua lokasi penyimpanan</p>
         </div>
     </div>
 
@@ -27,16 +27,16 @@
         <div class="col-12">
             <div class="d-flex gap-2 flex-wrap">
                 <a href="<?= site_url('storage/store'); ?>" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Store Items
+                    <i class="fas fa-plus"></i> Simpan Barang
                 </a>
                 <a href="<?= site_url('storage/take'); ?>" class="btn btn-warning">
-                    <i class="fas fa-minus"></i> Take Items
+                    <i class="fas fa-minus"></i> Ambil Barang
                 </a>
                 <a href="<?= site_url('storage/search'); ?>" class="btn btn-info">
-                    <i class="fas fa-search"></i> Search Storage
+                    <i class="fas fa-search"></i> Cari Penyimpanan
                 </a>
                 <a href="<?= site_url('storage/reports'); ?>" class="btn btn-secondary">
-                    <i class="fas fa-chart-bar"></i> Reports
+                    <i class="fas fa-chart-bar"></i> Laporan
                 </a>
             </div>
         </div>
@@ -47,7 +47,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Storage Locations</h5>
+                    <h5 class="mb-0">Lokasi Penyimpanan</h5>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($locations)): ?>
@@ -58,7 +58,7 @@
                                         <div class="card-body text-center">
                                             <h6 class="card-title"><?= htmlspecialchars($location['location_id']); ?></h6>
                                             <a href="<?= site_url('storage/location/' . $location['location_id']); ?>" class="btn btn-primary btn-sm">
-                                                View Details
+                                                Lihat Detail
                                             </a>
                                         </div>
                                     </div>
@@ -67,7 +67,7 @@
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info">
-                            No storage locations found. Start by storing some items!
+                            Tidak ada lokasi penyimpanan ditemukan. Mulai dengan menyimpan beberapa barang!
                         </div>
                     <?php endif; ?>
                 </div>
@@ -80,7 +80,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Inventory Overview</h5>
+                    <h5 class="mb-0">Overview Inventaris</h5>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($storage_overview)): ?>
@@ -88,11 +88,11 @@
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Category</th>
-                                        <th>Type ID</th>
-                                        <th>Total Stock</th>
-                                        <th>Locations</th>
-                                        <th>Actions</th>
+                                        <th>Kategori</th>
+                                        <th>ID Tipe</th>
+                                        <th>Total Stok</th>
+                                        <th>Lokasi</th>
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -106,15 +106,15 @@
                                                 <strong><?= number_format($item['total_amount']); ?></strong>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info"><?= $item['location_count']; ?> location(s)</span>
+                                                <span class="badge bg-info"><?= $item['location_count']; ?> lokasi</span>
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm" role="group">
                                                     <button type="button" class="btn btn-outline-success" onclick="quickStore('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
-                                                        Store
+                                                        Simpan
                                                     </button>
                                                     <button type="button" class="btn btn-outline-warning" onclick="quickTake('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
-                                                        Take
+                                                        Ambil
                                                     </button>
                                                 </div>
                                             </td>
@@ -125,7 +125,7 @@
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info">
-                            No items in storage yet. <a href="<?= site_url('storage/store'); ?>">Start storing items</a>!
+                            Belum ada barang di penyimpanan. <a href="<?= site_url('storage/store'); ?>">Mulai simpan barang</a>!
                         </div>
                     <?php endif; ?>
                 </div>
@@ -138,8 +138,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Recent Transactions</h5>
-                    <a href="<?= site_url('storage/reports'); ?>" class="btn btn-sm btn-outline-primary">View All</a>
+                    <h5 class="mb-0">Transaksi Terbaru</h5>
+                    <a href="<?= site_url('storage/reports'); ?>" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($recent_transactions)): ?>
@@ -147,12 +147,12 @@
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Date/Time</th>
-                                        <th>Action</th>
-                                        <th>Location</th>
-                                        <th>Category</th>
-                                        <th>Type ID</th>
-                                        <th>User</th>
+                                        <th>Tanggal/Waktu</th>
+                                        <th>Aksi</th>
+                                        <th>Lokasi</th>
+                                        <th>Kategori</th>
+                                        <th>ID Tipe</th>
+                                        <th>Pengguna</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -161,15 +161,15 @@
                                             <td><?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?></td>
                                             <td>
                                                 <?php if ($transaction['action'] == 'store'): ?>
-                                                    <span class="badge bg-success">Store</span>
+                                                    <span class="badge bg-success">Simpan</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-warning">Take</span>
+                                                    <span class="badge bg-warning">Ambil</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td><?= htmlspecialchars($transaction['location_id']); ?></td>
                                             <td><?= htmlspecialchars($transaction['category']); ?></td>
                                             <td><?= htmlspecialchars($transaction['type_id']); ?></td>
-                                            <td><?= htmlspecialchars($transaction['user_name'] ?? 'Unknown'); ?></td>
+                                            <td><?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -177,7 +177,7 @@
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info">
-                            No transactions yet.
+                            Belum ada transaksi.
                         </div>
                     <?php endif; ?>
                 </div>
@@ -192,7 +192,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Quick Store</h5>
+                <h5 class="modal-title">Simpan Cepat</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -202,14 +202,14 @@
                     <input type="hidden" name="action" value="store">
 
                     <div class="mb-3">
-                        <label class="form-label">Item:</label>
+                        <label class="form-label">Barang:</label>
                         <div id="storeItemInfo" class="form-control-plaintext"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="storeLocationId" class="form-label">Location ID:</label>
+                        <label for="storeLocationId" class="form-label">ID Lokasi:</label>
                         <select class="form-select" id="storeLocationId" name="location_id" required>
-                            <option value="">Select Location</option>
+                            <option value="">Pilih Lokasi</option>
                             <?php foreach ($locations as $location): ?>
                                 <option value="<?= $location['location_id']; ?>"><?= $location['location_id']; ?></option>
                             <?php endforeach; ?>
@@ -217,19 +217,19 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="storeQuantity" class="form-label">Quantity:</label>
+                        <label for="storeQuantity" class="form-label">Jumlah:</label>
                         <input type="number" class="form-control" id="storeQuantity" name="quantity" min="1" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="storeNote" class="form-label">Note (Optional):</label>
+                        <label for="storeNote" class="form-label">Catatan (Opsional):</label>
                         <textarea class="form-control" id="storeNote" name="note" rows="2"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="submitQuickStore()">Store Items</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success" onclick="submitQuickStore()">Simpan Barang</button>
             </div>
         </div>
     </div>
@@ -240,7 +240,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Quick Take</h5>
+                <h5 class="modal-title">Ambil Cepat</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -250,32 +250,32 @@
                     <input type="hidden" name="action" value="take">
 
                     <div class="mb-3">
-                        <label class="form-label">Item:</label>
+                        <label class="form-label">Barang:</label>
                         <div id="takeItemInfo" class="form-control-plaintext"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="takeLocationId" class="form-label">Location ID:</label>
+                        <label for="takeLocationId" class="form-label">ID Lokasi:</label>
                         <select class="form-select" id="takeLocationId" name="location_id" required>
-                            <option value="">Select Location</option>
+                            <option value="">Pilih Lokasi</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label for="takeQuantity" class="form-label">Quantity:</label>
+                        <label for="takeQuantity" class="form-label">Jumlah:</label>
                         <input type="number" class="form-control" id="takeQuantity" name="quantity" min="1" required>
-                        <div class="form-text">Available: <span id="availableStock">-</span></div>
+                        <div class="form-text">Tersedia: <span id="availableStock">-</span></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="takeNote" class="form-label">Note (Optional):</label>
+                        <label for="takeNote" class="form-label">Catatan (Opsional):</label>
                         <textarea class="form-control" id="takeNote" name="note" rows="2"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" onclick="submitQuickTake()">Take Items</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning" onclick="submitQuickTake()">Ambil Barang</button>
             </div>
         </div>
     </div>
@@ -302,12 +302,12 @@
             .then(data => {
                 if (data.success) {
                     const locationSelect = document.getElementById('takeLocationId');
-                    locationSelect.innerHTML = '<option value="">Select Location</option>';
+                    locationSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
 
                     data.stock_locations.forEach(location => {
                         const option = document.createElement('option');
                         option.value = location.location_id;
-                        option.textContent = location.location_id + ' (Stock: ' + location.amount + ')';
+                        option.textContent = location.location_id + ' (Stok: ' + location.amount + ')';
                         locationSelect.appendChild(option);
                     });
 

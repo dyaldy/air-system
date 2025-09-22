@@ -4,11 +4,11 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="text-primary">Search Storage</h2>
-                    <p class="text-muted">Find items across all storage locations</p>
+                    <h2 class="text-primary">Cari Penyimpanan</h2>
+                    <p class="text-muted">Temukan barang di semua lokasi penyimpanan</p>
                 </div>
                 <a href="<?= site_url('storage'); ?>" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Storage
+                    <i class="fas fa-arrow-left"></i> Kembali ke Penyimpanan
                 </a>
             </div>
         </div>
@@ -19,22 +19,22 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Search Filters</h6>
+                    <h6 class="mb-0">Filter Pencarian</h6>
                 </div>
                 <div class="card-body">
                     <?= form_open('storage/search', ['method' => 'GET', 'class' => 'row g-3']); ?>
                     <div class="col-md-4">
-                        <label for="q" class="form-label">Search Term</label>
+                        <label for="q" class="form-label">Kata Kunci Pencarian</label>
                         <input type="text" class="form-control" id="q" name="q"
                             value="<?= htmlspecialchars($search_term ?? ''); ?>"
-                            placeholder="Search by type ID, category, or location...">
-                        <div class="form-text">Search in type ID, category, or location</div>
+                            placeholder="Cari berdasarkan ID tipe, kategori, atau lokasi...">
+                        <div class="form-text">Cari di ID tipe, kategori, atau lokasi</div>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="location" class="form-label">Location</label>
+                        <label for="location" class="form-label">Lokasi</label>
                         <select class="form-select" id="location" name="location">
-                            <option value="">All Locations</option>
+                            <option value="">Semua Lokasi</option>
                             <?php foreach ($locations as $location): ?>
                                 <option value="<?= $location['location_id']; ?>"
                                     <?= $selected_location == $location['location_id'] ? 'selected' : ''; ?>>
@@ -45,9 +45,9 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label for="category" class="form-label">Category</label>
+                        <label for="category" class="form-label">Kategori</label>
                         <select class="form-select" id="category" name="category">
-                            <option value="">All Categories</option>
+                            <option value="">Semua Kategori</option>
                             <option value="pneumatic" <?= $selected_category == 'pneumatic' ? 'selected' : ''; ?>>Pneumatic</option>
                             <option value="valve" <?= $selected_category == 'valve' ? 'selected' : ''; ?>>Valve</option>
                             <option value="fitting" <?= $selected_category == 'fitting' ? 'selected' : ''; ?>>Fitting</option>
@@ -60,14 +60,14 @@
                         <label class="form-label">&nbsp;</label>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Search
+                                <i class="fas fa-search"></i> Cari
                             </button>
                         </div>
                     </div>
 
                     <div class="col-12">
                         <a href="<?= site_url('storage/search'); ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-times"></i> Clear Search
+                            <i class="fas fa-times"></i> Hapus Pencarian
                         </a>
                     </div>
                     <?= form_close(); ?>
@@ -82,14 +82,14 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0">
-                        Search Results
+                        Hasil Pencarian
                         <?php if (!empty($search_term) || !empty($selected_location) || !empty($selected_category)): ?>
                             <small class="text-muted">
                                 <?php
                                 $filters = [];
-                                if ($search_term) $filters[] = "Term: \"$search_term\"";
-                                if ($selected_location) $filters[] = "Location: $selected_location";
-                                if ($selected_category) $filters[] = "Category: $selected_category";
+                                if ($search_term) $filters[] = "Kata Kunci: \"$search_term\"";
+                                if ($selected_location) $filters[] = "Lokasi: $selected_location";
+                                if ($selected_category) $filters[] = "Kategori: $selected_category";
                                 echo '(' . implode(', ', $filters) . ')';
                                 ?>
                             </small>
@@ -98,7 +98,7 @@
                 <?php if (!empty($search_results)): ?>
                     <div class="btn-group">
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportToExcel()">
-                            <i class="fas fa-download"></i> Export Excel
+                            <i class="fas fa-download"></i> Ekspor Excel
                         </button>
                     </div>
                 <?php endif; ?>
@@ -112,7 +112,7 @@
                                 <div class="card-body py-3">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>Items Found</h6>
+                                            <h6>Barang Ditemukan</h6>
                                             <h4><?= count($search_results); ?></h4>
                                         </div>
                                         <div class="align-self-center">
@@ -128,7 +128,7 @@
                                 <div class="card-body py-3">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>Total Quantity</h6>
+                                            <h6>Total Jumlah</h6>
                                             <h4><?= array_sum(array_column($search_results, 'amount')); ?></h4>
                                         </div>
                                         <div class="align-self-center">
@@ -144,7 +144,7 @@
                                 <div class="card-body py-3">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>Locations</h6>
+                                            <h6>Lokasi</h6>
                                             <h4><?= count(array_unique(array_column($search_results, 'location_id'))); ?></h4>
                                         </div>
                                         <div class="align-self-center">
@@ -160,7 +160,7 @@
                                 <div class="card-body py-3">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>Categories</h6>
+                                            <h6>Kategori</h6>
                                             <h4><?= count(array_unique(array_column($search_results, 'category'))); ?></h4>
                                         </div>
                                         <div class="align-self-center">
@@ -177,13 +177,13 @@
                         <table class="table table-striped table-hover" id="searchResultsTable">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Location</th>
-                                    <th>Category</th>
-                                    <th>Type ID</th>
-                                    <th>Quantity</th>
-                                    <th>Last Updated</th>
+                                    <th>Lokasi</th>
+                                    <th>Kategori</th>
+                                    <th>ID Tipe</th>
+                                    <th>Jumlah</th>
+                                    <th>Terakhir Diperbarui</th>
                                     <th>Editor</th>
-                                    <th>Actions</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -193,7 +193,7 @@
                                             <strong><?= htmlspecialchars($item['location_id']); ?></strong>
                                             <br>
                                             <a href="<?= site_url('storage/location/' . $item['location_id']); ?>" class="text-decoration-none small">
-                                                View Location
+                                                Lihat Lokasi
                                             </a>
                                         </td>
                                         <td>
@@ -209,7 +209,7 @@
                                             <small><?= date('M d, Y H:i', strtotime($item['updated_at'])); ?></small>
                                         </td>
                                         <td>
-                                            <small><?= htmlspecialchars($item['editor_name'] ?? 'Unknown'); ?></small>
+                                            <small><?= htmlspecialchars($item['editor_name'] ?? 'Tidak Diketahui'); ?></small>
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
@@ -238,7 +238,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">By Category</h6>
+                                    <h6 class="mb-0">Berdasarkan Kategori</h6>
                                 </div>
                                 <div class="card-body">
                                     <?php
@@ -257,7 +257,7 @@
                                                 <span class="badge bg-primary"><?= htmlspecialchars($category); ?></span>
                                             </div>
                                             <div>
-                                                <small><?= $data['count']; ?> items, <?= number_format($data['quantity']); ?> total</small>
+                                                <small><?= $data['count']; ?> barang, <?= number_format($data['quantity']); ?> total</small>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -268,7 +268,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">By Location</h6>
+                                    <h6 class="mb-0">Berdasarkan Lokasi</h6>
                                 </div>
                                 <div class="card-body">
                                     <?php
@@ -287,7 +287,7 @@
                                                 <strong><?= htmlspecialchars($location_id); ?></strong>
                                             </div>
                                             <div>
-                                                <small><?= $data['count']; ?> items, <?= number_format($data['quantity']); ?> total</small>
+                                                <small><?= $data['count']; ?> barang, <?= number_format($data['quantity']); ?> total</small>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -299,14 +299,14 @@
                 <?php elseif (!empty($search_term) || !empty($selected_location) || !empty($selected_category)): ?>
                     <div class="alert alert-info text-center">
                         <i class="fas fa-search fa-3x mb-3"></i>
-                        <h5>No items found</h5>
-                        <p>No items match your search criteria. Try adjusting your search terms or filters.</p>
+                        <h5>Tidak ada barang ditemukan</h5>
+                        <p>Tidak ada barang yang cocok dengan kriteria pencarian Anda. Coba sesuaikan kata kunci atau filter pencarian.</p>
                     </div>
                 <?php else: ?>
                     <div class="alert alert-light text-center">
                         <i class="fas fa-search fa-3x mb-3 text-muted"></i>
-                        <h5>Search Storage Items</h5>
-                        <p>Use the search form above to find items in storage. You can search by type ID, category, or location.</p>
+                        <h5>Cari Barang Penyimpanan</h5>
+                        <p>Gunakan form pencarian di atas untuk menemukan barang di penyimpanan. Anda dapat mencari berdasarkan ID tipe, kategori, atau lokasi.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -320,7 +320,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="quickActionTitle">Quick Action</h5>
+                <h5 class="modal-title" id="quickActionTitle">Aksi Cepat</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -331,29 +331,29 @@
                     <input type="hidden" id="actionTypeId" name="type_id">
 
                     <div class="mb-3">
-                        <label class="form-label">Item:</label>
+                        <label class="form-label">Barang:</label>
                         <div id="actionItemInfo" class="form-control-plaintext"></div>
                     </div>
 
                     <div class="mb-3" id="availableStockDiv" style="display: none;">
-                        <label class="form-label">Available Stock:</label>
+                        <label class="form-label">Stok Tersedia:</label>
                         <div id="actionAvailableStock" class="form-control-plaintext text-primary"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="actionQuantity" class="form-label">Quantity:</label>
+                        <label for="actionQuantity" class="form-label">Jumlah:</label>
                         <input type="number" class="form-control" id="actionQuantity" name="quantity" min="1" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="actionNote" class="form-label">Note (Optional):</label>
+                        <label for="actionNote" class="form-label">Catatan (Opsional):</label>
                         <textarea class="form-control" id="actionNote" name="note" rows="2"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" id="quickActionSubmit" onclick="submitQuickAction()">Action</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn" id="quickActionSubmit" onclick="submitQuickAction()">Aksi</button>
             </div>
         </div>
     </div>
@@ -366,8 +366,8 @@
         document.getElementById('actionCategory').value = category;
         document.getElementById('actionTypeId').value = typeId;
         document.getElementById('actionItemInfo').textContent = `${locationId} - ${category} - ${typeId}`;
-        document.getElementById('quickActionTitle').textContent = 'Quick Store';
-        document.getElementById('quickActionSubmit').textContent = 'Store Items';
+        document.getElementById('quickActionTitle').textContent = 'Simpan Cepat';
+        document.getElementById('quickActionSubmit').textContent = 'Simpan Barang';
         document.getElementById('quickActionSubmit').className = 'btn btn-success';
         document.getElementById('availableStockDiv').style.display = 'none';
 
@@ -381,11 +381,11 @@
         document.getElementById('actionCategory').value = category;
         document.getElementById('actionTypeId').value = typeId;
         document.getElementById('actionItemInfo').textContent = `${locationId} - ${category} - ${typeId}`;
-        document.getElementById('quickActionTitle').textContent = 'Quick Take';
-        document.getElementById('quickActionSubmit').textContent = 'Take Items';
+        document.getElementById('quickActionTitle').textContent = 'Ambil Cepat';
+        document.getElementById('quickActionSubmit').textContent = 'Ambil Barang';
         document.getElementById('quickActionSubmit').className = 'btn btn-warning';
         document.getElementById('availableStockDiv').style.display = 'block';
-        document.getElementById('actionAvailableStock').textContent = availableStock + ' items';
+        document.getElementById('actionAvailableStock').textContent = availableStock + ' barang';
         document.getElementById('actionQuantity').max = availableStock;
 
         var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));

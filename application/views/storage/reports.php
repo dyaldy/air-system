@@ -4,11 +4,11 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="text-primary">Storage Reports</h2>
-                    <p class="text-muted">Transaction history and analytics</p>
+                    <h2 class="text-primary">Laporan Penyimpanan</h2>
+                    <p class="text-muted">Riwayat transaksi dan analitik</p>
                 </div>
                 <a href="<?= site_url('storage'); ?>" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Storage
+                    <i class="fas fa-arrow-left"></i> Kembali ke Penyimpanan
                 </a>
             </div>
         </div>
@@ -19,35 +19,35 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Filters</h6>
+                    <h6 class="mb-0">Filter</h6>
                 </div>
                 <div class="card-body">
                     <?= form_open('storage/reports', ['method' => 'GET', 'class' => 'row g-3']); ?>
                     <div class="col-md-3">
-                        <label for="start_date" class="form-label">Start Date</label>
+                        <label for="start_date" class="form-label">Tanggal Mulai</label>
                         <input type="date" class="form-control" id="start_date" name="start_date"
                             value="<?= $filters['start_date'] ?? ''; ?>">
                     </div>
 
                     <div class="col-md-3">
-                        <label for="end_date" class="form-label">End Date</label>
+                        <label for="end_date" class="form-label">Tanggal Berakhir</label>
                         <input type="date" class="form-control" id="end_date" name="end_date"
                             value="<?= $filters['end_date'] ?? ''; ?>">
                     </div>
 
                     <div class="col-md-2">
-                        <label for="action" class="form-label">Action</label>
+                        <label for="action" class="form-label">Aksi</label>
                         <select class="form-select" id="action" name="action">
-                            <option value="">All Actions</option>
-                            <option value="store" <?= isset($filters['action']) && $filters['action'] == 'store' ? 'selected' : ''; ?>>Store</option>
-                            <option value="take" <?= isset($filters['action']) && $filters['action'] == 'take' ? 'selected' : ''; ?>>Take</option>
+                            <option value="">Semua Aksi</option>
+                            <option value="store" <?= isset($filters['action']) && $filters['action'] == 'store' ? 'selected' : ''; ?>>Simpan</option>
+                            <option value="take" <?= isset($filters['action']) && $filters['action'] == 'take' ? 'selected' : ''; ?>>Ambil</option>
                         </select>
                     </div>
 
                     <div class="col-md-2">
-                        <label for="location" class="form-label">Location</label>
+                        <label for="location" class="form-label">Lokasi</label>
                         <select class="form-select" id="location" name="location">
-                            <option value="">All Locations</option>
+                            <option value="">Semua Lokasi</option>
                             <?php foreach ($locations as $location): ?>
                                 <option value="<?= $location['location_id']; ?>"
                                     <?= isset($filters['location_id']) && $filters['location_id'] == $location['location_id'] ? 'selected' : ''; ?>>
@@ -58,9 +58,9 @@
                     </div>
 
                     <div class="col-md-2">
-                        <label for="category" class="form-label">Category</label>
+                        <label for="category" class="form-label">Kategori</label>
                         <select class="form-select" id="category" name="category">
-                            <option value="">All Categories</option>
+                            <option value="">Semua Kategori</option>
                             <option value="pneumatic" <?= isset($filters['category']) && $filters['category'] == 'pneumatic' ? 'selected' : ''; ?>>Pneumatic</option>
                             <option value="valve" <?= isset($filters['category']) && $filters['category'] == 'valve' ? 'selected' : ''; ?>>Valve</option>
                             <option value="fitting" <?= isset($filters['category']) && $filters['category'] == 'fitting' ? 'selected' : ''; ?>>Fitting</option>
@@ -71,13 +71,13 @@
 
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter"></i> Apply Filters
+                            <i class="fas fa-filter"></i> Terapkan Filter
                         </button>
                         <a href="<?= site_url('storage/reports'); ?>" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i> Clear Filters
+                            <i class="fas fa-times"></i> Hapus Filter
                         </a>
                         <button type="button" class="btn btn-success" onclick="exportToExcel()">
-                            <i class="fas fa-download"></i> Export Excel
+                            <i class="fas fa-download"></i> Ekspor Excel
                         </button>
                     </div>
                     <?= form_close(); ?>
@@ -94,7 +94,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Total Transactions</h6>
+                                <h6 class="card-title">Total Transaksi</h6>
                                 <h3><?= number_format($stats['total_transactions']); ?></h3>
                             </div>
                             <div class="align-self-center">
@@ -110,7 +110,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Store Operations</h6>
+                                <h6 class="card-title">Operasi Simpan</h6>
                                 <h3><?= number_format($stats['store_transactions']); ?></h3>
                             </div>
                             <div class="align-self-center">
@@ -126,7 +126,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Take Operations</h6>
+                                <h6 class="card-title">Operasi Ambil</h6>
                                 <h3><?= number_format($stats['take_transactions']); ?></h3>
                             </div>
                             <div class="align-self-center">
@@ -142,7 +142,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Active Users</h6>
+                                <h6 class="card-title">Pengguna Aktif</h6>
                                 <h3><?= number_format($stats['users_involved']); ?></h3>
                             </div>
                             <div class="align-self-center">
@@ -161,7 +161,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="mb-0">Daily Activity Summary</h6>
+                        <h6 class="mb-0">Ringkasan Aktivitas Harian</h6>
                     </div>
                     <div class="card-body">
                         <canvas id="dailyChart" width="400" height="100"></canvas>
@@ -176,8 +176,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">Transaction History</h6>
-                    <small class="text-muted"><?= count($transactions); ?> transactions found</small>
+                    <h6 class="mb-0">Riwayat Transaksi</h6>
+                    <small class="text-muted"><?= count($transactions); ?> transaksi ditemukan</small>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($transactions)): ?>
@@ -185,14 +185,14 @@
                             <table class="table table-striped table-hover" id="transactionsTable">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Storing ID</th>
-                                        <th>Date/Time</th>
-                                        <th>Action</th>
-                                        <th>Location</th>
-                                        <th>Category</th>
-                                        <th>Type ID</th>
-                                        <th>User</th>
-                                        <th>Note</th>
+                                        <th>ID Penyimpanan</th>
+                                        <th>Tanggal/Waktu</th>
+                                        <th>Aksi</th>
+                                        <th>Lokasi</th>
+                                        <th>Kategori</th>
+                                        <th>ID Tipe</th>
+                                        <th>Pengguna</th>
+                                        <th>Catatan</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -206,9 +206,9 @@
                                             </td>
                                             <td>
                                                 <?php if ($transaction['action'] == 'store'): ?>
-                                                    <span class="badge bg-success">Store</span>
+                                                    <span class="badge bg-success">Simpan</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-warning">Take</span>
+                                                    <span class="badge bg-warning">Ambil</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td>
@@ -221,7 +221,7 @@
                                                 <?= htmlspecialchars($transaction['type_id']); ?>
                                             </td>
                                             <td>
-                                                <?= htmlspecialchars($transaction['user_name'] ?? 'Unknown'); ?>
+                                                <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>
                                             </td>
                                             <td>
                                                 <?php if ($transaction['note']): ?>
@@ -240,8 +240,8 @@
                     <?php else: ?>
                         <div class="alert alert-info text-center">
                             <i class="fas fa-chart-line fa-3x mb-3"></i>
-                            <h5>No transactions found</h5>
-                            <p>No transactions match your current filters. Try adjusting the filters or <a href="<?= site_url('storage/store'); ?>">start by storing some items</a>.</p>
+                            <h5>Tidak ada transaksi ditemukan</h5>
+                            <p>Tidak ada transaksi yang cocok dengan filter saat ini. Coba sesuaikan filter atau <a href="<?= site_url('storage/store'); ?>">mulai dengan menyimpan beberapa barang</a>.</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -263,14 +263,14 @@
             data: {
                 labels: dailyData.map(day => day.transaction_date),
                 datasets: [{
-                        label: 'Store Operations',
+                        label: 'Operasi Simpan',
                         data: dailyData.map(day => day.store_count),
                         borderColor: 'rgb(40, 167, 69)',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         tension: 0.4
                     },
                     {
-                        label: 'Take Operations',
+                        label: 'Operasi Ambil',
                         data: dailyData.map(day => day.take_count),
                         borderColor: 'rgb(255, 193, 7)',
                         backgroundColor: 'rgba(255, 193, 7, 0.1)',
@@ -294,7 +294,7 @@
                     },
                     title: {
                         display: true,
-                        text: 'Daily Storage Activity'
+                        text: 'Aktivitas Penyimpanan Harian'
                     }
                 }
             }
@@ -345,11 +345,11 @@
         const quickFilters = document.createElement('div');
         quickFilters.className = 'mb-3';
         quickFilters.innerHTML = `
-        <label class="form-label">Quick Filters:</label><br>
+        <label class="form-label">Filter Cepat:</label><br>
         <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-primary" onclick="setDateFilter(7)">Last 7 days</button>
-            <button type="button" class="btn btn-outline-primary" onclick="setDateFilter(30)">Last 30 days</button>
-            <button type="button" class="btn btn-outline-primary" onclick="setDateFilter(90)">Last 3 months</button>
+            <button type="button" class="btn btn-outline-primary" onclick="setDateFilter(7)">7 hari terakhir</button>
+            <button type="button" class="btn btn-outline-primary" onclick="setDateFilter(30)">30 hari terakhir</button>
+            <button type="button" class="btn btn-outline-primary" onclick="setDateFilter(90)">3 bulan terakhir</button>
         </div>
     `;
 
