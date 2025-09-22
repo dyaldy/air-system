@@ -54,7 +54,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-3">
             <div class="card bg-success text-white">
                 <div class="card-body">
@@ -70,7 +70,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-3">
             <div class="card bg-info text-white">
                 <div class="card-body">
@@ -86,7 +86,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-3">
             <div class="card bg-warning text-white">
                 <div class="card-body">
@@ -94,14 +94,14 @@
                         <div>
                             <h6 class="card-title">Last Updated</h6>
                             <small>
-                                <?php 
+                                <?php
                                 $latest = '';
-                                foreach($storage_items as $item) {
+                                foreach ($storage_items as $item) {
                                     if ($item['updated_at'] > $latest) {
                                         $latest = $item['updated_at'];
                                     }
                                 }
-                                echo $latest ? date('M d, Y', strtotime($latest)) : 'No data'; 
+                                echo $latest ? date('M d, Y', strtotime($latest)) : 'No data';
                                 ?>
                             </small>
                         </div>
@@ -167,16 +167,16 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm" role="group">
-                                                    <button type="button" class="btn btn-outline-success" 
-                                                            onclick="quickStoreItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
+                                                    <button type="button" class="btn btn-outline-success"
+                                                        onclick="quickStoreItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-warning" 
-                                                            onclick="quickTakeItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>', <?= $item['amount']; ?>)">
+                                                    <button type="button" class="btn btn-outline-warning"
+                                                        onclick="quickTakeItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>', <?= $item['amount']; ?>)">
                                                         <i class="fas fa-minus"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-info" 
-                                                            onclick="viewItemDetails('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
+                                                    <button type="button" class="btn btn-outline-info"
+                                                        onclick="viewItemDetails('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
                                                 </div>
@@ -275,22 +275,22 @@
                     <input type="hidden" id="actionCategory" name="category">
                     <input type="hidden" id="actionTypeId" name="type_id">
                     <input type="hidden" name="location_id" value="<?= $location_id; ?>">
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Item:</label>
                         <div id="actionItemInfo" class="form-control-plaintext"></div>
                     </div>
-                    
+
                     <div class="mb-3" id="availableStockDiv" style="display: none;">
                         <label class="form-label">Available Stock:</label>
                         <div id="actionAvailableStock" class="form-control-plaintext text-primary"></div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="actionQuantity" class="form-label">Quantity:</label>
                         <input type="number" class="form-control" id="actionQuantity" name="quantity" min="1" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="actionNote" class="form-label">Note (Optional):</label>
                         <textarea class="form-control" id="actionNote" name="note" rows="2"></textarea>
@@ -321,62 +321,62 @@
 </div>
 
 <script>
-function quickStoreItem(category, typeId) {
-    document.getElementById('actionType').value = 'store';
-    document.getElementById('actionCategory').value = category;
-    document.getElementById('actionTypeId').value = typeId;
-    document.getElementById('actionItemInfo').textContent = category + ' - ' + typeId;
-    document.getElementById('quickActionTitle').textContent = 'Quick Store';
-    document.getElementById('quickActionSubmit').textContent = 'Store Items';
-    document.getElementById('quickActionSubmit').className = 'btn btn-success';
-    document.getElementById('availableStockDiv').style.display = 'none';
-    
-    var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
-    modal.show();
-}
+    function quickStoreItem(category, typeId) {
+        document.getElementById('actionType').value = 'store';
+        document.getElementById('actionCategory').value = category;
+        document.getElementById('actionTypeId').value = typeId;
+        document.getElementById('actionItemInfo').textContent = category + ' - ' + typeId;
+        document.getElementById('quickActionTitle').textContent = 'Quick Store';
+        document.getElementById('quickActionSubmit').textContent = 'Store Items';
+        document.getElementById('quickActionSubmit').className = 'btn btn-success';
+        document.getElementById('availableStockDiv').style.display = 'none';
 
-function quickTakeItem(category, typeId, availableStock) {
-    document.getElementById('actionType').value = 'take';
-    document.getElementById('actionCategory').value = category;
-    document.getElementById('actionTypeId').value = typeId;
-    document.getElementById('actionItemInfo').textContent = category + ' - ' + typeId;
-    document.getElementById('quickActionTitle').textContent = 'Quick Take';
-    document.getElementById('quickActionSubmit').textContent = 'Take Items';
-    document.getElementById('quickActionSubmit').className = 'btn btn-warning';
-    document.getElementById('availableStockDiv').style.display = 'block';
-    document.getElementById('actionAvailableStock').textContent = availableStock + ' items';
-    document.getElementById('actionQuantity').max = availableStock;
-    
-    var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
-    modal.show();
-}
+        var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
+        modal.show();
+    }
 
-function submitQuickAction() {
-    const form = document.getElementById('quickActionForm');
-    const formData = new FormData(form);
-    
-    fetch('<?= site_url('storage/quick_action'); ?>', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    });
-}
+    function quickTakeItem(category, typeId, availableStock) {
+        document.getElementById('actionType').value = 'take';
+        document.getElementById('actionCategory').value = category;
+        document.getElementById('actionTypeId').value = typeId;
+        document.getElementById('actionItemInfo').textContent = category + ' - ' + typeId;
+        document.getElementById('quickActionTitle').textContent = 'Quick Take';
+        document.getElementById('quickActionSubmit').textContent = 'Take Items';
+        document.getElementById('quickActionSubmit').className = 'btn btn-warning';
+        document.getElementById('availableStockDiv').style.display = 'block';
+        document.getElementById('actionAvailableStock').textContent = availableStock + ' items';
+        document.getElementById('actionQuantity').max = availableStock;
 
-function viewItemDetails(category, typeId) {
-    // Load item details
-    fetch(`<?= site_url('storage/get_item_details'); ?>?location_id=<?= $location_id; ?>&category=${category}&type_id=${typeId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const item = data.item;
-                let html = `
+        var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
+        modal.show();
+    }
+
+    function submitQuickAction() {
+        const form = document.getElementById('quickActionForm');
+        const formData = new FormData(form);
+
+        fetch('<?= site_url('storage/quick_action'); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
+
+    function viewItemDetails(category, typeId) {
+        // Load item details
+        fetch(`<?= site_url('storage/get_item_details'); ?>?location_id=<?= $location_id; ?>&category=${category}&type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const item = data.item;
+                    let html = `
                     <div class="row">
                         <div class="col-md-6">
                             <h6>Basic Information</h6>
@@ -397,11 +397,11 @@ function viewItemDetails(category, typeId) {
                         </div>
                     </div>
                 `;
-                
-                if (item.storage_data) {
-                    try {
-                        const storageData = JSON.parse(item.storage_data);
-                        html += `
+
+                    if (item.storage_data) {
+                        try {
+                            const storageData = JSON.parse(item.storage_data);
+                            html += `
                             <div class="row mt-3">
                                 <div class="col-12">
                                     <h6>Additional Data</h6>
@@ -409,8 +409,8 @@ function viewItemDetails(category, typeId) {
                                 </div>
                             </div>
                         `;
-                    } catch (e) {
-                        html += `
+                        } catch (e) {
+                            html += `
                             <div class="row mt-3">
                                 <div class="col-12">
                                     <h6>Additional Data</h6>
@@ -418,51 +418,53 @@ function viewItemDetails(category, typeId) {
                                 </div>
                             </div>
                         `;
+                        }
                     }
-                }
-                
-                document.getElementById('itemDetailsContent').innerHTML = html;
-            } else {
-                document.getElementById('itemDetailsContent').innerHTML = '<div class="alert alert-danger">Error loading item details</div>';
-            }
-        });
-    
-    var modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
-    modal.show();
-}
 
-function exportToCSV() {
-    const table = document.getElementById('storageTable');
-    let csv = [];
-    
-    // Headers
-    const headers = [];
-    table.querySelectorAll('thead th').forEach(th => {
-        if (th.textContent.trim() !== 'Actions') {
-            headers.push(th.textContent.trim());
-        }
-    });
-    csv.push(headers.join(','));
-    
-    // Data rows
-    table.querySelectorAll('tbody tr').forEach(tr => {
-        const row = [];
-        tr.querySelectorAll('td').forEach((td, index) => {
-            if (index < headers.length) { // Skip actions column
-                row.push('"' + td.textContent.trim().replace(/"/g, '""') + '"');
+                    document.getElementById('itemDetailsContent').innerHTML = html;
+                } else {
+                    document.getElementById('itemDetailsContent').innerHTML = '<div class="alert alert-danger">Error loading item details</div>';
+                }
+            });
+
+        var modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
+        modal.show();
+    }
+
+    function exportToCSV() {
+        const table = document.getElementById('storageTable');
+        let csv = [];
+
+        // Headers
+        const headers = [];
+        table.querySelectorAll('thead th').forEach(th => {
+            if (th.textContent.trim() !== 'Actions') {
+                headers.push(th.textContent.trim());
             }
         });
-        csv.push(row.join(','));
-    });
-    
-    // Download
-    const csvContent = csv.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'storage_location_<?= $location_id; ?>_' + new Date().toISOString().split('T')[0] + '.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
+        csv.push(headers.join(','));
+
+        // Data rows
+        table.querySelectorAll('tbody tr').forEach(tr => {
+            const row = [];
+            tr.querySelectorAll('td').forEach((td, index) => {
+                if (index < headers.length) { // Skip actions column
+                    row.push('"' + td.textContent.trim().replace(/"/g, '""') + '"');
+                }
+            });
+            csv.push(row.join(','));
+        });
+
+        // Download
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], {
+            type: 'text/csv'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'storage_location_<?= $location_id; ?>_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
 </script>

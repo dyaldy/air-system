@@ -200,12 +200,12 @@
                     <input type="hidden" id="storeCategory" name="category">
                     <input type="hidden" id="storeTypeId" name="type_id">
                     <input type="hidden" name="action" value="store">
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Item:</label>
                         <div id="storeItemInfo" class="form-control-plaintext"></div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="storeLocationId" class="form-label">Location ID:</label>
                         <select class="form-select" id="storeLocationId" name="location_id" required>
@@ -215,12 +215,12 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="storeQuantity" class="form-label">Quantity:</label>
                         <input type="number" class="form-control" id="storeQuantity" name="quantity" min="1" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="storeNote" class="form-label">Note (Optional):</label>
                         <textarea class="form-control" id="storeNote" name="note" rows="2"></textarea>
@@ -248,25 +248,25 @@
                     <input type="hidden" id="takeCategory" name="category">
                     <input type="hidden" id="takeTypeId" name="type_id">
                     <input type="hidden" name="action" value="take">
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Item:</label>
                         <div id="takeItemInfo" class="form-control-plaintext"></div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="takeLocationId" class="form-label">Location ID:</label>
                         <select class="form-select" id="takeLocationId" name="location_id" required>
                             <option value="">Select Location</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="takeQuantity" class="form-label">Quantity:</label>
                         <input type="number" class="form-control" id="takeQuantity" name="quantity" min="1" required>
                         <div class="form-text">Available: <span id="availableStock">-</span></div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="takeNote" class="form-label">Note (Optional):</label>
                         <textarea class="form-control" id="takeNote" name="note" rows="2"></textarea>
@@ -282,94 +282,94 @@
 </div>
 
 <script>
-function quickStore(category, typeId) {
-    document.getElementById('storeCategory').value = category;
-    document.getElementById('storeTypeId').value = typeId;
-    document.getElementById('storeItemInfo').textContent = category + ' - ' + typeId;
-    
-    var modal = new bootstrap.Modal(document.getElementById('quickStoreModal'));
-    modal.show();
-}
+    function quickStore(category, typeId) {
+        document.getElementById('storeCategory').value = category;
+        document.getElementById('storeTypeId').value = typeId;
+        document.getElementById('storeItemInfo').textContent = category + ' - ' + typeId;
 
-function quickTake(category, typeId) {
-    document.getElementById('takeCategory').value = category;
-    document.getElementById('takeTypeId').value = typeId;
-    document.getElementById('takeItemInfo').textContent = category + ' - ' + typeId;
-    
-    // Load available locations for this item
-    fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + typeId)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const locationSelect = document.getElementById('takeLocationId');
-                locationSelect.innerHTML = '<option value="">Select Location</option>';
-                
-                data.stock_locations.forEach(location => {
-                    const option = document.createElement('option');
-                    option.value = location.location_id;
-                    option.textContent = location.location_id + ' (Stock: ' + location.amount + ')';
-                    locationSelect.appendChild(option);
-                });
-                
-                document.getElementById('availableStock').textContent = data.total_stock;
-            }
-        });
-    
-    var modal = new bootstrap.Modal(document.getElementById('quickTakeModal'));
-    modal.show();
-}
+        var modal = new bootstrap.Modal(document.getElementById('quickStoreModal'));
+        modal.show();
+    }
 
-function submitQuickStore() {
-    const form = document.getElementById('quickStoreForm');
-    const formData = new FormData(form);
-    
-    fetch('<?= site_url('storage/quick_action'); ?>', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    });
-}
+    function quickTake(category, typeId) {
+        document.getElementById('takeCategory').value = category;
+        document.getElementById('takeTypeId').value = typeId;
+        document.getElementById('takeItemInfo').textContent = category + ' - ' + typeId;
 
-function submitQuickTake() {
-    const form = document.getElementById('quickTakeForm');
-    const formData = new FormData(form);
-    
-    fetch('<?= site_url('storage/quick_action'); ?>', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    });
-}
-
-// Update available stock when location changes in take modal
-document.getElementById('takeLocationId').addEventListener('change', function() {
-    const locationId = this.value;
-    const category = document.getElementById('takeCategory').value;
-    const typeId = document.getElementById('takeTypeId').value;
-    
-    if (locationId && category && typeId) {
-        fetch('<?= site_url('storage/get_item_details'); ?>?location_id=' + locationId + '&category=' + category + '&type_id=' + typeId)
+        // Load available locations for this item
+        fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + typeId)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('availableStock').textContent = data.item.amount;
-                    document.getElementById('takeQuantity').max = data.item.amount;
+                    const locationSelect = document.getElementById('takeLocationId');
+                    locationSelect.innerHTML = '<option value="">Select Location</option>';
+
+                    data.stock_locations.forEach(location => {
+                        const option = document.createElement('option');
+                        option.value = location.location_id;
+                        option.textContent = location.location_id + ' (Stock: ' + location.amount + ')';
+                        locationSelect.appendChild(option);
+                    });
+
+                    document.getElementById('availableStock').textContent = data.total_stock;
+                }
+            });
+
+        var modal = new bootstrap.Modal(document.getElementById('quickTakeModal'));
+        modal.show();
+    }
+
+    function submitQuickStore() {
+        const form = document.getElementById('quickStoreForm');
+        const formData = new FormData(form);
+
+        fetch('<?= site_url('storage/quick_action'); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
                 }
             });
     }
-});
+
+    function submitQuickTake() {
+        const form = document.getElementById('quickTakeForm');
+        const formData = new FormData(form);
+
+        fetch('<?= site_url('storage/quick_action'); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
+
+    // Update available stock when location changes in take modal
+    document.getElementById('takeLocationId').addEventListener('change', function() {
+        const locationId = this.value;
+        const category = document.getElementById('takeCategory').value;
+        const typeId = document.getElementById('takeTypeId').value;
+
+        if (locationId && category && typeId) {
+            fetch('<?= site_url('storage/get_item_details'); ?>?location_id=' + locationId + '&category=' + category + '&type_id=' + typeId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('availableStock').textContent = data.item.amount;
+                        document.getElementById('takeQuantity').max = data.item.amount;
+                    }
+                });
+        }
+    });
 </script>

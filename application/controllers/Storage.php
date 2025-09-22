@@ -1,21 +1,23 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Storage extends CI_Controller {
+class Storage extends CI_Controller
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
-        
+
         // Check if user is logged in - same as User controller
         if (!$this->session->userdata('user_data')) {
             redirect(base_url());
         }
-        
+
         // Load required models and libraries
         $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model']);
         $this->load->library(['form_validation', 'session']);
         $this->load->helper(['url', 'common']);
-        
+
         // Set session controller to storage
         if ($this->session->userdata('controller') !== 'storage') {
             $this->session->set_userdata('controller', 'storage');
@@ -26,25 +28,25 @@ class Storage extends CI_Controller {
     /**
      * Storage dashboard - overview of all storage locations
      */
-    public function index() {
+    public function index()
+    {
         // Handle session state (search, filter, sort, reset)
         handle_session_state('storage');
-        
+
         $data['title'] = 'Storage Overview';
         $data['user_data'] = $this->session->userdata('user_data');
-        
+
         try {
             // Get storage overview data using available methods
             $data['storage_overview'] = $this->Storage_model->get_storage_overview();
             $data['recent_transactions'] = $this->Report_model->get_all_transactions(10);
             $data['all_locations'] = $this->Storage_model->get_all_locations();
-            
+
             // Get search and filter data from session
             $data['keyword'] = $this->session->userdata('keyword') ?: '';
             $data['sort'] = $this->session->userdata('sort') ?: 'item_code';
-            
+
             render_view('storage/index', $data);
-            
         } catch (Exception $e) {
             // Fallback if models have issues
             $data['error'] = 'Storage system temporarily unavailable: ' . $e->getMessage();
@@ -55,23 +57,25 @@ class Storage extends CI_Controller {
     /**
      * Test method to verify controller is working
      */
-    public function test() {
+    public function test()
+    {
         echo "Storage controller is working!";
     }
 
     /**
      * View storage by location
      */
-    public function location($location_id = null) {
+    public function location($location_id = null)
+    {
         if (!$location_id) {
             redirect('storage');
         }
-        
+
         $data['title'] = 'Storage Location: ' . $location_id;
         $data['location_id'] = $location_id;
         $data['storage_items'] = $this->Storage_model->get_storage_by_location($location_id);
         $data['location_transactions'] = $this->Report_model->get_transactions_by_location($location_id, 20);
-        
+
         $this->load->view('templates/header', $data);
         $this->load->view('storage/location', $data);
         $this->load->view('templates/footer');
@@ -80,18 +84,19 @@ class Storage extends CI_Controller {
     /**
      * Store items form
      */
-    public function store() {
+    public function store()
+    {
         $data['title'] = 'Store Items';
         $data['pneumatic_items'] = $this->Pneumatic_model->getAllPneumatics();
         $data['locations'] = $this->Storage_model->get_all_locations();
-        
+
         // Set validation rules
         $this->form_validation->set_rules('location_id', 'Location ID', 'required|max_length[3]');
         $this->form_validation->set_rules('category', 'Category', 'required|max_length[15]');
         $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[30]');
         $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('note', 'Note', 'max_length[255]');
-        
+
         if ($this->form_validation->run() === FALSE) {
             $this->load->view('templates/header', $data);
             $this->load->view('storage/store_form', $data);
@@ -104,14 +109,15 @@ class Storage extends CI_Controller {
     /**
      * Process storing items
      */
-    private function process_store() {
+    private function process_store()
+    {
         $location_id = $this->input->post('location_id');
         $category = $this->input->post('category');
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
         $editor_nik = $this->session->userdata('user_data')['nik'];
-        
+
         // Validate if pneumatic exists (for pneumatic category)
         if ($category === 'pneumatic') {
             $pneumatic = $this->Pneumatic_model->getById($type_id);
@@ -121,14 +127,14 @@ class Storage extends CI_Controller {
                 return;
             }
         }
-        
+
         // Store the items
         $store_result = $this->Storage_model->store_items($location_id, $category, $type_id, $quantity, $editor_nik);
-        
+
         if ($store_result) {
             // Log the transaction
             $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note);
-            
+
             $this->session->set_flashdata('success', 'Items stored successfully!');
             redirect('storage/location/' . $location_id);
         } else {
@@ -140,18 +146,19 @@ class Storage extends CI_Controller {
     /**
      * Take items form
      */
-    public function take() {
+    public function take()
+    {
         $data['title'] = 'Take Items';
         $data['storage_items'] = $this->Storage_model->get_all_storage();
         $data['locations'] = $this->Storage_model->get_all_locations();
-        
+
         // Set validation rules
         $this->form_validation->set_rules('location_id', 'Location ID', 'required|max_length[3]');
         $this->form_validation->set_rules('category', 'Category', 'required|max_length[15]');
         $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[30]');
         $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('note', 'Note', 'max_length[255]');
-        
+
         if ($this->form_validation->run() === FALSE) {
             $this->load->view('templates/header', $data);
             $this->load->view('storage/take_form', $data);
@@ -164,21 +171,22 @@ class Storage extends CI_Controller {
     /**
      * Process taking items
      */
-    private function process_take() {
+    private function process_take()
+    {
         $location_id = $this->input->post('location_id');
         $category = $this->input->post('category');
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
         $editor_nik = $this->session->userdata('user_data')['nik'];
-        
+
         // Take the items
         $take_result = $this->Storage_model->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
-        
+
         if ($take_result['success']) {
             // Log the transaction
             $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note);
-            
+
             $this->session->set_flashdata('success', $take_result['message']);
             redirect('storage/location/' . $location_id);
         } else {
@@ -190,23 +198,24 @@ class Storage extends CI_Controller {
     /**
      * Search storage items
      */
-    public function search() {
+    public function search()
+    {
         $search_term = $this->input->get('q');
         $location_id = $this->input->get('location');
         $category = $this->input->get('category');
-        
+
         $data['title'] = 'Search Storage';
         $data['search_term'] = $search_term;
         $data['selected_location'] = $location_id;
         $data['selected_category'] = $category;
         $data['locations'] = $this->Storage_model->get_all_locations();
-        
+
         if ($search_term || $location_id || $category) {
             $data['search_results'] = $this->Storage_model->search_storage($search_term, $location_id, $category);
         } else {
             $data['search_results'] = array();
         }
-        
+
         $this->load->view('templates/header', $data);
         $this->load->view('storage/search', $data);
         $this->load->view('templates/footer');
@@ -215,14 +224,15 @@ class Storage extends CI_Controller {
     /**
      * Get available stock for AJAX requests
      */
-    public function get_stock() {
+    public function get_stock()
+    {
         $category = $this->input->get('category');
         $type_id = $this->input->get('type_id');
-        
+
         if ($category && $type_id) {
             $stock_locations = $this->Storage_model->get_available_stock($category, $type_id);
             $total_stock = $this->Storage_model->get_total_stock($category, $type_id);
-            
+
             $response = array(
                 'success' => true,
                 'stock_locations' => $stock_locations,
@@ -234,7 +244,7 @@ class Storage extends CI_Controller {
                 'message' => 'Category and Type ID are required'
             );
         }
-        
+
         header('Content-Type: application/json');
         echo json_encode($response);
     }
@@ -242,14 +252,15 @@ class Storage extends CI_Controller {
     /**
      * Get storage item details for AJAX requests
      */
-    public function get_item_details() {
+    public function get_item_details()
+    {
         $location_id = $this->input->get('location_id');
         $category = $this->input->get('category');
         $type_id = $this->input->get('type_id');
-        
+
         if ($location_id && $category && $type_id) {
             $item = $this->Storage_model->get_storage_item($location_id, $category, $type_id);
-            
+
             if ($item) {
                 $response = array(
                     'success' => true,
@@ -267,7 +278,7 @@ class Storage extends CI_Controller {
                 'message' => 'Missing required parameters'
             );
         }
-        
+
         header('Content-Type: application/json');
         echo json_encode($response);
     }
@@ -275,37 +286,38 @@ class Storage extends CI_Controller {
     /**
      * Reports page
      */
-    public function reports() {
+    public function reports()
+    {
         $data['title'] = 'Storage Reports';
-        
+
         // Get filter parameters
         $start_date = $this->input->get('start_date');
         $end_date = $this->input->get('end_date');
         $action = $this->input->get('action');
         $location_id = $this->input->get('location');
         $category = $this->input->get('category');
-        
+
         $filters = array();
         if ($start_date) $filters['start_date'] = $start_date;
         if ($end_date) $filters['end_date'] = $end_date;
         if ($action) $filters['action'] = $action;
         if ($location_id) $filters['location_id'] = $location_id;
         if ($category) $filters['category'] = $category;
-        
+
         $data['filters'] = $filters;
         $data['locations'] = $this->Storage_model->get_all_locations();
-        
+
         // Get transactions based on filters
         if (!empty($filters)) {
             $data['transactions'] = $this->Report_model->search_transactions('', $filters);
         } else {
             $data['transactions'] = $this->Report_model->get_all_transactions(50);
         }
-        
+
         // Get statistics
         $data['stats'] = $this->Report_model->get_transaction_stats($start_date, $end_date);
         $data['daily_summary'] = $this->Report_model->get_daily_summary($start_date, $end_date);
-        
+
         $this->load->view('templates/header', $data);
         $this->load->view('storage/reports', $data);
         $this->load->view('templates/footer');
@@ -314,7 +326,8 @@ class Storage extends CI_Controller {
     /**
      * Quick actions - for AJAX quick store/take
      */
-    public function quick_action() {
+    public function quick_action()
+    {
         $action = $this->input->post('action'); // 'store' or 'take'
         $location_id = $this->input->post('location_id');
         $category = $this->input->post('category');
@@ -322,7 +335,7 @@ class Storage extends CI_Controller {
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
         $editor_nik = $this->session->userdata('user_data')['nik'];
-        
+
         if ($action === 'store') {
             $result = $this->Storage_model->store_items($location_id, $category, $type_id, $quantity, $editor_nik);
             if ($result) {
@@ -340,7 +353,7 @@ class Storage extends CI_Controller {
         } else {
             $response = array('success' => false, 'message' => 'Invalid action');
         }
-        
+
         header('Content-Type: application/json');
         echo json_encode($response);
     }

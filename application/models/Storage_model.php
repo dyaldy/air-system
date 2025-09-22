@@ -1,9 +1,11 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Storage_model extends CI_Model {
+class Storage_model extends CI_Model
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->load->database();
     }
@@ -11,7 +13,8 @@ class Storage_model extends CI_Model {
     /**
      * Get all storage locations with their inventory
      */
-    public function get_all_storage() {
+    public function get_all_storage()
+    {
         $this->db->select('s.*, u.name as editor_name');
         $this->db->from('as_storage s');
         $this->db->join('as_user u', 's.editor = u.nik', 'left');
@@ -23,7 +26,8 @@ class Storage_model extends CI_Model {
     /**
      * Get storage by location
      */
-    public function get_storage_by_location($location_id) {
+    public function get_storage_by_location($location_id)
+    {
         $this->db->select('s.*, u.name as editor_name');
         $this->db->from('as_storage s');
         $this->db->join('as_user u', 's.editor = u.nik', 'left');
@@ -36,7 +40,8 @@ class Storage_model extends CI_Model {
     /**
      * Get specific storage item
      */
-    public function get_storage_item($location_id, $category, $type_id) {
+    public function get_storage_item($location_id, $category, $type_id)
+    {
         $this->db->where('location_id', $location_id);
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
@@ -47,7 +52,8 @@ class Storage_model extends CI_Model {
     /**
      * Check if storage item exists
      */
-    public function storage_exists($location_id, $category, $type_id) {
+    public function storage_exists($location_id, $category, $type_id)
+    {
         $this->db->where('location_id', $location_id);
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
@@ -58,7 +64,8 @@ class Storage_model extends CI_Model {
     /**
      * Add new storage entry
      */
-    public function add_storage($data) {
+    public function add_storage($data)
+    {
         $storage_data = array(
             'location_id' => $data['location_id'],
             'category' => $data['category'],
@@ -67,50 +74,52 @@ class Storage_model extends CI_Model {
             'storage_data' => isset($data['storage_data']) ? json_encode($data['storage_data']) : null,
             'editor' => $data['editor']
         );
-        
+
         return $this->db->insert('as_storage', $storage_data);
     }
 
     /**
      * Update storage amount and data
      */
-    public function update_storage($location_id, $category, $type_id, $new_amount, $storage_data = null, $editor_nik = null) {
+    public function update_storage($location_id, $category, $type_id, $new_amount, $storage_data = null, $editor_nik = null)
+    {
         $update_data = array(
             'amount' => $new_amount,
             'updated_at' => date('Y-m-d H:i:s')
         );
-        
+
         if ($storage_data !== null) {
             $update_data['storage_data'] = json_encode($storage_data);
         }
-        
+
         if ($editor_nik !== null) {
             $update_data['editor'] = $editor_nik;
         }
-        
+
         $this->db->where('location_id', $location_id);
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
-        
+
         return $this->db->update('as_storage', $update_data);
     }
 
     /**
      * Store items (increase amount)
      */
-    public function store_items($location_id, $category, $type_id, $quantity, $editor_nik, $storage_data = null) {
+    public function store_items($location_id, $category, $type_id, $quantity, $editor_nik, $storage_data = null)
+    {
         // Check if storage item exists
         if ($this->storage_exists($location_id, $category, $type_id)) {
             // Update existing storage
             $current_item = $this->get_storage_item($location_id, $category, $type_id);
             $new_amount = $current_item['amount'] + $quantity;
-            
+
             // Merge storage data if provided
             $current_storage_data = json_decode($current_item['storage_data'], true) ?? array();
             if ($storage_data) {
                 $current_storage_data = array_merge($current_storage_data, $storage_data);
             }
-            
+
             return $this->update_storage($location_id, $category, $type_id, $new_amount, $current_storage_data, $editor_nik);
         } else {
             // Create new storage entry
@@ -129,19 +138,20 @@ class Storage_model extends CI_Model {
     /**
      * Take items (decrease amount)
      */
-    public function take_items($location_id, $category, $type_id, $quantity, $editor_nik) {
+    public function take_items($location_id, $category, $type_id, $quantity, $editor_nik)
+    {
         $current_item = $this->get_storage_item($location_id, $category, $type_id);
-        
+
         if (!$current_item) {
             return array('success' => false, 'message' => 'Item not found in storage');
         }
-        
+
         if ($current_item['amount'] < $quantity) {
             return array('success' => false, 'message' => 'Insufficient stock. Available: ' . $current_item['amount']);
         }
-        
+
         $new_amount = $current_item['amount'] - $quantity;
-        
+
         if ($this->update_storage($location_id, $category, $type_id, $new_amount, null, $editor_nik)) {
             return array('success' => true, 'message' => 'Items taken successfully');
         } else {
@@ -152,7 +162,8 @@ class Storage_model extends CI_Model {
     /**
      * Get available stock for a specific item
      */
-    public function get_available_stock($category, $type_id) {
+    public function get_available_stock($category, $type_id)
+    {
         $this->db->select('location_id, amount');
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
@@ -164,7 +175,8 @@ class Storage_model extends CI_Model {
     /**
      * Get total stock across all locations for a specific item
      */
-    public function get_total_stock($category, $type_id) {
+    public function get_total_stock($category, $type_id)
+    {
         $this->db->select_sum('amount');
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
@@ -176,7 +188,8 @@ class Storage_model extends CI_Model {
     /**
      * Get all unique locations
      */
-    public function get_all_locations() {
+    public function get_all_locations()
+    {
         $this->db->distinct();
         $this->db->select('location_id');
         $this->db->order_by('location_id');
@@ -187,7 +200,8 @@ class Storage_model extends CI_Model {
     /**
      * Get storage overview grouped by category and type
      */
-    public function get_storage_overview() {
+    public function get_storage_overview()
+    {
         $this->db->select('category, type_id, SUM(amount) as total_amount, COUNT(location_id) as location_count');
         $this->db->group_by(array('category', 'type_id'));
         $this->db->having('SUM(amount) >', 0);
@@ -199,11 +213,12 @@ class Storage_model extends CI_Model {
     /**
      * Search storage items
      */
-    public function search_storage($search_term, $location_id = null, $category = null) {
+    public function search_storage($search_term, $location_id = null, $category = null)
+    {
         $this->db->select('s.*, u.name as editor_name');
         $this->db->from('as_storage s');
         $this->db->join('as_user u', 's.editor = u.nik', 'left');
-        
+
         if ($search_term) {
             $this->db->group_start();
             $this->db->like('s.type_id', $search_term);
@@ -211,15 +226,15 @@ class Storage_model extends CI_Model {
             $this->db->or_like('s.location_id', $search_term);
             $this->db->group_end();
         }
-        
+
         if ($location_id) {
             $this->db->where('s.location_id', $location_id);
         }
-        
+
         if ($category) {
             $this->db->where('s.category', $category);
         }
-        
+
         $this->db->order_by('s.location_id, s.category, s.type_id');
         $query = $this->db->get();
         return $query->result_array();
