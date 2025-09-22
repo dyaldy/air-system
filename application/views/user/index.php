@@ -11,7 +11,7 @@
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 table-responsive mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title and Search -->
-    <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4">
+    <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4 rounded-top-5">
         <div class="row g-3 align-items-center">
             <!-- Page Title -->
             <div class="col-12 col-lg-6">
