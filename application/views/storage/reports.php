@@ -76,8 +76,8 @@
                         <a href="<?= site_url('storage/reports'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i> Clear Filters
                         </a>
-                        <button type="button" class="btn btn-success" onclick="exportTransactions()">
-                            <i class="fas fa-download"></i> Export CSV
+                        <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                            <i class="fas fa-download"></i> Export Excel
                         </button>
                     </div>
                     <?= form_close(); ?>
@@ -301,42 +301,24 @@
         });
     <?php endif; ?>
 
-    function exportTransactions() {
-        const table = document.getElementById('transactionsTable');
-        if (!table) {
-            alert('No data to export');
-            return;
+    function exportToExcel() {
+        // Get current filter parameters
+        const startDate = document.querySelector('input[name="start_date"]')?.value || '';
+        const endDate = document.querySelector('input[name="end_date"]')?.value || '';
+
+        // Build URL with parameters
+        let url = '<?= site_url("storage/export_transactions_excel"); ?>';
+        let params = [];
+
+        if (startDate) params.push('start_date=' + encodeURIComponent(startDate));
+        if (endDate) params.push('end_date=' + encodeURIComponent(endDate));
+
+        if (params.length > 0) {
+            url += '?' + params.join('&');
         }
 
-        let csv = [];
-
-        // Headers
-        const headers = [];
-        table.querySelectorAll('thead th').forEach(th => {
-            headers.push(th.textContent.trim());
-        });
-        csv.push(headers.join(','));
-
-        // Data rows
-        table.querySelectorAll('tbody tr').forEach(tr => {
-            const row = [];
-            tr.querySelectorAll('td').forEach(td => {
-                row.push('"' + td.textContent.trim().replace(/"/g, '""') + '"');
-            });
-            csv.push(row.join(','));
-        });
-
-        // Download
-        const csvContent = csv.join('\n');
-        const blob = new Blob([csvContent], {
-            type: 'text/csv'
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'storage_transactions_' + new Date().toISOString().split('T')[0] + '.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
+        // Open in new window to trigger download
+        window.open(url, '_blank');
     }
 
     // Auto-set end date when start date is selected

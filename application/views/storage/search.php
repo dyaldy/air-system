@@ -97,11 +97,8 @@
                 </div>
                 <?php if (!empty($search_results)): ?>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportSearchResults()">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-                            <i class="fas fa-print"></i> Print
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportToExcel()">
+                            <i class="fas fa-download"></i> Export Excel
                         </button>
                     </div>
                 <?php endif; ?>
@@ -417,46 +414,26 @@
             });
     }
 
-    function exportSearchResults() {
-        const table = document.getElementById('searchResultsTable');
-        if (!table) {
-            alert('No data to export');
-            return;
+    function exportToExcel() {
+        // Get current search parameters
+        const searchTerm = document.querySelector('input[name="search_term"]')?.value || '';
+        const locationId = document.querySelector('select[name="location_id"]')?.value || '';
+        const category = document.querySelector('select[name="category"]')?.value || '';
+
+        // Build URL with parameters
+        let url = '<?= site_url("storage/export_search_excel"); ?>';
+        let params = [];
+
+        if (searchTerm) params.push('search=' + encodeURIComponent(searchTerm));
+        if (locationId) params.push('location=' + encodeURIComponent(locationId));
+        if (category) params.push('category=' + encodeURIComponent(category));
+
+        if (params.length > 0) {
+            url += '?' + params.join('&');
         }
 
-        let csv = [];
-
-        // Headers
-        const headers = [];
-        table.querySelectorAll('thead th').forEach(th => {
-            if (th.textContent.trim() !== 'Actions') {
-                headers.push(th.textContent.trim());
-            }
-        });
-        csv.push(headers.join(','));
-
-        // Data rows
-        table.querySelectorAll('tbody tr').forEach(tr => {
-            const row = [];
-            tr.querySelectorAll('td').forEach((td, index) => {
-                if (index < headers.length) { // Skip actions column
-                    row.push('"' + td.textContent.trim().replace(/"/g, '""') + '"');
-                }
-            });
-            csv.push(row.join(','));
-        });
-
-        // Download
-        const csvContent = csv.join('\n');
-        const blob = new Blob([csvContent], {
-            type: 'text/csv'
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'storage_search_results_' + new Date().toISOString().split('T')[0] + '.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
+        // Open in new window to trigger download
+        window.open(url, '_blank');
     }
 
     // Auto-focus search input

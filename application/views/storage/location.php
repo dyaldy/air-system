@@ -121,12 +121,9 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Items in Storage</h5>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportToCSV()">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-                            <i class="fas fa-print"></i> Print
-                        </button>
+                        <a href="<?= site_url('storage/export_location_excel/' . $location_id); ?>" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Export Excel
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -429,42 +426,5 @@
 
         var modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
         modal.show();
-    }
-
-    function exportToCSV() {
-        const table = document.getElementById('storageTable');
-        let csv = [];
-
-        // Headers
-        const headers = [];
-        table.querySelectorAll('thead th').forEach(th => {
-            if (th.textContent.trim() !== 'Actions') {
-                headers.push(th.textContent.trim());
-            }
-        });
-        csv.push(headers.join(','));
-
-        // Data rows
-        table.querySelectorAll('tbody tr').forEach(tr => {
-            const row = [];
-            tr.querySelectorAll('td').forEach((td, index) => {
-                if (index < headers.length) { // Skip actions column
-                    row.push('"' + td.textContent.trim().replace(/"/g, '""') + '"');
-                }
-            });
-            csv.push(row.join(','));
-        });
-
-        // Download
-        const csvContent = csv.join('\n');
-        const blob = new Blob([csvContent], {
-            type: 'text/csv'
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'storage_location_<?= $location_id; ?>_' + new Date().toISOString().split('T')[0] + '.csv';
-        a.click();
-        window.URL.revokeObjectURL(url);
     }
 </script>
