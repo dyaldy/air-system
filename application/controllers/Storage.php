@@ -40,7 +40,7 @@ class Storage extends CI_Controller
             // Get storage overview data using available methods
             $data['storage_overview'] = $this->Storage_model->get_storage_overview();
             $data['recent_transactions'] = $this->Report_model->get_all_transactions(10);
-            $data['all_locations'] = $this->Storage_model->get_all_locations();
+            $data['locations'] = $this->Storage_model->get_all_locations();
 
             // Get search and filter data from session
             $data['keyword'] = $this->session->userdata('keyword') ?: '';
