@@ -52,3 +52,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 $route['default_controller'] = 'auth';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+// Storage routes
+$route['storage'] = 'Storage';
+$route['storage/(:any)'] = 'Storage/$1';

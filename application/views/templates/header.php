@@ -73,9 +73,9 @@
                             <a class="nav-link" href="<?= site_url('pneumatic_type'); ?>">Kelola Type</a>
                         </li>
 
-                        <!-- Link to Report Controller -->
+                        <!-- Link to Storage Controller -->
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= site_url('report'); ?>">Laporan</a>
+                            <a class="nav-link" href="<?= site_url('storage'); ?>">Storage</a>
                         </li>
                     </ul>
                 </div>
