@@ -25,13 +25,17 @@
             <div class="col-12 col-lg-6">
                 <div class="d-flex gap-2 align-items-center">
                     <!-- Search + Filters Form -->
-                    <form action="" method="post" class="flex-grow-1 position-relative" id="search-form">
+                    <form action="" method="post" class="flex-grow-1" id="search-form">
                         <div class="input-group">
-                            <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, brand, type..." name="keyword" value="<?= $searchKeyword ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
+                            <!-- make the input area a positioned container so absolute children are anchored inside it -->
+                            <div class="position-relative flex-grow-1">
+                                <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, brand, type..." name="keyword" value="<?= $searchKeyword ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
+                                <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button" onclick="clearKeyword()">
+                            </div>
+
                             <input type="hidden" name="find" value="1">
                             <button class="btn btn-secondary rounded-end-pill px-4" type="submit">Cari</button>
                         </div>
-                        <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button top-50 translate-middle-y" id="clear-button" onclick="clearKeyword()" style="right: 5.5rem;">
 
                         <div class="mt-2 d-flex gap-2">
                             <!-- Brand Filter -->

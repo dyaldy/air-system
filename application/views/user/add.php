@@ -20,7 +20,7 @@
                 <label for="nik" class="form-label">NIK</label>
                 <div class="position-relative">
                     <input id="nik" type="text" class="form-control rounded-pill pe-5 <?= form_error('nik') ? 'is-invalid' : '' ?>" name="nik" placeholder="123456789" value="<?= set_value('nik'); ?>" onkeyup="toggleClear('nik', 'clear-button-nik')" autocomplete="off">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-nik" onclick="clearInput('nik', 'clear-button-nik')" style="top: 7px; <?= form_error('nik') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-nik" onclick="clearInput('nik', 'clear-button-nik')" aria-hidden="true">
                     <?= form_error('nik', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                 <label for="name" class="form-label">Nama</label>
                 <div class="position-relative">
                     <input id="name" type="text" class="form-control rounded-pill pe-5 <?= form_error('name') ? 'is-invalid' : '' ?>" name="name" placeholder="John Doe" value="<?= set_value('name'); ?>" onkeyup="toggleClear('name', 'clear-button-name')" autocomplete="off">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-name" onclick="clearInput('name', 'clear-button-name')" style="top: 7px; <?= form_error('name') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-name" onclick="clearInput('name', 'clear-button-name')" aria-hidden="true">
                     <?= form_error('name', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
             </div>

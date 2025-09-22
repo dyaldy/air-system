@@ -840,13 +840,4 @@ class Pneumatic extends CI_Controller
         }
         return true;
     }
-
-    /**
-     * Renders view with common data.
-     *
-     * @param string $view The view file to render
-     * @param array $data Additional data to pass to view
-     * @return void
-     */
-    // Removed private render_view to use the common helper `render_view()` across controllers
 }

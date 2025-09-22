@@ -27,7 +27,7 @@
                 <label for="brand" class="form-label">Brand</label>
                 <div class="position-relative">
                     <input id="brand" type="text" class="form-control rounded-pill pe-5 <?= form_error('brand') ? 'is-invalid' : '' ?>" name="brand" placeholder="SMC" value="<?= set_value('brand'); ?>" onkeyup="toggleClear('brand', 'clear-button-brand')" autocomplete="off">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-brand" onclick="clearInput('brand', 'clear-button-brand')" style="top: 7px; <?= form_error('brand') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-brand" onclick="clearInput('brand', 'clear-button-brand')" aria-hidden="true">
                     <?= form_error('brand', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                 <label for="bore" class="form-label">Bore (mm)</label>
                 <div class="position-relative">
                     <input id="bore" type="number" class="form-control rounded-pill pe-5 <?= form_error('bore') ? 'is-invalid' : '' ?>" name="bore" placeholder="25" value="<?= set_value('bore'); ?>" onkeyup="toggleClear('bore', 'clear-button-bore')" autocomplete="off" min="1">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-bore" onclick="clearInput('bore', 'clear-button-bore')" style="top: 7px; <?= form_error('bore') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-bore" onclick="clearInput('bore', 'clear-button-bore')" aria-hidden="true">
                     <?= form_error('bore', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
             </div>
@@ -71,7 +71,7 @@
                 <label for="stroke" class="form-label">Stroke (mm)</label>
                 <div class="position-relative">
                     <input id="stroke" type="number" class="form-control rounded-pill pe-5 <?= form_error('stroke') ? 'is-invalid' : '' ?>" name="stroke" placeholder="100" value="<?= set_value('stroke'); ?>" onkeyup="toggleClear('stroke', 'clear-button-stroke')" autocomplete="off" min="1">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-stroke" onclick="clearInput('stroke', 'clear-button-stroke')" style="top: 7px; <?= form_error('stroke') ? 'right: 1.9rem;' : 'right: 1.25rem;' ?>">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-stroke" onclick="clearInput('stroke', 'clear-button-stroke')" aria-hidden="true">
                     <?= form_error('stroke', "<div class='invalid-feedback'>", "</div>"); ?>
                 </div>
             </div>

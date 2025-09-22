@@ -8,9 +8,39 @@
 
 .clear-button {
 	position: absolute;
+	top: 50%;
+	right: 1rem;
+	transform: translateY(-50%);
 	z-index: 40;
 	cursor: pointer;
 	display: none;
+	width: 1.25rem; /* slightly smaller to fit inside input */
+	height: auto;
+	opacity: 0.85;
+	transition: opacity .12s ease, transform .12s ease;
+}
+
+/* Ensure input-group positioned wrapper shrinks correctly in flex layout */
+.input-group .position-relative {
+    min-width: 0; /* allow flex children to shrink properly */
+}
+
+/* Make clear button appear above the submit button */
+.input-group .clear-button {
+	z-index: 70; /* above the input-group button */
+}
+
+/* Give the submit button a lower stacking context to avoid overlapping the clear icon */
+.input-group .btn {
+	z-index: 10;
+}
+
+/* Slightly nudge the clear icon left on narrow screens to avoid overlap */
+@media (max-width: 576px) {
+	.input-group .clear-button {
+		right: 2.25rem; /* move a bit left to stay within the input */
+		width: 1rem; /* reduce clear icon size on very small screens */
+	}
 }
 
 .cursor-pointer {

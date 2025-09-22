@@ -30,7 +30,10 @@
                 <?= form_open_multipart($form_action, ['id' => 'typeForm']); ?>
                 <div class="mb-3">
                     <label for="type" class="form-label">Type</label>
-                    <input type="text" name="type" id="type" class="form-control" maxlength="10" required value="<?= isset($type['type']) ? htmlspecialchars($type['type'], ENT_QUOTES, 'UTF-8') : set_value('type') ?>">
+                    <div class="position-relative">
+                        <input type="text" name="type" id="type" class="form-control" maxlength="10" required value="<?= isset($type['type']) ? htmlspecialchars($type['type'], ENT_QUOTES, 'UTF-8') : set_value('type') ?>" onkeyup="toggleClear('type', 'clear-button-type')">
+                        <img src="<?= base_url('assets/img/delete.png'); ?>" alt="clear" class="action-button clear-button" id="clear-button-type" onclick="clearInput('type', 'clear-button-type')" aria-hidden="true">
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -90,3 +93,22 @@
         window.notificationDuration = "3000";
     </script>
 <?php endif; ?>
+
+<script>
+    // Register input clear config for this form
+    window.inputConfigs = window.inputConfigs || [];
+    // Add or replace entry for 'type'
+    (function() {
+        const existing = window.inputConfigs.find(c => c.id === 'type');
+        if (existing) {
+            existing.button = 'clear-button-type';
+        } else {
+            window.inputConfigs.push({
+                id: 'type',
+                button: 'clear-button-type'
+            });
+        }
+    })();
+</script>
+
+<script src="<?= base_url('assets/js/forminput.js'); ?>"></script>
