@@ -140,11 +140,19 @@ class Pneumatic extends CI_Controller
         $typeOptions = $this->Pneumatic_model->getPneumaticFilter('type', $sessionData['search'], $sessionData['filter']);
 
         $totalRows = $this->Pneumatic_model->countPneumatic($sessionData['search'], $sessionData['filter']);
-        $pagination = $this->setupPagination($totalRows);
+
+        $config = [
+            'base_url'   => site_url('pneumatic/index'),
+            'total_rows' => $totalRows,
+            'per_page'   => self::CONFIG['pagination']['items_per_page'],
+        ];
+        $this->pagination->initialize($config);
+
+        $startData = (int) ($this->uri->segment(3) ?: 0);
 
         $pneumatics = $this->Pneumatic_model->getPneumatic(
             self::CONFIG['pagination']['items_per_page'],
-            $pagination['offset'],
+            $startData,
             $sessionData['search'],
             $sessionData['filter'],
             $sessionData['sort']
@@ -153,7 +161,7 @@ class Pneumatic extends CI_Controller
         $data = [
             'title'          => 'Data Pneumatic',
             'pneumatics'     => $pneumatics,
-            'pagination'     => $pagination,
+            'pagination'     => ['links' => $this->pagination->create_links()],
             'total_rows'     => $totalRows,
             'searchKeyword'  => $sessionData['search'],
             'sortKeyword'    => ($sessionData['sort'] && strpos($sessionData['sort'], '-') !== false) ? explode('-', $sessionData['sort'], 2) : ['', ''],
@@ -701,47 +709,6 @@ class Pneumatic extends CI_Controller
         }
     }
 
-    /**
-     * Sets up pagination configuration.
-     *
-     * @param int $totalRows Total number of records
-     * @return array Pagination configuration
-     */
-    private function setupPagination(int $totalRows): array
-    {
-        $config = [
-            'base_url'        => site_url('pneumatic/index'),
-            'total_rows'      => $totalRows,
-            'per_page'        => self::CONFIG['pagination']['items_per_page'],
-            'use_page_numbers' => true,
-            'attributes'      => ['class' => 'page-link'],
-            'full_tag_open'   => '<ul class="pagination justify-content-center">',
-            'full_tag_close'  => '</ul>',
-            'first_link'      => 'First',
-            'last_link'       => 'Last',
-            'first_tag_open'  => '<li class="page-item">',
-            'first_tag_close' => '</li>',
-            'prev_link'       => '&laquo;',
-            'prev_tag_open'   => '<li class="page-item">',
-            'prev_tag_close'  => '</li>',
-            'next_link'       => '&raquo;',
-            'next_tag_open'   => '<li class="page-item">',
-            'next_tag_close'  => '</li>',
-            'last_tag_open'   => '<li class="page-item">',
-            'last_tag_close'  => '</li>',
-            'cur_tag_open'    => '<li class="page-item active"><span class="page-link">',
-            'cur_tag_close'   => '</span></li>',
-            'num_tag_open'    => '<li class="page-item">',
-            'num_tag_close'   => '</li>',
-        ];
-
-        $this->pagination->initialize($config);
-
-        return [
-            'links'  => $this->pagination->create_links(),
-            'offset' => max(0, ($this->uri->segment(3, 1) - 1) * self::CONFIG['pagination']['items_per_page']),
-        ];
-    }
 
     /**
      * Handles session state management for search, filter, and sort.
