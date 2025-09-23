@@ -226,9 +226,18 @@
                                         </td>
                                         <td>
                                             <?php if ($transaction['note']): ?>
-                                                <span class="text-muted" title="<?= htmlspecialchars($transaction['note']); ?>">
-                                                    <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
-                                                </span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-muted me-2" title="<?= htmlspecialchars($transaction['note']); ?>">
+                                                        <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
+                                                    </span>
+                                                    <?php if (strlen($transaction['note']) > 30): ?>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                            onclick="showFullNote('<?= htmlspecialchars(addslashes($transaction['storing_id'])); ?>', '<?= htmlspecialchars(addslashes($transaction['note'])); ?>')"
+                                                            title="Lihat catatan lengkap">
+                                                            <img src="<?= base_url('assets/img/eye.svg'); ?>" alt="View" style="width: 14px; height: 14px;">
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </div>
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>
                                             <?php endif; ?>
@@ -252,6 +261,31 @@
 </div>
 </div>
 
+<!-- Full Note Modal -->
+<div class="modal fade" id="fullNoteModal" tabindex="-1" aria-labelledby="fullNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fullNoteModalLabel">Catatan Lengkap</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>ID Penyimpanan:</strong>
+                    <code id="modalStoringId"></code>
+                </div>
+                <div>
+                    <strong>Catatan:</strong>
+                    <div class="mt-2 p-3 bg-light rounded" id="modalNoteContent" style="white-space: pre-wrap; word-wrap: break-word;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function exportToExcel() {
         // Get current filter parameters
@@ -271,6 +305,16 @@
 
         // Open in new window to trigger download
         window.open(url, '_blank');
+    }
+
+    // Function to show full note in modal
+    function showFullNote(storingId, note) {
+        document.getElementById('modalStoringId').textContent = storingId;
+        document.getElementById('modalNoteContent').textContent = note;
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('fullNoteModal'));
+        modal.show();
     }
 
     // Auto-set end date when start date is selected
