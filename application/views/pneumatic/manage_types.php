@@ -4,7 +4,10 @@
     <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4 rounded-top-5">
         <div class="d-flex align-items-center justify-content-between">
             <h3 class="m-0"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h3>
-            <a class="btn btn-primary rounded-pill px-4" href="<?= site_url('pneumatic_type/add') ?>">Tambah Type</a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="<?= site_url('pneumatic/type'); ?>" class="btn btn-secondary rounded-pill">Kembali</a>
+                <a class="btn btn-primary rounded-pill px-4" href="<?= site_url('pneumatic_type/add') ?>">Tambah Type</a>
+            </div>
         </div>
     </div>
 
