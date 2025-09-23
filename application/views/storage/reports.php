@@ -185,85 +185,85 @@
                     <th>Catatan</th>
                 </tr>
             </thead>
-                            <tbody>
-                                <?php foreach ($transactions as $transaction): ?>
-                                    <tr>
-                                        <td>
-                                            <code><?= htmlspecialchars($transaction['storing_id']); ?></code>
-                                        </td>
-                                        <td>
-                                            <?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($transaction['action'] == 'store'): ?>
-                                                <span class="badge bg-success">Simpan</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-warning">Ambil</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
-                                        </td>
-                                        <td>
-                                            <strong><?= htmlspecialchars($transaction['location_id']); ?></strong>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
-                                        </td>
-                                        <td>
-                                            <?= htmlspecialchars($transaction['type_id']); ?>
-                                        </td>
-                                        <td>
-                                            <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($transaction['note']): ?>
-                                                <div class="d-flex align-items-center">
-                                                    <span class="text-muted me-2" title="<?= htmlspecialchars($transaction['note']); ?>">
-                                                        <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
-                                                    </span>
-                                                    <?php if (strlen($transaction['note']) > 30): ?>
-                                                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                                            onclick="showFullNote('<?= htmlspecialchars(addslashes($transaction['storing_id'])); ?>', '<?= htmlspecialchars(addslashes($transaction['note'])); ?>')"
-                                                            title="Lihat catatan lengkap">
-                                                            <img src="<?= base_url('assets/img/eye.svg'); ?>" alt="View" style="width: 14px; height: 14px;">
-                                                        </button>
-                                                    <?php endif; ?>
-                                                </div>
-                                            <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination Footer -->
-                    <?php if (isset($pagination_links) && !empty($pagination_links)): ?>
-                        <div class="card-footer bg-white border-0 px-lg-5 px-4 py-3">
-                            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
-                                <!-- Record Count Display -->
-                                <div class="text-muted">
-                                    Menampilkan <strong><?= $display; ?></strong>
+            <tbody>
+                <?php foreach ($transactions as $transaction): ?>
+                    <tr>
+                        <td>
+                            <code><?= htmlspecialchars($transaction['storing_id']); ?></code>
+                        </td>
+                        <td>
+                            <?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?>
+                        </td>
+                        <td>
+                            <?php if ($transaction['action'] == 'store'): ?>
+                                <span class="badge bg-success">Simpan</span>
+                            <?php else: ?>
+                                <span class="badge bg-warning">Ambil</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
+                        </td>
+                        <td>
+                            <strong><?= htmlspecialchars($transaction['location_id']); ?></strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars($transaction['type_id']); ?>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>
+                        </td>
+                        <td>
+                            <?php if ($transaction['note']): ?>
+                                <div class="d-flex align-items-center">
+                                    <span class="text-muted me-2" title="<?= htmlspecialchars($transaction['note']); ?>">
+                                        <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
+                                    </span>
+                                    <?php if (strlen($transaction['note']) > 30): ?>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            onclick="showFullNote('<?= htmlspecialchars(addslashes($transaction['storing_id'])); ?>', '<?= htmlspecialchars(addslashes($transaction['note'])); ?>')"
+                                            title="Lihat catatan lengkap">
+                                            <img src="<?= base_url('assets/img/eye.svg'); ?>" alt="View" style="width: 14px; height: 14px;">
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
+                            <?php else: ?>
+                                <span class="text-muted">-</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 
-                                <!-- Pagination Links -->
-                                <?= $pagination_links; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                <?php else: ?>
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-chart-line fa-3x mb-3"></i>
-                        <h5>Tidak ada transaksi ditemukan</h5>
-                        <p>Tidak ada transaksi yang cocok dengan filter saat ini. Coba sesuaikan filter atau <a href="<?= site_url('storage/store'); ?>">mulai dengan menyimpan beberapa barang</a>.</p>
-                    </div>
-                <?php endif; ?>
+    <!-- Pagination Footer -->
+    <?php if (isset($pagination_links) && !empty($pagination_links)): ?>
+        <div class="card-footer bg-white border-0 px-lg-5 px-4 py-3">
+            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+                <!-- Record Count Display -->
+                <div class="text-muted">
+                    Menampilkan <strong><?= $display; ?></strong>
+                </div>
+
+                <!-- Pagination Links -->
+                <?= $pagination_links; ?>
             </div>
         </div>
+    <?php endif; ?>
+<?php else: ?>
+    <div class="alert alert-info text-center">
+        <i class="fas fa-chart-line fa-3x mb-3"></i>
+        <h5>Tidak ada transaksi ditemukan</h5>
+        <p>Tidak ada transaksi yang cocok dengan filter saat ini. Coba sesuaikan filter atau <a href="<?= site_url('storage/store'); ?>">mulai dengan menyimpan beberapa barang</a>.</p>
     </div>
+<?php endif; ?>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
