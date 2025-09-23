@@ -8,8 +8,8 @@
                 <p class="text-muted mb-0">Pilih sebuah type untuk melihat daftar atau menambah pneumatic baru pada type tersebut.</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="<?= site_url('pneumatic') . '?clear_type=1'; ?>" class="btn btn-outline-secondary rounded-pill px-4">Lihat Semua</a>
-                <a href="<?= site_url('pneumatic_type'); ?>" class="btn btn-outline-primary rounded-pill px-4">Kelola Type</a>
+                <a href="<?= site_url('pneumatic') . '?clear_type=1'; ?>" class="btn btn-secondary rounded-pill">Lihat Semua</a>
+                <a href="<?= site_url('pneumatic_type'); ?>" class="btn btn-primary rounded-pill px-4">Kelola Type</a>
             </div>
         </div>
     </div>

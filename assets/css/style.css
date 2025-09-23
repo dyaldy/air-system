@@ -126,6 +126,8 @@
 .pneumatic-type-grid .card {
 	border: 1px solid #e9ecef;
 	transition: transform .12s ease, box-shadow .12s ease;
+	overflow: hidden; /* ensure child elements (image/background) are clipped to the rounded corners */
+	border-radius: 0.75rem; /* matches the rounded-4 used in markup (approx 1rem); slightly smaller to sit visually inside outer card */
 }
 
 .pneumatic-type-grid .card:hover {
@@ -136,7 +138,9 @@
 
 .pneumatic-type-grid .card-body {
 	background: #fff;
-	border-top: 1px solid #f1f3f4;
+	border-top: 1px solid #e9ecef; /* match the card border color so the divider visually continues to the edges */
+	margin: 0; /* ensure no gaps */
+	padding-top: 1.5rem; /* keep spacing for the title/buttons */
 }
 
 @media (max-width: 768px) {
