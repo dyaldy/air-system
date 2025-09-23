@@ -245,7 +245,7 @@ class Report_model extends CI_Model
     /**
      * Search transactions
      */
-    public function search_transactions($search_term, $filters = array())
+    public function search_transactions($search_term, $filters = array(), $limit = null, $offset = 0)
     {
         $this->db->select('r.*, u.name as user_name');
         $this->db->from('as_report r');
@@ -284,6 +284,11 @@ class Report_model extends CI_Model
         }
 
         $this->db->order_by('r.datetime', 'DESC');
+
+        if ($limit) {
+            $this->db->limit($limit, $offset);
+        }
+
         $query = $this->db->get();
         return $query->result_array();
     }

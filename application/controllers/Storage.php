@@ -9,6 +9,20 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class Storage extends CI_Controller
 {
 
+    /**
+     * Configuration array for all settings.
+     *
+     * @var array
+     */
+    private const CONFIG = [
+        'pagination' => [
+            'items_per_page' => 7
+        ],
+        'validation' => [
+            // Add validation rules here if needed
+        ]
+    ];
+
     public function __construct()
     {
         parent::__construct();
@@ -20,7 +34,7 @@ class Storage extends CI_Controller
 
         // Load required models and libraries
         $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model']);
-        $this->load->library(['form_validation', 'session']);
+        $this->load->library(['form_validation', 'session', 'pagination']);
         $this->load->helper(['url', 'common']);
 
         // Set session controller to storage
@@ -312,12 +326,32 @@ class Storage extends CI_Controller
         $data['filters'] = $filters;
         $data['locations'] = $this->Storage_model->get_all_locations();
 
-        // Get transactions based on filters
+        // Pagination configuration
+        $config = [
+            'base_url'   => site_url('storage/reports'),
+            'total_rows' => $this->Report_model->count_transactions($filters),
+            'per_page'   => self::CONFIG['pagination']['items_per_page'],
+            'reuse_query_string' => true,
+        ];
+        $this->pagination->initialize($config);
+
+        // Get current page
+        $startData = (int) ($this->uri->segment(3) ? $this->uri->segment(3) : 0);
+
+        // Get transactions with pagination
         if (!empty($filters)) {
-            $data['transactions'] = $this->Report_model->search_transactions('', $filters);
+            $data['transactions'] = $this->Report_model->search_transactions('', $filters, $config['per_page'], $startData);
         } else {
-            $data['transactions'] = $this->Report_model->get_all_transactions(50);
+            $data['transactions'] = $this->Report_model->get_all_transactions($config['per_page'], $startData);
         }
+
+        // Add pagination data to view
+        $transactionCount = count($data['transactions']);
+        $data['display'] = ($startData + 1) . ' - ' . ($startData + $transactionCount) . ' dari ' . $config['total_rows'];
+        $data['pagination_links'] = $this->pagination->create_links();
+        $data['total_transactions'] = $config['total_rows'];
+        $data['current_page'] = $startData;
+        $data['per_page'] = $config['per_page'];
 
         // Get statistics
         $data['stats'] = $this->Report_model->get_transaction_stats($start_date, $end_date);

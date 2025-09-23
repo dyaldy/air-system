@@ -169,30 +169,22 @@
 <?php endif; ?>
 
 <!-- Transactions Table -->
-<div class="row">
-    <div class="col-12">
-        <div class="card border rounded-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Riwayat Transaksi</h6>
-                <small class="text-muted"><?= count($transactions); ?> transaksi ditemukan</small>
-            </div>
-            <div class="card-body">
-                <?php if (!empty($transactions)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-borderless table-hover table-striped mb-0" id="transactionsTable">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>ID Penyimpanan</th>
-                                    <th>Tanggal/Waktu</th>
-                                    <th>Aksi</th>
-                                    <th>Jumlah</th>
-                                    <th>Lokasi</th>
-                                    <th>Kategori</th>
-                                    <th>ID Tipe</th>
-                                    <th>Pengguna</th>
-                                    <th>Catatan</th>
-                                </tr>
-                            </thead>
+<?php if (!empty($transactions)): ?>
+    <div class="card-body p-0 table-responsive">
+        <table class="table table-borderless table-hover table-striped mb-0" id="transactionsTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID Penyimpanan</th>
+                    <th>Tanggal/Waktu</th>
+                    <th>Aksi</th>
+                    <th>Jumlah</th>
+                    <th>Lokasi</th>
+                    <th>Kategori</th>
+                    <th>ID Tipe</th>
+                    <th>Pengguna</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
                             <tbody>
                                 <?php foreach ($transactions as $transaction): ?>
                                     <tr>
@@ -247,6 +239,21 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination Footer -->
+                    <?php if (isset($pagination_links) && !empty($pagination_links)): ?>
+                        <div class="card-footer bg-white border-0 px-lg-5 px-4 py-3">
+                            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+                                <!-- Record Count Display -->
+                                <div class="text-muted">
+                                    Menampilkan <strong><?= $display; ?></strong>
+                                </div>
+
+                                <!-- Pagination Links -->
+                                <?= $pagination_links; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="alert alert-info text-center">
                         <i class="fas fa-chart-line fa-3x mb-3"></i>
