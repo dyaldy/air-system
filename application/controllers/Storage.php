@@ -160,7 +160,7 @@ class Storage extends CI_Controller
 
         if ($store_result) {
             // Log the transaction
-            $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
+            $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project_item);
 
             $this->session->set_flashdata('success', 'Items stored successfully!');
             redirect('storage/location/' . $location_id);
@@ -219,7 +219,7 @@ class Storage extends CI_Controller
 
         if ($take_result['success']) {
             // Log the transaction
-            $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
+            $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project);
 
             $this->session->set_flashdata('success', $take_result['message']);
             redirect('storage/location/' . $location_id);
@@ -300,6 +300,27 @@ class Storage extends CI_Controller
                     'success' => true,
                     'item' => $item
                 );
+
+                // Check if this is a project item
+                $is_project = strpos($type_id, '_PROJECT') !== false;
+                if ($is_project) {
+                    // Get the base type_id without _PROJECT suffix
+                    $base_type_id = str_replace('_PROJECT', '', $type_id);
+
+                    // Get recent store transactions for this item to find project notes
+                    $transactions = $this->Report_model->get_item_transactions($category, $base_type_id, 10);
+
+                    // Find the most recent store transaction with notes
+                    $project_notes = null;
+                    foreach ($transactions as $transaction) {
+                        if ($transaction['action'] == 'store' && !empty($transaction['note'])) {
+                            $project_notes = $transaction['note'];
+                            break;
+                        }
+                    }
+
+                    $response['project_notes'] = $project_notes;
+                }
             } else {
                 $response = array(
                     'success' => false,

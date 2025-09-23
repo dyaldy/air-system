@@ -98,6 +98,12 @@
                                     <i class="fas fa-project-diagram"></i> Barang untuk Project
                                 </small>
                             </div>
+                            <div id="projectNotes" class="mt-2" style="display: none;">
+                                <small class="text-muted">
+                                    <i class="fas fa-sticky-note"></i> <strong>Catatan Project:</strong>
+                                    <span id="projectNotesText"></span>
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -264,6 +270,14 @@
                 const projectIndicator = document.getElementById('projectIndicator');
                 projectIndicator.style.display = isProject ? 'block' : 'none';
 
+                // If project item, fetch and display project notes
+                if (isProject) {
+                    const dbTypeId = typeId + '_PROJECT';
+                    fetchProjectNotes(category, dbTypeId, locationId);
+                } else {
+                    hideProjectNotes();
+                }
+
                 // Update quantity input constraints
                 const quantityInput = document.getElementById('quantity');
                 quantityInput.max = stock;
@@ -281,6 +295,7 @@
         } else {
             document.getElementById('availableStock').textContent = '-';
             document.getElementById('projectIndicator').style.display = 'none';
+            hideProjectNotes();
         }
     }
 
@@ -380,20 +395,31 @@
         }
     });
 
-    // Bootstrap form validation
-    (function() {
-        'use strict';
-        window.addEventListener('load', function() {
-            var forms = document.getElementsByClassName('needs-validation');
-            var validation = Array.prototype.filter.call(forms, function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (form.checkValidity() === false) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
+    function fetchProjectNotes(category, typeId, locationId) {
+        // Make AJAX call to get item details
+        fetch(`<?= site_url('storage/get_item_details'); ?>?category=${category}&type_id=${typeId}&location_id=${locationId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.project_notes) {
+                    document.getElementById('projectNotesText').textContent = data.project_notes;
+                    document.getElementById('projectNotes').style.display = 'block';
+                } else {
+                    hideProjectNotes();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching project notes:', error);
+                hideProjectNotes();
             });
-        }, false);
-    })();
+    }
+
+    function hideProjectNotes() {
+        document.getElementById('projectNotes').style.display = 'none';
+        document.getElementById('projectNotesText').textContent = '';
+    }
 </script>

@@ -148,7 +148,12 @@
                                         <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
                                     </td>
                                     <td class="text-center">
-                                        <?= htmlspecialchars($transaction['type_id']); ?>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <?= htmlspecialchars($transaction['type_id']); ?>
+                                            <?php if (isset($transaction['comment']) && $transaction['comment'] === 'PROJECT'): ?>
+                                                <i class="fas fa-project-diagram text-primary ms-2" title="Barang Project"></i>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                     <td class="text-center">
                                         <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>

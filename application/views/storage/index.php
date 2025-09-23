@@ -179,7 +179,14 @@
                                                 </td>
                                                 <td><?= htmlspecialchars($transaction['location_id']); ?></td>
                                                 <td><?= htmlspecialchars($transaction['category']); ?></td>
-                                                <td><?= htmlspecialchars($transaction['type_id']); ?></td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <?= htmlspecialchars($transaction['type_id']); ?>
+                                                        <?php if (isset($transaction['comment']) && $transaction['comment'] === 'PROJECT'): ?>
+                                                            <i class="fas fa-project-diagram text-primary ms-2" title="Barang Project"></i>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </td>
                                                 <td><?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?></td>
                                                 <td>
                                                     <?php if ($transaction['note']): ?>
