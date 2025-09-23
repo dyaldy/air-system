@@ -68,11 +68,6 @@
                             <a class="nav-link" href="<?= site_url('pneumatic/type'); ?>">Pneumatic</a>
                         </li>
 
-                        <!-- Link to manage types (available to all users) -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= site_url('pneumatic_type'); ?>">Kelola Type</a>
-                        </li>
-
                         <!-- Link to Storage Controller -->
                         <li class="nav-item">
                             <a class="nav-link" href="<?= site_url('storage'); ?>">Storage</a>

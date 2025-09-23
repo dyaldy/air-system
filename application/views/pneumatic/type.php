@@ -1,14 +1,15 @@
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title and Action -->
-    <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4">
+    <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4 rounded-top-5">
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <h3 class="m-0 mb-1">Pilih Type Pneumatic</h3>
                 <p class="text-muted mb-0">Pilih sebuah type untuk melihat daftar atau menambah pneumatic baru pada type tersebut.</p>
             </div>
-            <div>
+            <div class="d-flex gap-2">
                 <a href="<?= site_url('pneumatic') . '?clear_type=1'; ?>" class="btn btn-outline-secondary rounded-pill px-4">Lihat Semua</a>
+                <a href="<?= site_url('pneumatic_type'); ?>" class="btn btn-outline-primary rounded-pill px-4">Kelola Type</a>
             </div>
         </div>
     </div>
@@ -25,7 +26,7 @@
                     $typeSafe = htmlspecialchars($type, ENT_QUOTES, 'UTF-8');
                 ?>
                     <div class="col">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card h-100 shadow-sm rounded-4">
                             <div class="pneumatic-thumb">
                                 <img src="<?= htmlspecialchars($imgUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $typeSafe ?>" class="img-fluid">
                             </div>

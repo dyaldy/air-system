@@ -1,7 +1,7 @@
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title and Add Button -->
-    <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4">
+    <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4 rounded-top-5">
         <div class="d-flex align-items-center justify-content-between">
             <h3 class="m-0"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></h3>
             <a class="btn btn-primary rounded-pill px-4" href="<?= site_url('pneumatic_type/add') ?>">Tambah Type</a>
@@ -15,7 +15,7 @@
                 <?php foreach ($types as $t): ?>
                     <?php $img = !empty($t['image']) ? base_url('assets/img/pneumatic_types/' . $t['image']) : base_url('assets/img/pneumatic-default.jpg'); ?>
                     <div class="col">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card h-100 shadow-sm rounded-4">
                             <div class="pneumatic-thumb">
                                 <img src="<?= htmlspecialchars($img, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($t['type'], ENT_QUOTES, 'UTF-8') ?>" class="img-fluid">
                             </div>
