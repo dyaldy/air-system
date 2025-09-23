@@ -138,7 +138,7 @@ class Storage extends CI_Controller
 
         if ($store_result) {
             // Log the transaction
-            $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note);
+            $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
 
             $this->session->set_flashdata('success', 'Items stored successfully!');
             redirect('storage/location/' . $location_id);
@@ -190,7 +190,7 @@ class Storage extends CI_Controller
 
         if ($take_result['success']) {
             // Log the transaction
-            $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note);
+            $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
 
             $this->session->set_flashdata('success', $take_result['message']);
             redirect('storage/location/' . $location_id);
@@ -344,7 +344,7 @@ class Storage extends CI_Controller
         if ($action === 'store') {
             $result = $this->Storage_model->store_items($location_id, $category, $type_id, $quantity, $editor_nik);
             if ($result) {
-                $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note);
+                $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
                 $response = array('success' => true, 'message' => 'Items stored successfully');
             } else {
                 $response = array('success' => false, 'message' => 'Failed to store items');
@@ -352,7 +352,7 @@ class Storage extends CI_Controller
         } elseif ($action === 'take') {
             $result = $this->Storage_model->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
             if ($result['success']) {
-                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note);
+                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
             }
             $response = $result;
         } else {
@@ -494,12 +494,13 @@ class Storage extends CI_Controller
         $sheet->setCellValue('D1', 'Category');
         $sheet->setCellValue('E1', 'Type ID');
         $sheet->setCellValue('F1', 'Action');
-        $sheet->setCellValue('G1', 'Note');
-        $sheet->setCellValue('H1', 'NIK');
+        $sheet->setCellValue('G1', 'Amount');
+        $sheet->setCellValue('H1', 'Note');
+        $sheet->setCellValue('I1', 'NIK');
 
         // Style headers
-        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:H1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:I1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FFCCCCCC');
 
         // Add data
@@ -511,13 +512,14 @@ class Storage extends CI_Controller
             $sheet->setCellValue('D' . $row, $transaction['category']);
             $sheet->setCellValue('E' . $row, $transaction['type_id']);
             $sheet->setCellValue('F' . $row, $transaction['action']);
-            $sheet->setCellValue('G' . $row, $transaction['note']);
-            $sheet->setCellValue('H' . $row, $transaction['nik']);
+            $sheet->setCellValue('G' . $row, isset($transaction['amount']) ? (int)$transaction['amount'] : 1);
+            $sheet->setCellValue('H' . $row, $transaction['note']);
+            $sheet->setCellValue('I' . $row, $transaction['nik']);
             $row++;
         }
 
         // Auto-size columns
-        foreach (range('A', 'H') as $col) {
+        foreach (range('A', 'I') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

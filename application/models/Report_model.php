@@ -24,6 +24,7 @@ class Report_model extends CI_Model
             'category' => $data['category'],
             'type_id' => $data['type_id'],
             'action' => $data['action'], // 'store' or 'take'
+            'amount' => isset($data['amount']) ? (int)$data['amount'] : 1,
             'note' => isset($data['note']) ? $data['note'] : null,
             'nik' => $data['nik']
         );
@@ -45,13 +46,14 @@ class Report_model extends CI_Model
     /**
      * Log store transaction
      */
-    public function log_store_transaction($location_id, $category, $type_id, $nik, $note = null)
+    public function log_store_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1)
     {
         $data = array(
             'location_id' => $location_id,
             'category' => $category,
             'type_id' => $type_id,
             'action' => 'store',
+            'amount' => (int)$amount,
             'nik' => $nik,
             'note' => $note
         );
@@ -62,13 +64,14 @@ class Report_model extends CI_Model
     /**
      * Log take transaction
      */
-    public function log_take_transaction($location_id, $category, $type_id, $nik, $note = null)
+    public function log_take_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1)
     {
         $data = array(
             'location_id' => $location_id,
             'category' => $category,
             'type_id' => $type_id,
             'action' => 'take',
+            'amount' => (int)$amount,
             'nik' => $nik,
             'note' => $note
         );

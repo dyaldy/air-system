@@ -185,6 +185,7 @@
                                     <th>ID Penyimpanan</th>
                                     <th>Tanggal/Waktu</th>
                                     <th>Aksi</th>
+                                    <th>Jumlah</th>
                                     <th>Lokasi</th>
                                     <th>Kategori</th>
                                     <th>ID Tipe</th>
@@ -207,6 +208,9 @@
                                             <?php else: ?>
                                                 <span class="badge bg-warning">Ambil</span>
                                             <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
                                         </td>
                                         <td>
                                             <strong><?= htmlspecialchars($transaction['location_id']); ?></strong>
