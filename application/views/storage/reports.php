@@ -26,10 +26,18 @@
     <!-- Card Body with Main Content -->
     <div class="card-body px-lg-5 px-4 py-4">
 
+        <!-- Filter Toggle -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Filter & Laporan</h6>
+            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                <i class="fas fa-filter"></i> Toggle Filter
+            </button>
+        </div>
+
         <!-- Filter Form -->
         <div class="row mb-5">
             <div class="col-12">
-                <div class="card border rounded-4">
+                <div class="card border rounded-4 collapse" id="filterCollapse">
                     <div class="card-header">
                         <h6 class="mb-0">Filter</h6>
                     </div>
@@ -97,19 +105,113 @@
                 </div>
             </div>
 
+
+
+            <!-- Transactions Table -->
+            <?php if (!empty($transactions)): ?>
+                <div class="table-responsive">
+                    <table class="table table-borderless table-hover table-striped mb-0" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center ps-lg-5 ps-4">ID Penyimpanan</th>
+                                <th scope="col" class="text-center">Tanggal/Waktu</th>
+                                <th scope="col" class="text-center">Aksi</th>
+                                <th scope="col" class="text-center">Jumlah</th>
+                                <th scope="col" class="text-center">Lokasi</th>
+                                <th scope="col" class="text-center">Kategori</th>
+                                <th scope="col" class="text-center">ID Tipe</th>
+                                <th scope="col" class="text-center">Pengguna</th>
+                                <th scope="col" class="text-center pe-lg-5 pe-4">Catatan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($transactions as $transaction): ?>
+                                <tr>
+                                    <th scope="row" class="text-center ps-lg-5 ps-4">
+                                        <code><?= htmlspecialchars($transaction['storing_id']); ?></code>
+                                    </th>
+                                    <td class="text-center">
+                                        <?= date('d M Y, H:i:s', strtotime($transaction['datetime'])); ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill text-bg-<?= $transaction['action'] == 'store' ? 'success' : 'warning' ?>">
+                                            <?= $transaction['action'] == 'store' ? 'Simpan' : 'Ambil'; ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary"><?= htmlspecialchars($transaction['location_id']); ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <?= htmlspecialchars($transaction['type_id']); ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>
+                                    </td>
+                                    <td class="text-center pe-lg-5 pe-4">
+                                        <?php if ($transaction['note']): ?>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <span class="text-muted me-2" title="<?= htmlspecialchars($transaction['note']); ?>">
+                                                    <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
+                                                </span>
+                                                <?php if (strlen($transaction['note']) > 30): ?>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                        onclick="showFullNote('<?= htmlspecialchars(addslashes($transaction['storing_id'])); ?>', '<?= htmlspecialchars(addslashes($transaction['note'])); ?>')"
+                                                        title="Lihat catatan lengkap">
+                                                        <img src="<?= base_url('assets/img/eye.svg'); ?>" alt="View" style="width: 14px; height: 14px;">
+                                                    </button>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <?php if (isset($pagination_links) && !empty($pagination_links)): ?>
+                    <div class="card-footer bg-white border-0 px-lg-5 px-4 py-3">
+                        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-center gap-3">
+                            <!-- Record Count Display -->
+                            <div class="text-muted">
+                                Menampilkan <strong><?= $display; ?></strong>
+                            </div>
+
+                            <!-- Pagination Links -->
+                            <?= $pagination_links; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <h5>Tidak ada transaksi ditemukan</h5>
+                    <p>Tidak ada transaksi yang cocok dengan filter saat ini. Coba sesuaikan filter atau <a href="<?= site_url('storage/store'); ?>">mulai dengan menyimpan beberapa barang</a>.</p>
+                </div>
+            <?php endif; ?>
+
             <!-- Statistics Cards -->
             <?php if (!empty($stats)): ?>
-                <div class="row mt-4">
+                <div class="row mt-2">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title">Total Transaksi</h6>
-                                        <h3><?= number_format($stats['total_transactions']); ?></h3>
+                                        <small class="text-white-50">Total Transaksi</small>
+                                        <h4 class="mb-0"><?= number_format($stats['total_transactions']); ?></h4>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="fas fa-exchange-alt fa-2x"></i>
+                                        <i class="fas fa-exchange-alt fa-lg"></i>
                                     </div>
                                 </div>
                             </div>
@@ -118,14 +220,14 @@
 
                     <div class="col-md-3">
                         <div class="card bg-success text-white border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title">Operasi Simpan</h6>
-                                        <h3><?= number_format($stats['store_transactions']); ?></h3>
+                                        <small class="text-white-50">Operasi Simpan</small>
+                                        <h4 class="mb-0"><?= number_format($stats['store_transactions']); ?></h4>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="fas fa-plus fa-2x"></i>
+                                        <i class="fas fa-plus fa-lg"></i>
                                     </div>
                                 </div>
                             </div>
@@ -134,14 +236,14 @@
 
                     <div class="col-md-3">
                         <div class="card bg-warning text-white border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title">Operasi Ambil</h6>
-                                        <h3><?= number_format($stats['take_transactions']); ?></h3>
+                                        <small class="text-white-50">Operasi Ambil</small>
+                                        <h4 class="mb-0"><?= number_format($stats['take_transactions']); ?></h4>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="fas fa-minus fa-2x"></i>
+                                        <i class="fas fa-minus fa-lg"></i>
                                     </div>
                                 </div>
                             </div>
@@ -150,119 +252,23 @@
 
                     <div class="col-md-3">
                         <div class="card bg-info text-white border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="card-title">Pengguna Aktif</h6>
-                                        <h3><?= number_format($stats['users_involved']); ?></h3>
+                                        <small class="text-white-50">Pengguna Aktif</small>
+                                        <h4 class="mb-0"><?= number_format($stats['users_involved']); ?></h4>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="fas fa-users fa-2x"></i>
+                                        <i class="fas fa-users fa-lg"></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            <?php endif; ?>
         </div>
     </div>
-<?php endif; ?>
-
-<!-- Transactions Table -->
-<?php if (!empty($transactions)): ?>
-    <div class="card-body p-0 table-responsive">
-        <table class="table table-borderless table-hover table-striped mb-0" id="transactionsTable">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID Penyimpanan</th>
-                    <th>Tanggal/Waktu</th>
-                    <th>Aksi</th>
-                    <th>Jumlah</th>
-                    <th>Lokasi</th>
-                    <th>Kategori</th>
-                    <th>ID Tipe</th>
-                    <th>Pengguna</th>
-                    <th>Catatan</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($transactions as $transaction): ?>
-                    <tr>
-                        <td>
-                            <code><?= htmlspecialchars($transaction['storing_id']); ?></code>
-                        </td>
-                        <td>
-                            <?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?>
-                        </td>
-                        <td>
-                            <?php if ($transaction['action'] == 'store'): ?>
-                                <span class="badge bg-success">Simpan</span>
-                            <?php else: ?>
-                                <span class="badge bg-warning">Ambil</span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
-                        </td>
-                        <td>
-                            <strong><?= htmlspecialchars($transaction['location_id']); ?></strong>
-                        </td>
-                        <td>
-                            <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
-                        </td>
-                        <td>
-                            <?= htmlspecialchars($transaction['type_id']); ?>
-                        </td>
-                        <td>
-                            <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>
-                        </td>
-                        <td>
-                            <?php if ($transaction['note']): ?>
-                                <div class="d-flex align-items-center">
-                                    <span class="text-muted me-2" title="<?= htmlspecialchars($transaction['note']); ?>">
-                                        <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
-                                    </span>
-                                    <?php if (strlen($transaction['note']) > 30): ?>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                            onclick="showFullNote('<?= htmlspecialchars(addslashes($transaction['storing_id'])); ?>', '<?= htmlspecialchars(addslashes($transaction['note'])); ?>')"
-                                            title="Lihat catatan lengkap">
-                                            <img src="<?= base_url('assets/img/eye.svg'); ?>" alt="View" style="width: 14px; height: 14px;">
-                                        </button>
-                                    <?php endif; ?>
-                                </div>
-                            <?php else: ?>
-                                <span class="text-muted">-</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination Footer -->
-    <?php if (isset($pagination_links) && !empty($pagination_links)): ?>
-        <div class="card-footer bg-white border-0 px-lg-5 px-4 py-3">
-            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
-                <!-- Record Count Display -->
-                <div class="text-muted">
-                    Menampilkan <strong><?= $display; ?></strong>
-                </div>
-
-                <!-- Pagination Links -->
-                <?= $pagination_links; ?>
-            </div>
-        </div>
-    <?php endif; ?>
-<?php else: ?>
-    <div class="alert alert-info text-center">
-        <i class="fas fa-chart-line fa-3x mb-3"></i>
-        <h5>Tidak ada transaksi ditemukan</h5>
-        <p>Tidak ada transaksi yang cocok dengan filter saat ini. Coba sesuaikan filter atau <a href="<?= site_url('storage/store'); ?>">mulai dengan menyimpan beberapa barang</a>.</p>
-    </div>
-<?php endif; ?>
-</div>
-</div>
 </div>
 </div>
 </div>
