@@ -109,6 +109,17 @@
                     <?php endif; ?>
                 </div>
 
+                <!-- Project Item Checkbox -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_project_item" name="is_project_item" value="1" <?= set_checkbox('is_project_item', '1'); ?>>
+                        <label class="form-check-label" for="is_project_item">
+                            Barang untuk Project
+                        </label>
+                        <div class="form-text">Centang jika barang ini disimpan untuk keperluan project tertentu</div>
+                    </div>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                     <button type="button" class="btn btn-secondary" onclick="window.history.back()">Batal</button>

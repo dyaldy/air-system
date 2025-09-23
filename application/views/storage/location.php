@@ -142,6 +142,7 @@
                                             <th>Kategori</th>
                                             <th>ID Tipe</th>
                                             <th>Jumlah</th>
+                                            <th>Status</th>
                                             <th>Dibuat</th>
                                             <th>Terakhir Diperbarui</th>
                                             <th>Editor</th>
@@ -150,15 +151,28 @@
                                     </thead>
                                     <tbody>
                                         <?php foreach ($storage_items as $item): ?>
+                                            <?php
+                                            $isProjectItem = strpos($item['type_id'], '_PROJECT') !== false;
+                                            $displayTypeId = $isProjectItem ? str_replace('_PROJECT', '', $item['type_id']) : $item['type_id'];
+                                            ?>
                                             <tr>
                                                 <td>
                                                     <span class="badge bg-primary"><?= htmlspecialchars($item['category']); ?></span>
                                                 </td>
                                                 <td>
-                                                    <strong><?= htmlspecialchars($item['type_id']); ?></strong>
+                                                    <strong><?= htmlspecialchars($displayTypeId); ?></strong>
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-success fs-6"><?= number_format($item['amount']); ?></span>
+                                                </td>
+                                                <td>
+                                                    <?php if ($isProjectItem): ?>
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="fas fa-project-diagram"></i> Project
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary">Regular</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <small><?= date('M d, Y H:i', strtotime($item['created_at'])); ?></small>

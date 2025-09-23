@@ -93,6 +93,11 @@
                         <div class="card-body py-2">
                             <small class="text-muted">Stok Tersedia: </small>
                             <strong id="availableStock" class="text-primary">-</strong>
+                            <div id="projectIndicator" class="mt-1" style="display: none;">
+                                <small class="badge bg-warning text-dark">
+                                    <i class="fas fa-project-diagram"></i> Barang untuk Project
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,13 +176,15 @@
             // Filter items by category
             const categoryItems = storageItems.filter(item => item.category === category);
 
-            // Get unique type_ids
-            const uniqueTypes = [...new Set(categoryItems.map(item => item.type_id))];
+            // Get unique base type_ids (remove _PROJECT suffix)
+            const uniqueTypes = [...new Set(categoryItems.map(item =>
+                item.type_id.replace('_PROJECT', '')
+            ))];
 
-            uniqueTypes.forEach(typeId => {
+            uniqueTypes.forEach(baseTypeId => {
                 const option = document.createElement('option');
-                option.value = typeId;
-                option.textContent = typeId;
+                option.value = baseTypeId;
+                option.textContent = baseTypeId;
                 if (option.value === '<?= set_value('type_id'); ?>') {
                     option.selected = true;
                 }
@@ -205,17 +212,21 @@
         document.getElementById('availableStock').textContent = '-';
 
         if (category && typeId) {
-            // Filter items by category and type_id
+            // Filter items by category and type_id (including project versions)
             const filteredItems = storageItems.filter(item =>
                 item.category === category &&
-                item.type_id === typeId &&
+                (item.type_id === typeId || item.type_id === typeId + '_PROJECT') &&
                 parseInt(item.amount) > 0
             );
 
             filteredItems.forEach(item => {
+                const isProjectItem = item.type_id.endsWith('_PROJECT');
+                const displayTypeId = isProjectItem ? item.type_id.slice(0, -8) : item.type_id; // Remove _PROJECT suffix
+
                 const option = document.createElement('option');
-                option.value = item.location_id;
-                option.textContent = `${item.location_id} (Stok: ${item.amount})`;
+                // Use a compound value to distinguish project vs non-project items
+                option.value = isProjectItem ? `${item.location_id}_project` : item.location_id;
+                option.textContent = `${item.location_id} (Stok: ${item.amount})${isProjectItem ? ' - Project' : ''}`;
                 if (option.value === '<?= set_value('location_id'); ?>') {
                     option.selected = true;
                 }
@@ -227,19 +238,31 @@
     function updateAvailableStock() {
         const category = document.getElementById('category').value;
         const typeId = document.getElementById('type_id').value;
-        const locationId = document.getElementById('location_id').value;
+        const locationValue = document.getElementById('location_id').value;
 
-        if (category && typeId && locationId) {
+        if (category && typeId && locationValue) {
+            // Parse the location value to get location_id and project status
+            const isProject = locationValue.endsWith('_project');
+            const locationId = isProject ? locationValue.slice(0, -8) : locationValue; // Remove '_project' suffix
+
             // Find the specific item
-            const item = storageItems.find(item =>
-                item.category === category &&
-                item.type_id === typeId &&
-                item.location_id === locationId
-            );
+            const item = storageItems.find(item => {
+                if (item.category !== category || item.location_id !== locationId) {
+                    return false;
+                }
+
+                // Check project status by type_id suffix
+                const itemIsProject = item.type_id.endsWith('_PROJECT');
+                return itemIsProject === isProject;
+            });
 
             if (item) {
                 const stock = parseInt(item.amount);
                 document.getElementById('availableStock').textContent = stock + ' barang';
+
+                // Check if item is for project
+                const projectIndicator = document.getElementById('projectIndicator');
+                projectIndicator.style.display = isProject ? 'block' : 'none';
 
                 // Update quantity input constraints
                 const quantityInput = document.getElementById('quantity');
@@ -257,6 +280,7 @@
             }
         } else {
             document.getElementById('availableStock').textContent = '-';
+            document.getElementById('projectIndicator').style.display = 'none';
         }
     }
 
@@ -271,26 +295,27 @@
             const previewDiv = document.getElementById('availableItemsPreview');
 
             if (categoryItems.length > 0) {
-                // Group items by type_id
+                // Group items by base type_id (remove _PROJECT suffix)
                 const groupedItems = {};
                 categoryItems.forEach(item => {
-                    if (!groupedItems[item.type_id]) {
-                        groupedItems[item.type_id] = [];
+                    const baseTypeId = item.type_id.replace('_PROJECT', '');
+                    if (!groupedItems[baseTypeId]) {
+                        groupedItems[baseTypeId] = [];
                     }
-                    groupedItems[item.type_id].push(item);
+                    groupedItems[baseTypeId].push(item);
                 });
 
                 let html = '<div class="row">';
 
-                Object.keys(groupedItems).forEach(typeId => {
-                    const items = groupedItems[typeId];
+                Object.keys(groupedItems).forEach(baseTypeId => {
+                    const items = groupedItems[baseTypeId];
                     const totalStock = items.reduce((sum, item) => sum + parseInt(item.amount), 0);
 
                     html += `
                     <div class="col-md-6 col-lg-4 mb-3">
                         <div class="card border-primary h-100">
                             <div class="card-body">
-                                <h6 class="card-title">${typeId}</h6>
+                                <h6 class="card-title">${baseTypeId}</h6>
                                 <p class="card-text">
                                     <strong>Total Stok: ${totalStock}</strong><br>
                                     <small class="text-muted">Tersedia di ${items.length} lokasi</small>
@@ -299,7 +324,9 @@
                 `;
 
                     items.forEach(item => {
-                        html += `<span class="badge bg-info me-1">${item.location_id}: ${item.amount}</span>`;
+                        const isProjectItem = item.type_id.endsWith('_PROJECT');
+                        const projectBadge = isProjectItem ? ' <small class="badge bg-warning text-dark">Project</small>' : '';
+                        html += `<span class="badge bg-info me-1">${item.location_id}: ${item.amount}${projectBadge}</span>`;
                     });
 
                     html += `

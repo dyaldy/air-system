@@ -135,6 +135,7 @@ class Storage extends CI_Controller
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
+        $is_project_item = $this->input->post('is_project_item') ? true : false;
         $editor_nik = $this->session->userdata('user_data')['nik'];
 
         // Validate if pneumatic exists (for pneumatic category)
@@ -147,8 +148,15 @@ class Storage extends CI_Controller
             }
         }
 
+        // Prepare storage data for project flag
+        $storage_data = null;
+        $type_id_for_db = $type_id;
+        if ($is_project_item) {
+            $type_id_for_db = $type_id . '_PROJECT';
+        }
+
         // Store the items
-        $store_result = $this->Storage_model->store_items($location_id, $category, $type_id, $quantity, $editor_nik);
+        $store_result = $this->Storage_model->store_items($location_id, $category, $type_id_for_db, $quantity, $editor_nik, $storage_data);
 
         if ($store_result) {
             // Log the transaction
@@ -172,7 +180,7 @@ class Storage extends CI_Controller
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
-        $this->form_validation->set_rules('location_id', 'Location ID', 'required|max_length[3]');
+        $this->form_validation->set_rules('location_id', 'Location ID', 'required|callback_validate_location_id');
         $this->form_validation->set_rules('category', 'Category', 'required|max_length[15]');
         $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[30]');
         $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer|greater_than[0]');
@@ -192,15 +200,22 @@ class Storage extends CI_Controller
      */
     private function process_take()
     {
-        $location_id = $this->input->post('location_id');
+        $location_value = $this->input->post('location_id');
         $category = $this->input->post('category');
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
         $editor_nik = $this->session->userdata('user_data')['nik'];
 
+        // Parse location value to separate location_id and project status
+        $is_project = strpos($location_value, '_project') !== false;
+        $location_id = $is_project ? str_replace('_project', '', $location_value) : $location_value;
+
+        // For project items, append _PROJECT to type_id
+        $type_id_for_db = $is_project ? $type_id . '_PROJECT' : $type_id;
+
         // Take the items
-        $take_result = $this->Storage_model->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
+        $take_result = $this->Storage_model->take_items($location_id, $category, $type_id_for_db, $quantity, $editor_nik);
 
         if ($take_result['success']) {
             // Log the transaction
@@ -567,5 +582,36 @@ class Storage extends CI_Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+    }
+
+    /**
+     * Custom validation callback for location_id field
+     * Handles compound values like "A01_project"
+     */
+    public function validate_location_id($location_value)
+    {
+        if (empty($location_value)) {
+            $this->form_validation->set_message('validate_location_id', 'The Location ID field is required.');
+            return FALSE;
+        }
+
+        // Extract the actual location_id (remove _project suffix if present)
+        $location_id = strpos($location_value, '_project') !== false
+            ? str_replace('_project', '', $location_value)
+            : $location_value;
+
+        // Validate that the actual location_id is 3 characters or less
+        if (strlen($location_id) > 3) {
+            $this->form_validation->set_message('validate_location_id', 'The Location ID field cannot exceed 3 characters in length.');
+            return FALSE;
+        }
+
+        // Validate that it contains only valid characters (alphanumeric)
+        if (!preg_match('/^[A-Za-z0-9]+$/', $location_id)) {
+            $this->form_validation->set_message('validate_location_id', 'The Location ID field may only contain alphanumeric characters.');
+            return FALSE;
+        }
+
+        return TRUE;
     }
 }

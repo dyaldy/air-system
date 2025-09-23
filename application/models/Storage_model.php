@@ -11,6 +11,30 @@ class Storage_model extends CI_Model
     }
 
     /**
+     * Take items (decrease amount)
+     */
+    public function take_items($location_id, $category, $type_id, $quantity, $editor_nik)
+    {
+        $current_item = $this->get_storage_item($location_id, $category, $type_id);
+
+        if (!$current_item) {
+            return array('success' => false, 'message' => 'Item not found in storage');
+        }
+
+        if ($current_item['amount'] < $quantity) {
+            return array('success' => false, 'message' => 'Insufficient stock. Available: ' . $current_item['amount']);
+        }
+
+        $new_amount = $current_item['amount'] - $quantity;
+
+        if ($this->update_storage($location_id, $category, $type_id, $new_amount, null, $editor_nik)) {
+            return array('success' => true, 'message' => 'Items taken successfully');
+        } else {
+            return array('success' => false, 'message' => 'Failed to update storage');
+        }
+    }
+
+    /**
      * Get all storage locations with their inventory
      */
     public function get_all_storage()
@@ -132,30 +156,6 @@ class Storage_model extends CI_Model
                 'editor' => $editor_nik
             );
             return $this->add_storage($data);
-        }
-    }
-
-    /**
-     * Take items (decrease amount)
-     */
-    public function take_items($location_id, $category, $type_id, $quantity, $editor_nik)
-    {
-        $current_item = $this->get_storage_item($location_id, $category, $type_id);
-
-        if (!$current_item) {
-            return array('success' => false, 'message' => 'Item not found in storage');
-        }
-
-        if ($current_item['amount'] < $quantity) {
-            return array('success' => false, 'message' => 'Insufficient stock. Available: ' . $current_item['amount']);
-        }
-
-        $new_amount = $current_item['amount'] - $quantity;
-
-        if ($this->update_storage($location_id, $category, $type_id, $new_amount, null, $editor_nik)) {
-            return array('success' => true, 'message' => 'Items taken successfully');
-        } else {
-            return array('success' => false, 'message' => 'Failed to update storage');
         }
     }
 
