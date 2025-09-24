@@ -281,4 +281,19 @@ class Project_batch_model extends CI_Model
 
         return $prefix . '_' . $timestamp . '_' . $random;
     }
+
+    /**
+     * Get all batches for a specific location
+     */
+    public function get_batches_by_location($location_id)
+    {
+        $this->db->select('pb.*, u.name as created_by_name');
+        $this->db->from('as_project_batches pb');
+        $this->db->join('as_user u', 'pb.created_by = u.nik', 'left');
+        $this->db->where('pb.location_id', $location_id);
+        $this->db->where('pb.remaining_quantity >', 0);
+        $this->db->order_by('pb.created_at', 'DESC');
+
+        return $this->db->get()->result_array();
+    }
 }

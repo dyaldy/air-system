@@ -216,6 +216,89 @@
             </div>
         </div>
 
+        <!-- Project Batches for this Location -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card rounded-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Project Batches</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshBatches()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($project_batches)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="batchesTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Batch ID</th>
+                                            <th>Project Name</th>
+                                            <th>Category</th>
+                                            <th>Type ID</th>
+                                            <th>Initial Qty</th>
+                                            <th>Remaining</th>
+                                            <th>Created By</th>
+                                            <th>Created At</th>
+                                            <th>Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($project_batches as $batch): ?>
+                                            <tr>
+                                                <td>
+                                                    <code class="small"><?= htmlspecialchars($batch['batch_id']); ?></code>
+                                                </td>
+                                                <td>
+                                                    <strong><?= htmlspecialchars($batch['project_name']); ?></strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary"><?= htmlspecialchars($batch['category']); ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary"><?= htmlspecialchars($batch['type_id']); ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info"><?= number_format($batch['batch_quantity']); ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success"><?= number_format($batch['remaining_quantity']); ?></span>
+                                                </td>
+                                                <td>
+                                                    <small><?= htmlspecialchars($batch['created_by_name'] ?? 'System'); ?></small>
+                                                </td>
+                                                <td>
+                                                    <small><?= date('M d, Y H:i', strtotime($batch['created_at'])); ?></small>
+                                                </td>
+                                                <td>
+                                                    <?php if ($batch['project_notes']): ?>
+                                                        <button type="button" class="btn btn-sm btn-outline-info"
+                                                            onclick="showBatchNotes('<?= htmlspecialchars($batch['batch_id']); ?>', '<?= htmlspecialchars(addslashes($batch['project_notes'])); ?>')">
+                                                            <i class="fas fa-sticky-note"></i> View
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-boxes fa-3x mb-3"></i>
+                                <h5>Tidak ada project batches di lokasi ini</h5>
+                                <p>Project batches akan muncul di sini ketika Anda menyimpan barang project.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Transactions for this Location -->
         <div class="row">
             <div class="col-12">
@@ -349,16 +432,26 @@
         </div>
     </div>
 
-    <!-- Item Details Modal -->
-    <div class="modal fade" id="itemDetailsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    <!-- Batch Notes Modal -->
+    <div class="modal fade" id="batchNotesModal" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Detail Barang</h5>
+                    <h5 class="modal-title">Batch Notes</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="itemDetailsContent">
-                    <!-- Content will be loaded dynamically -->
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong>Batch ID:</strong>
+                        <code id="batchNotesId"></code>
+                    </div>
+                    <div>
+                        <strong>Project Notes:</strong>
+                        <div class="mt-2 p-3 bg-light rounded" id="batchNotesContent" style="white-space: pre-wrap; word-wrap: break-word;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -474,5 +567,17 @@
 
         var modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
         modal.show();
+    }
+
+    function showBatchNotes(batchId, notes) {
+        document.getElementById('batchNotesId').textContent = batchId;
+        document.getElementById('batchNotesContent').textContent = notes;
+
+        var modal = new bootstrap.Modal(document.getElementById('batchNotesModal'));
+        modal.show();
+    }
+
+    function refreshBatches() {
+        location.reload();
     }
 </script>

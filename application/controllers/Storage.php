@@ -104,6 +104,7 @@ class Storage extends CI_Controller
         $data['location_id'] = $location_id;
         $data['storage_items'] = $this->Storage_model->get_storage_by_location($location_id);
         $data['location_transactions'] = $this->Report_model->get_transactions_by_location($location_id, 20);
+        $data['project_batches'] = $this->Project_batch_model->get_batches_by_location($location_id);
 
         $this->load->view('templates/header', $data);
         $this->load->view('storage/location', $data);
