@@ -31,7 +31,7 @@ if (!function_exists('render_view')) {
      */
     function render_view(string $view, array $data = []): void
     {
-        $ci =& get_instance();
+        $ci = &get_instance();
         $ci->load->view('templates/header', $data);
         $ci->load->view($view, $data);
         $ci->load->view('templates/footer');
@@ -51,7 +51,7 @@ if (!function_exists('set_message')) {
      */
     function set_message(array $message): void
     {
-        $ci =& get_instance();
+        $ci = &get_instance();
         $ci->session->set_flashdata('action', $message);
     }
 }
@@ -70,7 +70,7 @@ if (!function_exists('handle_session_state')) {
      */
     function handle_session_state(string $redirect, array $filterMap = []): void
     {
-        $ci =& get_instance();
+        $ci = &get_instance();
 
         // Handle search (keyword)
         if ($ci->input->post('find')) {

@@ -44,13 +44,23 @@ class Storage extends CI_Controller
         }
     }
 
-    /**
-     * Storage dashboard - overview of all storage locations
-     */
     public function index()
     {
+        // Handle search from GET parameters
+        $keyword = $this->input->get('keyword');
+        if ($this->input->get('find') && $keyword !== null) {
+            $this->session->set_userdata('keyword', $keyword);
+            $this->session->unset_userdata(['sort', 'filter']);
+            redirect('storage?keyword=' . urlencode($keyword));
+        }
+
+        // Handle reset (if no keyword in URL)
+        if (!$this->input->get('keyword')) {
+            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
+        }
+
         // Handle session state (search, filter, sort, reset)
-        handle_session_state('storage');
+        // handle_session_state('storage'); // Disabled since we handle GET directly
 
         $data['title'] = 'Storage Overview';
         $data['user_data'] = $this->session->userdata('user_data');

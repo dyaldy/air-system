@@ -25,15 +25,15 @@
         <!-- Search Bar -->
         <div class="row mb-3">
             <div class="col-12">
-                <form method="post" class="d-flex gap-2">
+                <form method="get" action="" class="d-flex gap-2">
                     <input type="text" name="keyword" class="form-control" placeholder="Cari penyimpanan..." value="<?= htmlspecialchars($keyword); ?>">
-                    <button type="submit" name="find" class="btn btn-info">
+                    <button type="submit" name="find" value="1" class="btn btn-info">
                         <i class="fas fa-search"></i> Cari
                     </button>
                     <?php if ($keyword): ?>
-                        <button type="submit" name="reset" class="btn btn-outline-secondary">
+                        <a href="<?= site_url('storage'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i> Reset
-                        </button>
+                        </a>
                     <?php endif; ?>
                 </form>
             </div>
