@@ -153,6 +153,7 @@ class Storage extends CI_Controller
         $type_id_for_db = $type_id;
         if ($is_project_item) {
             $type_id_for_db = $type_id . '_PROJECT';
+            $storage_data = json_encode(['is_project_item' => true, 'note' => $note]);
         }
 
         // Store the items
@@ -301,25 +302,36 @@ class Storage extends CI_Controller
                     'item' => $item
                 );
 
-                // Check if this is a project item
+                // Check if this is a project item and get notes
                 $is_project = strpos($type_id, '_PROJECT') !== false;
                 if ($is_project) {
-                    // Get the base type_id without _PROJECT suffix
-                    $base_type_id = str_replace('_PROJECT', '', $type_id);
-
-                    // Get recent store transactions for this item to find project notes
-                    $transactions = $this->Report_model->get_item_transactions($category, $base_type_id, 10);
-
-                    // Find the most recent store transaction with notes
                     $project_notes = null;
-                    foreach ($transactions as $transaction) {
-                        if ($transaction['action'] == 'store' && !empty($transaction['note'])) {
-                            $project_notes = $transaction['note'];
-                            break;
+
+                    // First try to get note from storage_data
+                    if (!empty($item['storage_data'])) {
+                        $storage_data = json_decode($item['storage_data'], true);
+                        if (isset($storage_data['note'])) {
+                            $project_notes = $storage_data['note'];
                         }
                     }
 
-                    $response['project_notes'] = $project_notes;
+                    // If no note in storage_data, fall back to transaction history
+                    if ($project_notes === null) {
+                        $base_type_id = str_replace('_PROJECT', '', $type_id);
+                        $transactions = $this->Report_model->get_item_transactions($category, $base_type_id, 10);
+
+                        // Find the most recent store transaction with notes
+                        foreach ($transactions as $transaction) {
+                            if ($transaction['action'] == 'store' && !empty($transaction['note'])) {
+                                $project_notes = $transaction['note'];
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($project_notes !== null) {
+                        $response['project_notes'] = $project_notes;
+                    }
                 }
             } else {
                 $response = array(
