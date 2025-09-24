@@ -97,14 +97,15 @@ class User extends CI_Controller
             'sort'   => $this->session->userdata('sort'),
         ];
 
+        // Setup pagination
         $config = [
-            'base_url'   => site_url('user/index'),
+            'base_url'   => site_url("user/index"),
             'total_rows' => $this->User_model->countUser($sessionData['search'], $sessionData['filter']),
             'per_page'   => self::CONFIG['pagination']['items_per_page'],
         ];
         $this->pagination->initialize($config);
 
-        $startData = (int) ($this->uri->segment(3) ? $this->uri->segment(3) : 0);
+        $startData = (int) ($this->uri->segment(3) ?: 0);
         $users = $this->User_model->getUser(
             self::CONFIG['pagination']['items_per_page'],
             $startData,
@@ -123,7 +124,6 @@ class User extends CI_Controller
             'searchKeyword' => $sessionData['search'],
             'filterKeyword' => $sessionData['filter'],
             'hasFilters'    => (!empty($sessionData['search']) || !empty($sessionData['filter']) || !empty($sessionData['sort'])),
-            'pagination'    => $this->pagination->create_links(),
         ];
 
         render_view('user/index', $data);
@@ -200,21 +200,28 @@ class User extends CI_Controller
     }
 
     /**
-     * Delete user by NIK.
+     * Delete a user by NIK.
      *
-     * @param int $nik
+     * @param string $nik URL-encoded + base64-encoded NIK.
      * @return void
      */
-    public function delete($nik = null): void
+    public function delete(string $nik): void
     {
-        if ($nik === null) {
-            show_404();
-            return;
+        $decodedNik = base64_decode(urldecode($nik), true);
+
+        if ($decodedNik === false) {
+            set_message(['danger', 'NIK tidak valid']);
+            redirect('user');
         }
 
-        $this->User_model->deleteUser((int) $nik);
-        set_message(['success', 'Pengguna berhasil dihapus']);
+        $user = $this->User_model->getByNik($decodedNik);
+        if (!$user) {
+            set_message(['danger', 'Pengguna tidak ditemukan']);
+            redirect('user');
+        }
 
+        $this->User_model->deleteUser($decodedNik);
+        set_message(['success', 'Pengguna berhasil dihapus']);
         redirect('user');
     }
 

@@ -12,7 +12,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h5 class="mb-1">History Aktivitas User - Storage System</h5>
-                <h6 class="text-muted mb-0">NIK: <?= $user['nik']; ?> | Nama: <?= $user['name']; ?> | Level: <?= $user['user_level']; ?></h6>
+                <h6 class="text-muted mb-0">NIK: <?= $user['nik']; ?> | Nama: <?= $user['name']; ?></h6>
             </div>
             <a href="<?= site_url('user'); ?>" class="btn btn-secondary rounded-pill">
                 <i class="fas fa-arrow-left me-1"></i> Kembali

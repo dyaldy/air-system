@@ -87,10 +87,7 @@
                         <th scope="col" class="text-center">Edit</th>
 
                         <!-- History Column -->
-                        <th scope="col" class="text-center">History</th>
-
-                        <!-- Delete Column -->
-                        <th scope="col" class="text-center pe-lg-5 pe-4">Delete</th>
+                        <th scope="col" class="text-center pe-lg-5 pe-4">History</th>
                     </tr>
                 </thead>
 
@@ -105,14 +102,9 @@
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
                                 </a>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center pe-lg-5 pe-4">
                                 <a href="<?= site_url('storage/user_history/' . urlencode(base64_encode($user['nik']))); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat history storage pengguna">
                                     <img src="<?= base_url('assets/img/clock-history.svg'); ?>" alt="history" class="action-button">
-                                </a>
-                            </td>
-                            <td class="text-center pe-lg-5 pe-4">
-                                <a href="<?= site_url('user/delete/' . $user['nik']); ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?')" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus pengguna">
-                                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button">
                                 </a>
                             </td>
                         </tr>
