@@ -270,25 +270,33 @@
         const currentSort = "<?= isset($_POST['sort-send']) ? $_POST['sort-send'] : ''; ?>";
         const currentOrder = "<?= isset($_POST['order']) ? $_POST['order'] : 'asc'; ?>";
         const newOrder = (currentSort === column && currentOrder === 'asc') ? 'desc' : 'asc';
-        
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.style.display = 'none';
-        
-        const inputs = [
-            { name: 'sort-send', value: column },
-            { name: 'order', value: newOrder }
+
+        const inputs = [{
+                name: 'sort-send',
+                value: column
+            },
+            {
+                name: 'order',
+                value: newOrder
+            }
         ];
-        
+
         // Preserve other form data
         const preserveInputs = ['search', 'type-filter'];
         preserveInputs.forEach(inputName => {
             const existingInput = document.querySelector(`input[name="${inputName}"], select[name="${inputName}"]`);
             if (existingInput && existingInput.value) {
-                inputs.push({ name: inputName, value: existingInput.value });
+                inputs.push({
+                    name: inputName,
+                    value: existingInput.value
+                });
             }
         });
-        
+
         inputs.forEach(inputData => {
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -296,7 +304,7 @@
             input.value = inputData.value;
             form.appendChild(input);
         });
-        
+
         document.body.appendChild(form);
         form.submit();
     }
@@ -313,20 +321,20 @@
         if (typeFilter) {
             typeFilter.addEventListener('change', function() {
                 const type = this.value;
-                
+
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.style.display = 'none';
-                
+
                 const filterObj = {};
                 if (type) filterObj.type = [type];
-                
+
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'filter';
                 input.value = JSON.stringify(filterObj);
                 form.appendChild(input);
-                
+
                 // Preserve search
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput && searchInput.value) {
@@ -336,7 +344,7 @@
                     searchHidden.value = searchInput.value;
                     form.appendChild(searchHidden);
                 }
-                
+
                 document.body.appendChild(form);
                 form.submit();
             });
@@ -345,7 +353,7 @@
         // Upload form handler
         const uploadForm = document.getElementById('uploadForm');
         const uploadBtn = document.getElementById('uploadBtn');
-        
+
         if (uploadForm && uploadBtn) {
             uploadBtn.addEventListener('click', function() {
                 const fileInput = uploadForm.querySelector('input[type="file"]');
@@ -353,10 +361,10 @@
                     alert('Silakan pilih file Excel terlebih dahulu!');
                     return false;
                 }
-                
+
                 uploadBtn.disabled = true;
                 uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...';
-                
+
                 uploadForm.submit();
             });
         }
