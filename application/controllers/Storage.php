@@ -100,6 +100,8 @@ class Storage extends CI_Controller
             redirect('storage');
         }
 
+        $location_id = strtoupper($location_id);
+
         $data['title'] = 'Storage Location: ' . $location_id;
         $data['location_id'] = $location_id;
         $data['storage_items'] = $this->Storage_model->get_storage_by_location($location_id);
@@ -141,7 +143,7 @@ class Storage extends CI_Controller
      */
     private function process_store()
     {
-        $location_id = $this->input->post('location_id');
+        $location_id = strtoupper($this->input->post('location_id'));
         $category = $this->input->post('category');
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
@@ -242,7 +244,7 @@ class Storage extends CI_Controller
 
         // Parse location value to separate location_id and project status
         $is_project = strpos($location_value, '_project') !== false;
-        $location_id = $is_project ? str_replace('_project', '', $location_value) : $location_value;
+        $location_id = strtoupper($is_project ? str_replace('_project', '', $location_value) : $location_value);
 
         // For project items, append _PROJECT to type_id
         $type_id_for_db = $is_project ? $type_id . '_PROJECT' : $type_id;
@@ -348,7 +350,7 @@ class Storage extends CI_Controller
      */
     public function get_item_details()
     {
-        $location_id = $this->input->get('location_id');
+        $location_id = strtoupper($this->input->get('location_id'));
         $category = $this->input->get('category');
         $type_id = $this->input->get('type_id');
 
@@ -454,7 +456,7 @@ class Storage extends CI_Controller
     public function quick_action()
     {
         $action = $this->input->post('action'); // 'store' or 'take'
-        $location_id = $this->input->post('location_id');
+        $location_id = strtoupper($this->input->post('location_id'));
         $category = $this->input->post('category');
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
@@ -492,6 +494,8 @@ class Storage extends CI_Controller
             show_404();
             return;
         }
+
+        $location_id = strtoupper($location_id);
 
         $items = $this->Storage_model->get_storage_by_location($location_id);
 
@@ -919,7 +923,7 @@ class Storage extends CI_Controller
         } else {
             $category = $input['category'];
             $type_id = $input['type_id'];
-            $location_id = isset($input['location_id']) ? $input['location_id'] : null;
+            $location_id = isset($input['location_id']) ? strtoupper($input['location_id']) : null;
 
             // Start transaction
             $this->db->trans_start();

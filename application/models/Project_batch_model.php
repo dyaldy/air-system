@@ -14,6 +14,8 @@ class Project_batch_model extends CI_Model
      */
     public function create_batch($location_id, $category, $type_id, $project_name, $project_notes, $quantity, $created_by)
     {
+        $location_id = strtoupper($location_id);
+
         // Generate unique batch ID
         $batch_id = $this->generate_batch_id($location_id, $category, $type_id);
 
@@ -38,6 +40,8 @@ class Project_batch_model extends CI_Model
      */
     public function get_project_batches($location_id, $category, $type_id)
     {
+        $location_id = strtoupper($location_id);
+
         $this->db->select('pb.*, u.name as created_by_name');
         $this->db->from('as_project_batches pb');
         $this->db->join('as_user u', 'pb.created_by = u.nik', 'left');
@@ -71,6 +75,8 @@ class Project_batch_model extends CI_Model
      */
     public function take_from_batches($location_id, $category, $type_id, $quantity)
     {
+        $location_id = strtoupper($location_id);
+
         $batches = $this->get_project_batches($location_id, $category, $type_id);
         $remaining_to_take = $quantity;
         $taken_from_batches = [];

@@ -15,6 +15,8 @@ class Report_model extends CI_Model
      */
     public function log_transaction($data)
     {
+        $data['location_id'] = strtoupper($data['location_id']);
+
         $storing_id = $this->generate_storing_id($data['action'], $data['location_id']);
 
         $transaction_data = array(
@@ -50,6 +52,8 @@ class Report_model extends CI_Model
      */
     public function log_store_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1, $is_project = false, $batch_id = null)
     {
+        $location_id = strtoupper($location_id);
+
         $data = array(
             'location_id' => $location_id,
             'category' => $category,
@@ -70,6 +74,8 @@ class Report_model extends CI_Model
      */
     public function log_take_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1, $is_project = false, $batch_id = null)
     {
+        $location_id = strtoupper($location_id);
+
         $data = array(
             'location_id' => $location_id,
             'category' => $category,
@@ -150,6 +156,8 @@ class Report_model extends CI_Model
      */
     public function get_transactions_by_location($location_id, $limit = null, $offset = 0)
     {
+        $location_id = strtoupper($location_id);
+
         $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
         $this->db->from('as_report r');
         $this->db->join('as_user u', 'r.nik = u.nik', 'left');

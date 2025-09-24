@@ -15,6 +15,8 @@ class Storage_model extends CI_Model
      */
     public function take_items($location_id, $category, $type_id, $quantity, $editor_nik)
     {
+        $location_id = strtoupper($location_id);
+
         $current_item = $this->get_storage_item($location_id, $category, $type_id);
 
         if (!$current_item) {
@@ -52,6 +54,8 @@ class Storage_model extends CI_Model
      */
     public function get_storage_by_location($location_id)
     {
+        $location_id = strtoupper($location_id);
+
         $this->db->select('s.*, u.name as editor_name');
         $this->db->from('as_storage s');
         $this->db->join('as_user u', 's.editor = u.nik', 'left');
@@ -66,6 +70,8 @@ class Storage_model extends CI_Model
      */
     public function get_storage_item($location_id, $category, $type_id)
     {
+        $location_id = strtoupper($location_id);
+
         $this->db->where('location_id', $location_id);
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
@@ -78,6 +84,8 @@ class Storage_model extends CI_Model
      */
     public function storage_exists($location_id, $category, $type_id)
     {
+        $location_id = strtoupper($location_id);
+
         $this->db->where('location_id', $location_id);
         $this->db->where('category', $category);
         $this->db->where('type_id', $type_id);
@@ -91,7 +99,7 @@ class Storage_model extends CI_Model
     public function add_storage($data)
     {
         $storage_data = array(
-            'location_id' => $data['location_id'],
+            'location_id' => strtoupper($data['location_id']),
             'category' => $data['category'],
             'type_id' => $data['type_id'],
             'amount' => $data['amount'],
@@ -107,6 +115,8 @@ class Storage_model extends CI_Model
      */
     public function update_storage($location_id, $category, $type_id, $new_amount, $storage_data = null, $editor_nik = null)
     {
+        $location_id = strtoupper($location_id);
+
         $update_data = array(
             'amount' => $new_amount,
             'updated_at' => date('Y-m-d H:i:s')
@@ -132,6 +142,8 @@ class Storage_model extends CI_Model
      */
     public function store_items($location_id, $category, $type_id, $quantity, $editor_nik, $storage_data = null)
     {
+        $location_id = strtoupper($location_id);
+
         // Check if storage item exists
         if ($this->storage_exists($location_id, $category, $type_id)) {
             // Update existing storage
