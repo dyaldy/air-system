@@ -320,9 +320,9 @@ class Storage extends CI_Controller
                         $base_type_id = str_replace('_PROJECT', '', $type_id);
                         $transactions = $this->Report_model->get_item_transactions($category, $base_type_id, 10);
 
-                        // Find the most recent store transaction with notes
+                        // Find the most recent store transaction with notes that is marked as project
                         foreach ($transactions as $transaction) {
-                            if ($transaction['action'] == 'store' && !empty($transaction['note'])) {
+                            if ($transaction['action'] == 'store' && !empty($transaction['note']) && $transaction['comment'] == 'PROJECT') {
                                 $project_notes = $transaction['note'];
                                 break;
                             }
