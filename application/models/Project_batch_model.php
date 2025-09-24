@@ -153,14 +153,14 @@ class Project_batch_model extends CI_Model
             return ['success' => false, 'message' => 'Batch not found'];
         }
 
-        if ($batch['remaining_quantity'] < $quantity) {
+        if ($batch->remaining_quantity < $quantity) {
             return [
                 'success' => false,
-                'message' => 'Insufficient quantity in batch. Available: ' . $batch['remaining_quantity']
+                'message' => 'Insufficient quantity in batch. Available: ' . $batch->remaining_quantity
             ];
         }
 
-        $new_remaining = $batch['remaining_quantity'] - $quantity;
+        $new_remaining = $batch->remaining_quantity - $quantity;
 
         $this->db->where('batch_id', $batch_id);
         $result = $this->db->update('as_project_batches', ['remaining_quantity' => $new_remaining]);
@@ -171,8 +171,8 @@ class Project_batch_model extends CI_Model
                 'message' => 'Items taken from batch successfully',
                 'batch_info' => [
                     'batch_id' => $batch_id,
-                    'project_name' => $batch['project_name'],
-                    'project_notes' => $batch['project_notes'],
+                    'project_name' => $batch->project_name,
+                    'project_notes' => $batch->project_notes,
                     'quantity_taken' => $quantity,
                     'remaining_quantity' => $new_remaining
                 ]

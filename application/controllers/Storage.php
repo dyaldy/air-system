@@ -708,7 +708,7 @@ class Storage extends CI_Controller
                 return FALSE;
             }
 
-            if ($batch['remaining_quantity'] <= 0) {
+            if ($batch->remaining_quantity <= 0) {
                 $this->form_validation->set_message('validate_batch_id', 'The selected batch has no remaining quantity.');
                 return FALSE;
             }
@@ -905,7 +905,7 @@ class Storage extends CI_Controller
     }
 
     /**
-     * Delete item - removes all data for a specific category and type_id
+     * Delete item - removes all data for a specific category and type_id from a specific location (or all locations if no location specified)
      */
     public function delete_item()
     {
@@ -919,6 +919,7 @@ class Storage extends CI_Controller
         } else {
             $category = $input['category'];
             $type_id = $input['type_id'];
+            $location_id = isset($input['location_id']) ? $input['location_id'] : null;
 
             // Start transaction
             $this->db->trans_start();
@@ -927,16 +928,25 @@ class Storage extends CI_Controller
                 // Delete from project batches first (foreign key constraint)
                 $this->db->where('category', $category);
                 $this->db->where('type_id', $type_id);
+                if ($location_id) {
+                    $this->db->where('location_id', $location_id);
+                }
                 $this->db->delete('as_project_batches');
 
                 // Delete from report table
                 $this->db->where('category', $category);
                 $this->db->where('type_id', $type_id);
+                if ($location_id) {
+                    $this->db->where('location_id', $location_id);
+                }
                 $this->db->delete('as_report');
 
                 // Delete from storage table
                 $this->db->where('category', $category);
                 $this->db->where('type_id', $type_id);
+                if ($location_id) {
+                    $this->db->where('location_id', $location_id);
+                }
                 $this->db->delete('as_storage');
 
                 $this->db->trans_complete();
@@ -947,9 +957,10 @@ class Storage extends CI_Controller
                         'message' => 'Failed to delete item'
                     );
                 } else {
+                    $message = $location_id ? 'Item deleted successfully from this location' : 'Item deleted successfully from all locations';
                     $response = array(
                         'success' => true,
-                        'message' => 'Item deleted successfully'
+                        'message' => $message
                     );
                 }
             } catch (Exception $e) {

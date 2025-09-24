@@ -197,6 +197,10 @@
                                                             onclick="viewItemDetails('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
                                                             <i class="fas fa-eye"></i>
                                                         </button>
+                                                        <button type="button" class="btn btn-outline-danger"
+                                                            onclick="deleteItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -243,6 +247,7 @@
                                             <th>Created By</th>
                                             <th>Created At</th>
                                             <th>Notes</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -281,6 +286,12 @@
                                                     <?php else: ?>
                                                         <span class="text-muted">-</span>
                                                     <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="deleteBatch('<?= htmlspecialchars($batch['batch_id']); ?>')">
+                                                        <i class="fas fa-trash"></i> Hapus
+                                                    </button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -456,6 +467,47 @@
             </div>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteConfirmMessage"></p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="executeDelete()">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Details Modal -->
+    <div class="modal fade" id="itemDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="itemDetailsContent">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -579,5 +631,70 @@
 
     function refreshBatches() {
         location.reload();
+    }
+
+    function deleteItem(category, typeId) {
+        document.getElementById('deleteConfirmMessage').textContent = `Apakah Anda yakin ingin menghapus item "${category} - ${typeId}" dari lokasi ini? Semua data terkait akan dihapus secara permanen.`;
+        document.getElementById('confirmDeleteBtn').setAttribute('data-type', 'item');
+        document.getElementById('confirmDeleteBtn').setAttribute('data-category', category);
+        document.getElementById('confirmDeleteBtn').setAttribute('data-type-id', typeId);
+        document.getElementById('confirmDeleteBtn').setAttribute('data-location-id', '<?= $location_id; ?>');
+
+        var modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        modal.show();
+    }
+
+    function deleteBatch(batchId) {
+        document.getElementById('deleteConfirmMessage').textContent = `Apakah Anda yakin ingin menghapus batch "${batchId}"? Batch ini akan dihapus secara permanen.`;
+        document.getElementById('confirmDeleteBtn').setAttribute('data-type', 'batch');
+        document.getElementById('confirmDeleteBtn').setAttribute('data-batch-id', batchId);
+
+        var modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        modal.show();
+    }
+
+    function executeDelete() {
+        const deleteBtn = document.getElementById('confirmDeleteBtn');
+        const deleteType = deleteBtn.getAttribute('data-type');
+
+        let url, data;
+
+        if (deleteType === 'item') {
+            url = '<?= site_url('storage/delete_item'); ?>';
+            data = {
+                category: deleteBtn.getAttribute('data-category'),
+                type_id: deleteBtn.getAttribute('data-type-id'),
+                location_id: deleteBtn.getAttribute('data-location-id')
+            };
+        } else if (deleteType === 'batch') {
+            url = '<?= site_url('storage/delete_batch'); ?>';
+            data = {
+                batch_id: deleteBtn.getAttribute('data-batch-id')
+            };
+        }
+
+        fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menghapus data.');
+            });
+
+        // Close the modal
+        var modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+        modal.hide();
     }
 </script>
