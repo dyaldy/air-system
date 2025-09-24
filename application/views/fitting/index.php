@@ -1,5 +1,5 @@
 <?php if ($this->session->flashdata('action')) : ?>
-    <!-- Flash Notification Alert (positioned below fixed header) -->
+    <!-- Flash Notification Alert (ASRS-style positioned so it appears below fixed header) -->
     <div class="cust-notification m-3">
         <div class="alert alert-<?= $this->session->flashdata('action')[0]; ?> alert-dismissible fade show" id="notification" role="alert">
             <?= $this->session->flashdata('action')[1]; ?>
@@ -15,59 +15,30 @@
         <div class="row g-3 align-items-center">
             <!-- Kembali Button above Page Title -->
             <div class="col-12 col-lg-6">
-                <a href="<?= site_url('fitting/type'); ?>" class="btn btn-outline-secondary rounded-pill mb-2">
-                    <i class="fas fa-arrow-left"></i> Kembali ke Pilih Type
-                </a>
+                <div class="mb-2">
+                    <a href="<?= site_url('fitting/type'); ?>" class="btn btn-secondary rounded-pill px-4">Kembali ke Pilih Type</a>
+                </div>
                 <h3 class="m-0">Data Fitting</h3>
-                <?php if ($hasFilters) : ?>
-                    <small class="text-muted">Menampilkan hasil pencarian/filter</small>
-                <?php endif; ?>
             </div>
 
-            <!-- Search and Action Buttons -->
+            <!-- Search Form + Add Fitting -->
             <div class="col-12 col-lg-6">
-                <div class="d-flex flex-column flex-lg-row gap-2 align-items-lg-end">
-                    <!-- Search Form -->
-                    <form method="post" action="" class="flex-fill">
+                <div class="d-flex gap-2 align-items-center">
+                    <!-- Search + Filters Form -->
+                    <form action="" method="post" class="flex-grow-1" id="search-form">
                         <div class="input-group">
-                            <input type="search" name="keyword" id="keyword" class="form-control" placeholder="Cari fitting..." value="<?= htmlspecialchars($searchKeyword ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                            <button class="btn btn-outline-secondary" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </form>
+                            <!-- make the input area a positioned container so absolute children are anchored inside it -->
+                            <div class="position-relative flex-grow-1">
+                                <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, type, drat..." name="keyword" value="<?= $searchKeyword ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
+                                <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button" onclick="clearKeyword()">
+                            </div>
 
-                    <!-- Filter and Action Buttons -->
-                    <div class="d-flex gap-2">
-                        <!-- Filter Button -->
-                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#filterModal">
-                            <i class="fas fa-filter"></i> Filter
-                        </button>
-
-                        <!-- Download Button -->
-                        <div class="dropdown">
-                            <button class="btn btn-success rounded-pill dropdown-toggle px-4" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="downloadDropdown">
-                                <li><a class="dropdown-item" href="<?= site_url('fitting/download'); ?>">Download Data</a></li>
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadModal">Upload Data</a></li>
-                                <li><a class="dropdown-item" href="<?= site_url('fitting/template'); ?>">Download Template</a></li>
-                            </ul>
+                            <input type="hidden" name="find" value="1">
+                            <button class="btn btn-secondary rounded-end-pill px-4" type="submit">Cari</button>
                         </div>
 
-                        <!-- Clear Filter Button (only shown if there are active filters) -->
-                        <?php if ($hasFilters) : ?>
-                            <form method="post" action="" class="d-inline">
-                                <input type="hidden" name="clear_all" value="1">
-                                <button type="submit" class="btn btn-warning rounded-pill">
-                                    <i class="fas fa-times"></i> Clear
-                                </button>
-                            </form>
-                        <?php endif; ?>
-
-                        <!-- Filter Dropdown -->
-                        <form method="post" action="" class="d-inline">
+                        <div class="mt-2 d-flex gap-2">
+                            <!-- Type Filter -->
                             <select class="form-select form-select-sm" id="type-filter" aria-label="Filter Type">
                                 <option value="">Semua Type</option>
                                 <?php foreach (($type_options ?? []) as $type) : ?>
@@ -75,11 +46,11 @@
                                     <option value="<?= $type; ?>" <?= $selected; ?>><?= $type; ?></option>
                                 <?php endforeach; ?>
                             </select>
-                        </form>
+                        </div>
+                    </form>
 
-                        <!-- Add Fitting Button -->
-                        <a href="<?= site_url('fitting/add'); ?>" class="btn btn-primary rounded-pill px-4" type="button">Tambah</a>
-                    </div>
+                    <!-- Add Fitting Button -->
+                    <a href="<?= site_url('fitting/add'); ?>" class="btn btn-primary rounded-pill px-4" type="button">Tambah</a>
                 </div>
             </div>
         </div>
@@ -104,9 +75,9 @@
                                 <span>Fitting ID</span>
                                 <?php if ($sortKeyword[0] === 'fitting_id') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-up-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-down-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Ascending)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Ascending)">
@@ -120,9 +91,9 @@
                                 <span>Type</span>
                                 <?php if ($sortKeyword[0] === 'type') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-up-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-down-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
@@ -136,9 +107,9 @@
                                 <span>D1</span>
                                 <?php if ($sortKeyword[0] === 'D1') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-up-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-down-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Ascending)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Ascending)">
@@ -152,9 +123,9 @@
                                 <span>D2</span>
                                 <?php if ($sortKeyword[0] === 'D2') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-up-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-down-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Ascending)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Ascending)">
@@ -168,9 +139,9 @@
                                 <span>D3</span>
                                 <?php if ($sortKeyword[0] === 'D3') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-up-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-down-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Ascending)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Ascending)">
@@ -184,9 +155,9 @@
                                 <span>R(DRAT)</span>
                                 <?php if ($sortKeyword[0] === 'R_DRAT') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-up-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-down-active.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Ascending)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Ascending)">
@@ -232,44 +203,25 @@
                 <?= $pagination['links']; ?>
 
                 <!-- Action Buttons -->
-                <div class="d-flex gap-2">
-                    <form method="post" action="">
-                        <input type="hidden" name="clear_all" value="1">
-                        <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill">Reset Filter</button>
-                    </form>
+                <div class="d-flex">
+                    <?php if ($hasFilters) : ?>
+                        <form action="" method="post" class="d-inline">
+                            <input type="hidden" name="reset" value="1">
+                            <button type="submit" class="btn btn-outline-secondary rounded-start-pill">Reset Filter</button>
+                        </form>
+                    <?php endif; ?>
+
+                    <!-- Download Button -->
+                    <a href="<?= site_url('fitting/download'); ?>" class="btn btn-primary <?= $hasFilters ? '' : 'rounded-start-pill' ?>">Download</a>
+
+                    <!-- Upload Modal Trigger -->
+                    <button type="button" class="btn btn-primary rounded-end-pill" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        Upload
+                    </button>
                 </div>
             </div>
         </div>
     <?php endif; ?>
-</div>
-
-<!-- Filter Modal -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="filterModalLabel">Filter Fitting</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" action="">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="filter-type" class="form-label">Type</label>
-                        <select class="form-select" name="filter[type][]" id="filter-type" multiple>
-                            <?php foreach ($type_options as $type) : ?>
-                                <?php $selected = (!empty($filterKeyword['type']) && in_array($type, (array)$filterKeyword['type'])) ? 'selected' : ''; ?>
-                                <option value="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?>" <?= $selected; ?>><?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary rounded-pill">Terapkan Filter</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <!-- Upload Modal -->
@@ -282,20 +234,19 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
-                    <h6>Petunjuk Upload:</h6>
-                    <ul class="mb-0">
-                        <li>File harus berformat Excel (.xlsx atau .xls)</li>
-                        <li>Gunakan template yang telah disediakan</li>
-                        <li>Kolom yang harus diisi:
+                    <strong>Ketentuan Upload:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>WAJIB menggunakan template yang sudah disediakan.</li>
+                        <li>Download template <a href="<?= site_url('fitting/template'); ?>">disini</a>.</li>
+                        <li>Ketentuan pengisian tabel:
                             <ol>
-                                <li>Type: Type fitting (maksimal 15 karakter)</li>
-                                <li>D1: Dimensi D1 (angka positif)</li>
-                                <li>D2: Dimensi D2 (angka positif)</li>
-                                <li>D3: Dimensi D3 (angka positif)</li>
-                                <li>R(DRAT): Ukuran drat (maksimal 20 karakter)</li>
+                                <li>Fitting ID akan dibuat otomatis berdasarkan format: fit-type-D1-D2-D3-R(DRAT).</li>
+                                <li>Type maksimal 15 karakter, akan otomatis diformat menjadi huruf besar.</li>
+                                <li>D1, D2, D3 harus berupa angka positif.</li>
+                                <li>R(DRAT) maksimal 20 karakter.</li>
+                                <li>Kombinasi type, D1, D2, D3, dan R(DRAT) harus unik.</li>
                             </ol>
                         </li>
-                        <li>Pastikan tidak ada kombinasi yang duplikat</li>
                     </ul>
                 </div>
                 <form id="uploadForm" action="" method="POST" enctype="multipart/form-data">
@@ -314,51 +265,100 @@
 </div>
 
 <script>
-    (function() {
-        function applyFittingFilters() {
-            const typeFilter = document.getElementById('type-filter');
-            if (typeFilter && typeFilter.value) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '';
-
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'filter[type][]';
-                input.value = typeFilter.value;
-                form.appendChild(input);
-
-                document.body.appendChild(form);
-                form.submit();
+    // Sort functionality
+    function sort_table(column) {
+        const currentSort = "<?= isset($_POST['sort-send']) ? $_POST['sort-send'] : ''; ?>";
+        const currentOrder = "<?= isset($_POST['order']) ? $_POST['order'] : 'asc'; ?>";
+        const newOrder = (currentSort === column && currentOrder === 'asc') ? 'desc' : 'asc';
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.style.display = 'none';
+        
+        const inputs = [
+            { name: 'sort-send', value: column },
+            { name: 'order', value: newOrder }
+        ];
+        
+        // Preserve other form data
+        const preserveInputs = ['search', 'type-filter'];
+        preserveInputs.forEach(inputName => {
+            const existingInput = document.querySelector(`input[name="${inputName}"], select[name="${inputName}"]`);
+            if (existingInput && existingInput.value) {
+                inputs.push({ name: inputName, value: existingInput.value });
             }
-        }
-
-        // Type filter handler
-        const typeFilter = document.getElementById('type-filter');
-        if (typeFilter) {
-            typeFilter.addEventListener('change', applyFittingFilters);
-        }
-
-        // Sort function
-        window.sortTable = function(sortValue) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '';
-
+        });
+        
+        inputs.forEach(inputData => {
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = 'sort';
-            input.value = sortValue;
+            input.name = inputData.name;
+            input.value = inputData.value;
             form.appendChild(input);
-
-            document.body.appendChild(form);
-            form.submit();
-        };
-
-        // Enable tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-    })();
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Clear search functionality
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('typeFilter').value = '';
+    }
+
+    // Type filter handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeFilter = document.getElementById('typeFilter');
+        if (typeFilter) {
+            typeFilter.addEventListener('change', function() {
+                const type = this.value;
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.style.display = 'none';
+                
+                const filterObj = {};
+                if (type) filterObj.type = [type];
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'filter';
+                input.value = JSON.stringify(filterObj);
+                form.appendChild(input);
+                
+                // Preserve search
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput && searchInput.value) {
+                    const searchHidden = document.createElement('input');
+                    searchHidden.type = 'hidden';
+                    searchHidden.name = 'search';
+                    searchHidden.value = searchInput.value;
+                    form.appendChild(searchHidden);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            });
+        }
+
+        // Upload form handler
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadBtn = document.getElementById('uploadBtn');
+        
+        if (uploadForm && uploadBtn) {
+            uploadBtn.addEventListener('click', function() {
+                const fileInput = uploadForm.querySelector('input[type="file"]');
+                if (!fileInput.files.length) {
+                    alert('Silakan pilih file Excel terlebih dahulu!');
+                    return false;
+                }
+                
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...';
+                
+                uploadForm.submit();
+            });
+        }
+    });
 </script>
