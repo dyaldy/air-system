@@ -70,6 +70,11 @@
                             <a class="nav-link" href="<?= site_url('pneumatic/type'); ?>">Pneumatic</a>
                         </li>
 
+                        <!-- Link to Fitting Controller (goes to type selection) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= site_url('fitting/type'); ?>">Fitting</a>
+                        </li>
+
                         <!-- Link to Storage Controller -->
                         <li class="nav-item">
                             <a class="nav-link" href="<?= site_url('storage'); ?>">Storage</a>

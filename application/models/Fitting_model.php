@@ -1,0 +1,252 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+/**
+ * Fitting_model for air-system.
+ *
+ * This model handles all database operations for the `as_fitting` table,
+ * including fitting management (CRUD) and data retrieval with search,
+ * pagination, and filtering capabilities.
+ *
+ * @package AirSystem
+ * @subpackage Models
+ * @category Fitting
+ * @author Apparel One Indonesia
+ * @version 1.0.0
+ * @property CI_DB_query_builder $db
+ * @property CI_Input $input
+ * @property CI_Session $session
+ */
+class Fitting_model extends CI_Model
+{
+    /**
+     * The name of the fitting database table used by this model.
+     *
+     * @var string
+     */
+    private string $fittingTable = 'as_fitting';
+
+    /**
+     * Retrieves a list of fittings based on search, filter, and sort criteria.
+     *
+     * @param int         $limit         Number of records to retrieve.
+     * @param int         $start         Offset for pagination.
+     * @param string|null $searchKeyword Search term for filtering results.
+     * @param array|null  $filterKeyword Associative array of filter criteria.
+     * @param string|null $sortKeyword   Sorting criteria in 'column-direction' format.
+     *
+     * @return array An array of fitting records matching the criteria.
+     */
+    public function getFitting(int $limit, int $start, ?string $searchKeyword = null, ?array $filterKeyword = null, ?string $sortKeyword = null): array
+    {
+        // Apply search
+        if (!empty($searchKeyword)) {
+            $this->db->group_start()
+                ->like('fitting_id', $searchKeyword)
+                ->or_like('type', $searchKeyword)
+                ->or_like('R_DRAT', $searchKeyword)
+                ->group_end();
+        }
+
+        // Apply filter
+        if (!empty($filterKeyword) && is_array($filterKeyword)) {
+            foreach ($filterKeyword as $field => $values) {
+                if (!empty($values) && is_array($values)) {
+                    $this->db->where_in($field, $values);
+                }
+            }
+        }
+
+        // Apply sorting
+        if (!empty($sortKeyword)) {
+            $sortParts = explode('-', $sortKeyword, 2);
+            if (count($sortParts) === 2) {
+                [$column, $direction] = $sortParts;
+                $this->db->order_by($column, $direction);
+            }
+        } else {
+            $this->db->order_by('fitting_id', 'ASC');
+        }
+
+        return $this->db->limit($limit, $start)->get($this->fittingTable)->result_array();
+    }
+
+    /**
+     * Counts the total number of fittings matching search and filter criteria.
+     *
+     * @param string|null $searchKeyword Search term for filtering results.
+     * @param array|null  $filterKeyword Associative array of filter criteria.
+     *
+     * @return int The total count of matching records.
+     */
+    public function countFitting(?string $searchKeyword = null, ?array $filterKeyword = null): int
+    {
+        // Apply search
+        if (!empty($searchKeyword)) {
+            $this->db->group_start()
+                ->like('fitting_id', $searchKeyword)
+                ->or_like('type', $searchKeyword)
+                ->or_like('R_DRAT', $searchKeyword)
+                ->group_end();
+        }
+
+        // Apply filter
+        if (!empty($filterKeyword) && is_array($filterKeyword)) {
+            foreach ($filterKeyword as $field => $values) {
+                if (!empty($values) && is_array($values)) {
+                    $this->db->where_in($field, $values);
+                }
+            }
+        }
+
+        return $this->db->count_all_results($this->fittingTable);
+    }
+
+    /**
+     * Adds a new fitting to the database.
+     *
+     * @return void
+     */
+    public function addFitting(): void
+    {
+        $type = strtoupper($this->input->post('type', true));
+        $D1 = (float)$this->input->post('D1', true);
+        $D2 = (float)$this->input->post('D2', true);
+        $D3 = (float)$this->input->post('D3', true);
+        $R_DRAT = $this->input->post('R_DRAT', true);
+
+        // Generate fitting_id with format: fit-{type}-{D1}-{D2}-{D3}-{R_DRAT}
+        $fittingId = sprintf(
+            'fit-%s-%.1f-%.1f-%.1f-%s',
+            strtolower(str_replace(' ', '_', $type)),
+            $D1,
+            $D2,
+            $D3,
+            str_replace('"', '', $R_DRAT)
+        );
+
+        $data = [
+            'fitting_id' => $fittingId,
+            'type' => $type,
+            'D1' => $D1,
+            'D2' => $D2,
+            'D3' => $D3,
+            'R_DRAT' => $R_DRAT,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+            'editor' => $this->session->userdata('user_data')['nik'],
+        ];
+
+        $this->db->insert($this->fittingTable, $data);
+    }
+
+    /**
+     * Retrieves a fitting by its ID.
+     *
+     * @param string $fittingId The ID of the fitting to retrieve.
+     *
+     * @return array|null The fitting record, or null if not found.
+     */
+    public function getById(string $fittingId): ?array
+    {
+        return $this->db->get_where($this->fittingTable, ['fitting_id' => $fittingId])->row_array();
+    }
+
+    /**
+     * Updates an existing fitting's details.
+     *
+     * @param string $fittingId The ID of the fitting to update.
+     *
+     * @return void
+     */
+    public function editFitting(string $fittingId): void
+    {
+        $type = strtoupper($this->input->post('type', true));
+        $D1 = (float)$this->input->post('D1', true);
+        $D2 = (float)$this->input->post('D2', true);
+        $D3 = (float)$this->input->post('D3', true);
+        $R_DRAT = $this->input->post('R_DRAT', true);
+
+        // Generate new fitting_id with format: fit-{type}-{D1}-{D2}-{D3}-{R_DRAT}
+        $newFittingId = sprintf(
+            'fit-%s-%.1f-%.1f-%.1f-%s',
+            strtolower(str_replace(' ', '_', $type)),
+            $D1,
+            $D2,
+            $D3,
+            str_replace('"', '', $R_DRAT)
+        );
+
+        $data = [
+            'fitting_id' => $newFittingId,
+            'type' => $type,
+            'D1' => $D1,
+            'D2' => $D2,
+            'D3' => $D3,
+            'R_DRAT' => $R_DRAT,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'editor' => $this->session->userdata('user_data')['nik'],
+        ];
+
+        $this->db->where('fitting_id', $fittingId)->update($this->fittingTable, $data);
+    }
+
+    /**
+     * Deletes a fitting from the database.
+     *
+     * @param string $fittingId The ID of the fitting to delete.
+     *
+     * @return void
+     */
+    public function deleteFitting(string $fittingId): void
+    {
+        $this->db->where('fitting_id', $fittingId)->delete($this->fittingTable);
+    }
+
+    /**
+     * Checks if a given fitting ID already exists in the database.
+     *
+     * @param string $fittingId The fitting ID to check.
+     *
+     * @return bool Returns true if the ID exists, false otherwise.
+     */
+    public function isFittingIdExists(string $fittingId): bool
+    {
+        return $this->db->where('fitting_id', $fittingId)->count_all_results($this->fittingTable) > 0;
+    }
+
+    /**
+     * Inserts multiple fitting records in a single batch operation.
+     *
+     * @param array $data An array of associative arrays containing fitting data.
+     *
+     * @return void
+     */
+    public function insertBatch(array $data): void
+    {
+        $this->db->insert_batch($this->fittingTable, $data);
+    }
+
+    /**
+     * Retrieves all fitting records for export purposes.
+     *
+     * @return array All fitting records from the database.
+     */
+    public function getAllFittings(): array
+    {
+        return $this->db->get($this->fittingTable)->result_array();
+    }
+
+    /**
+     * Retrieves unique values from a specific column for filter options.
+     *
+     * @param string $column The column name to get unique values from.
+     *
+     * @return array An array of unique values from the specified column.
+     */
+    public function getDistinctValues(string $column): array
+    {
+        $this->db->select($column)->distinct()->order_by($column);
+        return array_column($this->db->get($this->fittingTable)->result_array(), $column);
+    }
+}
