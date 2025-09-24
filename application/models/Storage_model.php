@@ -200,11 +200,19 @@ class Storage_model extends CI_Model
     /**
      * Get storage overview grouped by category and type
      */
-    public function get_storage_overview()
+    public function get_storage_overview($search_term = null)
     {
         $this->db->select('category, type_id, SUM(amount) as total_amount, COUNT(location_id) as location_count');
         $this->db->group_by(array('category', 'type_id'));
         $this->db->having('SUM(amount) >', 0);
+
+        if ($search_term) {
+            $this->db->group_start();
+            $this->db->like('type_id', $search_term);
+            $this->db->or_like('category', $search_term);
+            $this->db->group_end();
+        }
+
         $this->db->order_by('category, type_id');
         $query = $this->db->get('as_storage');
         return $query->result_array();

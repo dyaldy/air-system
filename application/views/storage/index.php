@@ -22,6 +22,23 @@
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title -->
     <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4 rounded-top-5">
+        <!-- Search Bar -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <form method="post" class="d-flex gap-2">
+                    <input type="text" name="keyword" class="form-control" placeholder="Cari penyimpanan..." value="<?= htmlspecialchars($keyword); ?>">
+                    <button type="submit" name="find" class="btn btn-info">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                    <?php if ($keyword): ?>
+                        <button type="submit" name="reset" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Reset
+                        </button>
+                    <?php endif; ?>
+                </form>
+            </div>
+        </div>
+
         <div class="row g-3 align-items-center">
             <!-- Page Title -->
             <div class="col-12 col-lg-6">
@@ -37,9 +54,6 @@
                     </a>
                     <a href="<?= site_url('storage/take'); ?>" class="btn btn-warning">
                         <i class="fas fa-minus"></i> Ambil Barang
-                    </a>
-                    <a href="<?= site_url('storage/search'); ?>" class="btn btn-info">
-                        <i class="fas fa-search"></i> Cari Penyimpanan
                     </a>
                     <a href="<?= site_url('storage/reports'); ?>" class="btn btn-secondary">
                         <i class="fas fa-chart-bar"></i> Laporan
