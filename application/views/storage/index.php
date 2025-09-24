@@ -121,10 +121,16 @@
                                                 <td>
                                                     <div class="btn-group btn-group-sm" role="group">
                                                         <button type="button" class="btn btn-outline-success" onclick="quickStore('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
-                                                            Simpan
+                                                            <i class="fas fa-plus"></i> Simpan
                                                         </button>
                                                         <button type="button" class="btn btn-outline-warning" onclick="quickTake('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
-                                                            Ambil
+                                                            <i class="fas fa-minus"></i> Ambil
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-info" onclick="manageItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')" title="Kelola item dan batch">
+                                                            <i class="fas fa-cogs"></i> Kelola
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" onclick="deleteItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')" title="Hapus item">
+                                                            <i class="fas fa-trash"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -343,6 +349,176 @@
     </div>
 </div>
 
+<!-- Item Management Modal -->
+<div class="modal fade" id="itemManagementModal" tabindex="-1" aria-labelledby="itemManagementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemManagementModalLabel">Kelola Item & Batch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Item Info Header -->
+                <div class="alert alert-info mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Item:</strong> <span id="manageItemInfo"></span>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <strong>Total Stok:</strong> <span id="manageTotalStock" class="badge bg-primary fs-6"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs mb-4" id="managementTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="batches-tab" data-bs-toggle="tab" data-bs-target="#batches-pane" type="button" role="tab">
+                            <i class="fas fa-boxes me-2"></i>Kelola Batch
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="locations-tab" data-bs-toggle="tab" data-bs-target="#locations-pane" type="button" role="tab">
+                            <i class="fas fa-map-marker-alt me-2"></i>Kelola Lokasi
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="managementTabContent">
+                    <!-- Batch Management Tab -->
+                    <div class="tab-pane fade show active" id="batches-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Project Batches</h6>
+                            <button type="button" class="btn btn-sm btn-success" onclick="createNewBatch()">
+                                <i class="fas fa-plus me-1"></i>Buat Batch Baru
+                            </button>
+                        </div>
+
+                        <div id="batchesList" class="mb-4">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Memuat data batch...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Management Tab -->
+                    <div class="tab-pane fade" id="locations-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Storage Locations</h6>
+                            <button type="button" class="btn btn-sm btn-success" onclick="addToNewLocation()">
+                                <i class="fas fa-plus me-1"></i>Tambah ke Lokasi Baru
+                            </button>
+                        </div>
+
+                        <div id="locationsList" class="mb-4">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Memuat data lokasi...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Edit Modal -->
+<div class="modal fade" id="batchEditModal" tabindex="-1" aria-labelledby="batchEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchEditModalLabel">Edit Batch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="batchEditForm">
+                    <input type="hidden" id="editBatchId" name="batch_id">
+
+                    <div class="mb-3">
+                        <label for="editProjectName" class="form-label">Nama Project</label>
+                        <input type="text" class="form-control" id="editProjectName" name="project_name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editProjectNotes" class="form-label">Catatan Project</label>
+                        <textarea class="form-control" id="editProjectNotes" name="project_notes" rows="3" placeholder="Deskripsi atau catatan tambahan untuk project ini..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="editInitialQuantity" class="form-label">Jumlah Awal</label>
+                            <input type="number" class="form-control" id="editInitialQuantity" name="initial_quantity" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editRemainingQuantity" class="form-label">Sisa Stok</label>
+                            <input type="number" class="form-control" id="editRemainingQuantity" name="remaining_quantity" min="0" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="saveBatchEdit()">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Batch Modal -->
+<div class="modal fade" id="newBatchModal" tabindex="-1" aria-labelledby="newBatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newBatchModalLabel">Buat Batch Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newBatchForm">
+                    <input type="hidden" id="newBatchCategory" name="category">
+                    <input type="hidden" id="newBatchTypeId" name="type_id">
+                    <input type="hidden" id="newBatchLocationId" name="location_id">
+
+                    <div class="mb-3">
+                        <label for="newProjectName" class="form-label">Nama Project</label>
+                        <input type="text" class="form-control" id="newProjectName" name="project_name" required placeholder="Nama project untuk batch ini">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newProjectNotes" class="form-label">Catatan Project</label>
+                        <textarea class="form-control" id="newProjectNotes" name="project_notes" rows="3" placeholder="Deskripsi atau catatan tambahan untuk project ini..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="newLocationSelect" class="form-label">Lokasi Storage</label>
+                            <select class="form-select" id="newLocationSelect" name="location_id" required>
+                                <option value="">Pilih lokasi...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="newQuantity" class="form-label">Jumlah</label>
+                            <input type="number" class="form-control" id="newQuantity" name="quantity" min="1" required placeholder="Jumlah item dalam batch">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success" onclick="saveNewBatch()">Buat Batch</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     function quickStore(category, typeId) {
         document.getElementById('storeCategory').value = category;
@@ -443,5 +619,396 @@
         // Show modal
         const modal = new bootstrap.Modal(document.getElementById('fullNoteModal'));
         modal.show();
+    }
+
+    // Global variables for current item
+    let currentCategory = '';
+    let currentTypeId = '';
+
+    // Manage item function - opens comprehensive management modal
+    function manageItem(category, typeId) {
+        currentCategory = category;
+        currentTypeId = typeId;
+
+        document.getElementById('manageItemInfo').textContent = category + ' - ' + typeId;
+
+        // Show modal first
+        const modal = new bootstrap.Modal(document.getElementById('itemManagementModal'));
+        modal.show();
+
+        // Load data after modal is shown
+        loadItemBatches(category, typeId);
+        loadItemLocations(category, typeId);
+    }
+
+    // Load item batches
+    function loadItemBatches(category, typeId) {
+        document.getElementById('batchesList').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Memuat data batch...</p>
+            </div>
+        `;
+
+        fetch(`<?= site_url('storage/get_item_batches'); ?>?category=${category}&type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayBatches(data.batches, data.total_stock);
+                } else {
+                    document.getElementById('batchesList').innerHTML = `
+                        <div class="alert alert-warning">
+                            <h6>Tidak ada batch project</h6>
+                            <p class="mb-0">Item ini belum memiliki batch project. Klik "Buat Batch Baru" untuk membuat batch pertama.</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('batchesList').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading batches: ${error.message}
+                    </div>
+                `;
+            });
+    }
+
+    // Display batches
+    function displayBatches(batches, totalStock) {
+        document.getElementById('manageTotalStock').textContent = totalStock || 0;
+
+        let html = '';
+
+        if (batches.length === 0) {
+            html = `
+                <div class="alert alert-info">
+                    <h6>Tidak ada batch project</h6>
+                    <p class="mb-0">Item ini belum memiliki batch project. Klik "Buat Batch Baru" untuk membuat batch pertama.</p>
+                </div>
+            `;
+        } else {
+            batches.forEach(batch => {
+                const progressPercentage = batch.initial_quantity > 0 ?
+                    Math.round((batch.remaining_quantity / batch.initial_quantity) * 100) : 0;
+
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h6 class="card-title mb-1">${batch.project_name || 'Unnamed Project'}</h6>
+                                    <p class="text-muted small mb-2">${batch.batch_id}</p>
+                                    <p class="card-text small mb-0">${batch.project_notes || 'Tidak ada catatan'}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex flex-column">
+                                        <small class="text-muted">Stok Tersisa</small>
+                                        <div class="d-flex align-items-center">
+                                            <strong class="me-2">${batch.remaining_quantity}</strong>
+                                            <span class="text-muted">/ ${batch.initial_quantity}</span>
+                                        </div>
+                                        <div class="progress mt-1" style="height: 6px;">
+                                            <div class="progress-bar ${progressPercentage < 25 ? 'bg-danger' : progressPercentage < 50 ? 'bg-warning' : 'bg-success'}" 
+                                                 style="width: ${progressPercentage}%"></div>
+                                        </div>
+                                        <small class="text-muted mt-1">${progressPercentage}%</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="editBatch('${batch.batch_id}', '${batch.project_name}', '${batch.project_notes}', ${batch.initial_quantity}, ${batch.remaining_quantity})" title="Edit batch">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="deleteBatch('${batch.batch_id}', '${batch.project_name}')" title="Hapus batch">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('batchesList').innerHTML = html;
+    }
+
+    // Load item locations
+    function loadItemLocations(category, typeId) {
+        document.getElementById('locationsList').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Memuat data lokasi...</p>
+            </div>
+        `;
+
+        fetch(`<?= site_url('storage/get_item_locations'); ?>?category=${category}&type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayLocations(data.locations);
+                } else {
+                    document.getElementById('locationsList').innerHTML = `
+                        <div class="alert alert-warning">Tidak ada data lokasi tersedia.</div>
+                    `;
+                }
+            });
+    }
+
+    // Display locations
+    function displayLocations(locations) {
+        let html = '';
+
+        if (locations.length === 0) {
+            html = `
+                <div class="alert alert-info">
+                    <h6>Item belum ada di storage</h6>
+                    <p class="mb-0">Item ini belum disimpan di lokasi manapun. Gunakan fungsi "Simpan" untuk menambahkan ke lokasi.</p>
+                </div>
+            `;
+        } else {
+            locations.forEach(location => {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                        ${location.location_id}
+                                    </h6>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <span class="badge bg-info fs-6">${location.amount} items</span>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="editLocationStock('${location.location_id}', ${location.amount})" title="Edit stok">
+                                            <i class="fas fa-edit"></i> Edit Stok
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="removeFromLocation('${location.location_id}')" title="Hapus dari lokasi">
+                                            <i class="fas fa-times"></i> Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('locationsList').innerHTML = html;
+    }
+
+    // Edit batch function
+    function editBatch(batchId, projectName, projectNotes, initialQty, remainingQty) {
+        document.getElementById('editBatchId').value = batchId;
+        document.getElementById('editProjectName').value = projectName;
+        document.getElementById('editProjectNotes').value = projectNotes || '';
+        document.getElementById('editInitialQuantity').value = initialQty;
+        document.getElementById('editRemainingQuantity').value = remainingQty;
+
+        const modal = new bootstrap.Modal(document.getElementById('batchEditModal'));
+        modal.show();
+    }
+
+    // Save batch edit
+    function saveBatchEdit() {
+        const form = document.getElementById('batchEditForm');
+        const formData = new FormData(form);
+
+        fetch('<?= site_url('storage/update_batch'); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('batchEditModal'));
+                    modal.hide();
+
+                    // Reload batches
+                    loadItemBatches(currentCategory, currentTypeId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
+
+    // Delete batch function
+    function deleteBatch(batchId, projectName) {
+        if (confirm(`Apakah Anda yakin ingin menghapus batch "${projectName}"?\n\nTindakan ini akan menghapus batch dan semua data terkait.`)) {
+            fetch('<?= site_url('storage/delete_batch'); ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        batch_id: batchId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload batches
+                        loadItemBatches(currentCategory, currentTypeId);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+        }
+    }
+
+    // Create new batch
+    function createNewBatch() {
+        document.getElementById('newBatchCategory').value = currentCategory;
+        document.getElementById('newBatchTypeId').value = currentTypeId;
+
+        // Load available locations
+        loadAvailableLocations();
+
+        const modal = new bootstrap.Modal(document.getElementById('newBatchModal'));
+        modal.show();
+    }
+
+    // Load available locations for new batch
+    function loadAvailableLocations() {
+        fetch('<?= site_url('storage/get_all_locations'); ?>')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('newLocationSelect');
+                select.innerHTML = '<option value="">Pilih lokasi...</option>';
+
+                if (data.success && data.locations) {
+                    data.locations.forEach(location => {
+                        select.innerHTML += `<option value="${location.location_id}">${location.location_id}</option>`;
+                    });
+                }
+            });
+    }
+
+    // Save new batch
+    function saveNewBatch() {
+        const form = document.getElementById('newBatchForm');
+        const formData = new FormData(form);
+
+        fetch('<?= site_url('storage/create_batch'); ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('newBatchModal'));
+                    modal.hide();
+
+                    // Clear form
+                    form.reset();
+
+                    // Reload batches and locations
+                    loadItemBatches(currentCategory, currentTypeId);
+                    loadItemLocations(currentCategory, currentTypeId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
+
+    // Delete item function
+    function deleteItem(category, typeId) {
+        if (confirm(`Apakah Anda yakin ingin menghapus semua stok untuk ${category} - ${typeId}?\n\nPeringatan: Tindakan ini tidak dapat dibatalkan dan akan menghapus semua data terkait termasuk batch project!`)) {
+            fetch('<?= site_url('storage/delete_item'); ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: category,
+                        type_id: typeId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Item berhasil dihapus');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Terjadi kesalahan: ' + error.message);
+                });
+        }
+    }
+
+    // Edit location stock
+    function editLocationStock(locationId, currentAmount) {
+        const newAmount = prompt(`Edit stok untuk lokasi ${locationId}:\n\nStok saat ini: ${currentAmount}\nMasukkan jumlah baru:`, currentAmount);
+
+        if (newAmount !== null && newAmount !== '' && !isNaN(newAmount)) {
+            const amount = parseInt(newAmount);
+
+            if (amount >= 0) {
+                updateLocationStock(locationId, amount);
+            } else {
+                alert('Jumlah tidak boleh negatif');
+            }
+        }
+    }
+
+    // Update location stock
+    function updateLocationStock(locationId, newAmount) {
+        fetch('<?= site_url('storage/update_location_stock'); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    category: currentCategory,
+                    type_id: currentTypeId,
+                    location_id: locationId,
+                    new_amount: newAmount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadItemLocations(currentCategory, currentTypeId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
+
+    // Remove from location
+    function removeFromLocation(locationId) {
+        if (confirm(`Apakah Anda yakin ingin menghapus item dari lokasi ${locationId}?`)) {
+            fetch('<?= site_url('storage/remove_from_location'); ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: currentCategory,
+                        type_id: currentTypeId,
+                        location_id: locationId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadItemLocations(currentCategory, currentTypeId);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+        }
     }
 </script>

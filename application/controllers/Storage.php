@@ -239,20 +239,20 @@ class Storage extends CI_Controller
         if ($is_project && $batch_id) {
             // Handle project batch taking
             $batch_result = $this->Project_batch_model->take_from_specific_batch($batch_id, $quantity);
-            
+
             if (!$batch_result['success']) {
                 $this->session->set_flashdata('error', $batch_result['message']);
                 redirect('storage/take');
                 return;
             }
-            
+
             // Update storage table
             $take_result = $this->Storage_model->take_items($location_id, $category, $type_id_for_db, $quantity, $editor_nik);
-            
+
             if ($take_result['success']) {
                 // Log the transaction with batch information
                 $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project, $batch_id);
-                
+
                 $this->session->set_flashdata('success', 'Items taken from project batch successfully!');
                 redirect('storage/location/' . $location_id);
             } else {
@@ -683,12 +683,12 @@ class Storage extends CI_Controller
     {
         $location_value = $this->input->post('location_id');
         $is_project = strpos($location_value, '_project') !== false;
-        
+
         if ($is_project && empty($batch_id)) {
             $this->form_validation->set_message('validate_batch_id', 'The Batch ID field is required for project items.');
             return FALSE;
         }
-        
+
         if (!empty($batch_id)) {
             // Validate that the batch exists and has remaining quantity
             $batch = $this->Project_batch_model->get_batch_by_id($batch_id);
@@ -696,7 +696,7 @@ class Storage extends CI_Controller
                 $this->form_validation->set_message('validate_batch_id', 'The selected batch does not exist.');
                 return FALSE;
             }
-            
+
             if ($batch['remaining_quantity'] <= 0) {
                 $this->form_validation->set_message('validate_batch_id', 'The selected batch has no remaining quantity.');
                 return FALSE;
@@ -704,5 +704,534 @@ class Storage extends CI_Controller
         }
 
         return TRUE;
+    }
+
+    /**
+     * User history - shows transaction history for a specific user
+     */
+    public function user_history($nik_encoded = null)
+    {
+        if (!$nik_encoded) {
+            redirect('user');
+        }
+
+        $nik = base64_decode(urldecode($nik_encoded), true);
+        if ($nik === false) {
+            set_message(['danger', 'NIK tidak valid']);
+            redirect('user');
+        }
+
+        // Load User model to get user details
+        $this->load->model('User_model');
+        $user = $this->User_model->getByNik($nik);
+        if (!$user) {
+            set_message(['danger', 'Pengguna tidak ditemukan']);
+            redirect('user');
+        }
+
+        // Handle session state for user history
+        $this->handleUserHistorySessionState($nik_encoded);
+
+        $sessionData = [
+            'search' => $this->session->userdata('keyword'),
+            'filter' => $this->session->userdata('filter'),
+        ];
+
+        // Setup pagination
+        $config = [
+            'base_url'   => site_url('storage/user_history/' . $nik_encoded),
+            'total_rows' => $this->Report_model->count_user_transactions($nik, $sessionData['search'], $sessionData['filter']),
+            'per_page'   => self::CONFIG['pagination']['items_per_page'],
+            'reuse_query_string' => true,
+        ];
+        $this->pagination->initialize($config);
+
+        // Get current page
+        $startData = (int) ($this->uri->segment(4) ? $this->uri->segment(4) : 0);
+
+        // Get user transactions
+        $transactions = $this->Report_model->search_user_transactions(
+            $nik,
+            $sessionData['search'],
+            $sessionData['filter'],
+            $config['per_page'],
+            $startData
+        );
+
+        // Prepare view data
+        $transactionCount = count($transactions);
+        $data = [
+            'title'         => 'History User - ' . $user['name'],
+            'user'          => $user,
+            'transactions'  => $transactions,
+            'display'       => ($startData + 1) . ' - ' . ($startData + $transactionCount) . ' dari ' . $config['total_rows'],
+            'pagination_links' => $this->pagination->create_links(),
+            'hasFilters'    => (!empty($sessionData['search']) || !empty($sessionData['filter'])),
+            'actions'       => $this->Report_model->get_user_transaction_filters($nik, 'action'),
+            'locations'     => $this->Report_model->get_user_transaction_filters($nik, 'location_id'),
+            'categories'    => $this->Report_model->get_user_transaction_filters($nik, 'category'),
+        ];
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('storage/user_history', $data);
+        $this->load->view('templates/footer');
+    }
+
+    /**
+     * Handle session state for user history
+     */
+    private function handleUserHistorySessionState($nik_encoded)
+    {
+        // Set unique controller session for user history
+        if ($this->session->userdata('controller') !== 'user_history_storage') {
+            $this->session->set_userdata('controller', 'user_history_storage');
+            $this->session->unset_userdata(['keyword', 'filter']);
+        }
+
+        $redirectUrl = 'storage/user_history/' . $nik_encoded;
+
+        // Handle search
+        if ($this->input->post('find')) {
+            $keyword = trim($this->input->post('keyword', true));
+            $this->session->set_userdata('keyword', $keyword);
+            redirect($redirectUrl);
+        }
+
+        // Handle filter
+        $filterKeys = ['action' => 'action', 'location' => 'location_id', 'category' => 'category'];
+        foreach ($filterKeys as $postKey => $sessionKey) {
+            if ($this->input->post($postKey)) {
+                $filterValues = $this->input->post("filter-{$postKey}", true);
+                $filters = $this->session->userdata('filter') ?: [];
+                $filters[$sessionKey] = $filterValues;
+                $this->session->set_userdata('filter', $filters);
+                redirect($redirectUrl);
+            }
+        }
+
+        // Handle reset
+        if ($this->input->post('reset')) {
+            $this->session->unset_userdata(['keyword', 'filter']);
+            redirect($redirectUrl);
+        }
+    }
+
+    /**
+     * Edit item - updates category and type_id across all related tables
+     */
+    public function edit_item()
+    {
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_rules('original_category', 'Original Category', 'required');
+        $this->form_validation->set_rules('original_type_id', 'Original Type ID', 'required');
+        $this->form_validation->set_rules('new_category', 'New Category', 'required|trim');
+        $this->form_validation->set_rules('new_type_id', 'New Type ID', 'required|trim');
+
+        if ($this->form_validation->run() == FALSE) {
+            $response = array(
+                'success' => false,
+                'message' => validation_errors()
+            );
+        } else {
+            $original_category = $this->input->post('original_category');
+            $original_type_id = $this->input->post('original_type_id');
+            $new_category = $this->input->post('new_category');
+            $new_type_id = $this->input->post('new_type_id');
+
+            // Start transaction
+            $this->db->trans_start();
+
+            try {
+                // Update storage table
+                $this->db->where('category', $original_category);
+                $this->db->where('type_id', $original_type_id);
+                $this->db->update('as_storage', array(
+                    'category' => $new_category,
+                    'type_id' => $new_type_id
+                ));
+
+                // Update report table
+                $this->db->where('category', $original_category);
+                $this->db->where('type_id', $original_type_id);
+                $this->db->update('as_report', array(
+                    'category' => $new_category,
+                    'type_id' => $new_type_id
+                ));
+
+                // Update project batches table
+                $this->db->where('category', $original_category);
+                $this->db->where('type_id', $original_type_id);
+                $this->db->update('as_project_batches', array(
+                    'category' => $new_category,
+                    'type_id' => $new_type_id
+                ));
+
+                $this->db->trans_complete();
+
+                if ($this->db->trans_status() === FALSE) {
+                    $response = array(
+                        'success' => false,
+                        'message' => 'Failed to update item'
+                    );
+                } else {
+                    $response = array(
+                        'success' => true,
+                        'message' => 'Item updated successfully'
+                    );
+                }
+            } catch (Exception $e) {
+                $this->db->trans_rollback();
+                $response = array(
+                    'success' => false,
+                    'message' => 'Error updating item: ' . $e->getMessage()
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Delete item - removes all data for a specific category and type_id
+     */
+    public function delete_item()
+    {
+        $input = json_decode($this->input->raw_input_stream, true);
+
+        if (!isset($input['category']) || !isset($input['type_id'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Missing required parameters'
+            );
+        } else {
+            $category = $input['category'];
+            $type_id = $input['type_id'];
+
+            // Start transaction
+            $this->db->trans_start();
+
+            try {
+                // Delete from project batches first (foreign key constraint)
+                $this->db->where('category', $category);
+                $this->db->where('type_id', $type_id);
+                $this->db->delete('as_project_batches');
+
+                // Delete from report table
+                $this->db->where('category', $category);
+                $this->db->where('type_id', $type_id);
+                $this->db->delete('as_report');
+
+                // Delete from storage table
+                $this->db->where('category', $category);
+                $this->db->where('type_id', $type_id);
+                $this->db->delete('as_storage');
+
+                $this->db->trans_complete();
+
+                if ($this->db->trans_status() === FALSE) {
+                    $response = array(
+                        'success' => false,
+                        'message' => 'Failed to delete item'
+                    );
+                } else {
+                    $response = array(
+                        'success' => true,
+                        'message' => 'Item deleted successfully'
+                    );
+                }
+            } catch (Exception $e) {
+                $this->db->trans_rollback();
+                $response = array(
+                    'success' => false,
+                    'message' => 'Error deleting item: ' . $e->getMessage()
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Get item batches for management interface
+     */
+    public function get_item_batches()
+    {
+        $category = $this->input->get('category');
+        $type_id = $this->input->get('type_id');
+
+        if (!$category || !$type_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'Category and type_id are required'
+            );
+        } else {
+            // Get batches for this item
+            $batches = $this->Project_batch_model->get_batches_by_item($category, $type_id);
+
+            // Get total stock
+            $total_stock = $this->Storage_model->get_total_stock($category, $type_id);
+
+            $response = array(
+                'success' => true,
+                'batches' => $batches,
+                'total_stock' => $total_stock
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Get item locations for management interface
+     */
+    public function get_item_locations()
+    {
+        $category = $this->input->get('category');
+        $type_id = $this->input->get('type_id');
+
+        if (!$category || !$type_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'Category and type_id are required'
+            );
+        } else {
+            $locations = $this->Storage_model->get_item_locations($category, $type_id);
+
+            $response = array(
+                'success' => true,
+                'locations' => $locations
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Update batch information
+     */
+    public function update_batch()
+    {
+        $batch_id = $this->input->post('batch_id');
+        $project_name = $this->input->post('project_name');
+        $project_notes = $this->input->post('project_notes');
+        $initial_quantity = $this->input->post('initial_quantity');
+        $remaining_quantity = $this->input->post('remaining_quantity');
+
+        if (!$batch_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'Batch ID is required'
+            );
+        } else {
+            $update_result = $this->Project_batch_model->update_batch($batch_id, $project_name, $project_notes, $initial_quantity, $remaining_quantity);
+
+            if ($update_result) {
+                $response = array(
+                    'success' => true,
+                    'message' => 'Batch updated successfully'
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Failed to update batch'
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Delete a batch
+     */
+    public function delete_batch()
+    {
+        $json = json_decode($this->input->raw_input_stream, true);
+        $batch_id = isset($json['batch_id']) ? $json['batch_id'] : null;
+
+        if (!$batch_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'Batch ID is required'
+            );
+        } else {
+            // Check if batch has remaining quantity
+            $batch_info = $this->Project_batch_model->get_batch_by_id($batch_id);
+
+            if ($batch_info && $batch_info->remaining_quantity > 0) {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Cannot delete batch with remaining quantity. Please take all items first.'
+                );
+            } else {
+                $delete_result = $this->Project_batch_model->delete_batch($batch_id);
+
+                if ($delete_result) {
+                    $response = array(
+                        'success' => true,
+                        'message' => 'Batch deleted successfully'
+                    );
+                } else {
+                    $response = array(
+                        'success' => false,
+                        'message' => 'Failed to delete batch'
+                    );
+                }
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Create new batch
+     */
+    public function create_batch()
+    {
+        $category = $this->input->post('category');
+        $type_id = $this->input->post('type_id');
+        $project_name = $this->input->post('project_name');
+        $project_notes = $this->input->post('project_notes');
+        $quantity = $this->input->post('quantity');
+        $location_id = $this->input->post('location_id');
+
+        if (!$category || !$type_id || !$project_name || !$quantity || !$location_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'All fields are required'
+            );
+        } else {
+            $this->db->trans_start();
+
+            try {
+                // Create batch
+                $batch_id = $this->Project_batch_model->create_item_batch($category, $type_id, $project_name, $project_notes, $quantity);
+
+                if ($batch_id) {
+                    // Add to storage
+                    $type_id_for_db = ($category == 'Screw') ? (int)$type_id : $type_id;
+                    $add_result = $this->Storage_model->add_items($location_id, $category, $type_id_for_db, $quantity, 'system');
+
+                    if ($add_result['success']) {
+                        $this->db->trans_complete();
+
+                        $response = array(
+                            'success' => true,
+                            'message' => 'Batch created successfully',
+                            'batch_id' => $batch_id
+                        );
+                    } else {
+                        throw new Exception('Failed to add items to storage');
+                    }
+                } else {
+                    throw new Exception('Failed to create batch');
+                }
+            } catch (Exception $e) {
+                $this->db->trans_rollback();
+                $response = array(
+                    'success' => false,
+                    'message' => 'Error creating batch: ' . $e->getMessage()
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Get all locations for dropdown
+     */
+    public function get_all_locations()
+    {
+        $locations = $this->Storage_model->get_all_locations();
+
+        $response = array(
+            'success' => true,
+            'locations' => $locations
+        );
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Update location stock
+     */
+    public function update_location_stock()
+    {
+        $json = json_decode($this->input->raw_input_stream, true);
+        $category = isset($json['category']) ? $json['category'] : null;
+        $type_id = isset($json['type_id']) ? $json['type_id'] : null;
+        $location_id = isset($json['location_id']) ? $json['location_id'] : null;
+        $new_amount = isset($json['new_amount']) ? (int)$json['new_amount'] : null;
+
+        if (!$category || !$type_id || !$location_id || $new_amount === null) {
+            $response = array(
+                'success' => false,
+                'message' => 'All parameters are required'
+            );
+        } else {
+            $type_id_for_db = ($category == 'Screw') ? (int)$type_id : $type_id;
+            $update_result = $this->Storage_model->update_location_stock($location_id, $category, $type_id_for_db, $new_amount);
+
+            if ($update_result) {
+                $response = array(
+                    'success' => true,
+                    'message' => 'Location stock updated successfully'
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Failed to update location stock'
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Remove item from location
+     */
+    public function remove_from_location()
+    {
+        $json = json_decode($this->input->raw_input_stream, true);
+        $category = isset($json['category']) ? $json['category'] : null;
+        $type_id = isset($json['type_id']) ? $json['type_id'] : null;
+        $location_id = isset($json['location_id']) ? $json['location_id'] : null;
+
+        if (!$category || !$type_id || !$location_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'All parameters are required'
+            );
+        } else {
+            $type_id_for_db = ($category == 'Screw') ? (int)$type_id : $type_id;
+            $remove_result = $this->Storage_model->remove_from_location($location_id, $category, $type_id_for_db);
+
+            if ($remove_result) {
+                $response = array(
+                    'success' => true,
+                    'message' => 'Item removed from location successfully'
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Failed to remove item from location'
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
     }
 }

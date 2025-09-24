@@ -236,6 +236,7 @@
                                             <th>Aksi</th>
                                             <th>Kategori</th>
                                             <th>ID Tipe</th>
+                                            <th>Batch/Project</th>
                                             <th>Pengguna</th>
                                             <th>Catatan</th>
                                         </tr>
@@ -259,6 +260,24 @@
                                                             <i class="fas fa-project-diagram text-primary ms-2" title="Barang Project"></i>
                                                         <?php endif; ?>
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <?php if (!empty($transaction['batch_id'])): ?>
+                                                        <div class="d-flex flex-column">
+                                                            <small class="badge bg-success mb-1" style="font-size: 0.7em;">
+                                                                <?= htmlspecialchars($transaction['batch_id']); ?>
+                                                            </small>
+                                                            <?php if (!empty($transaction['project_name'])): ?>
+                                                                <small class="text-primary" style="font-size: 0.75em;" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
+                                                                    <?= strlen($transaction['project_name']) > 12
+                                                                        ? substr(htmlspecialchars($transaction['project_name']), 0, 12) . '...'
+                                                                        : htmlspecialchars($transaction['project_name']); ?>
+                                                                </small>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td><?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?></td>
                                                 <td>

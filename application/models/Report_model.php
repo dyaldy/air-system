@@ -86,13 +86,14 @@ class Report_model extends CI_Model
     }
 
     /**
-     * Get all transactions
+     * Get all transactions with batch information
      */
     public function get_all_transactions($limit = null, $offset = 0)
     {
-        $this->db->select('r.*, u.name as user_name');
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
         $this->db->from('as_report r');
         $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
         $this->db->order_by('r.datetime', 'DESC');
 
         if ($limit) {
@@ -104,13 +105,14 @@ class Report_model extends CI_Model
     }
 
     /**
-     * Get transactions by date range
+     * Get transactions by date range with batch information
      */
     public function get_transactions_by_date($start_date, $end_date, $limit = null, $offset = 0)
     {
-        $this->db->select('r.*, u.name as user_name');
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
         $this->db->from('as_report r');
         $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
         $this->db->where('DATE(r.datetime) >=', $start_date);
         $this->db->where('DATE(r.datetime) <=', $end_date);
         $this->db->order_by('r.datetime', 'DESC');
@@ -124,13 +126,14 @@ class Report_model extends CI_Model
     }
 
     /**
-     * Get transactions by user
+     * Get transactions by user with batch information
      */
     public function get_transactions_by_user($nik, $limit = null, $offset = 0)
     {
-        $this->db->select('r.*, u.name as user_name');
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
         $this->db->from('as_report r');
         $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
         $this->db->where('r.nik', $nik);
         $this->db->order_by('r.datetime', 'DESC');
 
@@ -143,13 +146,14 @@ class Report_model extends CI_Model
     }
 
     /**
-     * Get transactions by location
+     * Get transactions by location with batch information
      */
     public function get_transactions_by_location($location_id, $limit = null, $offset = 0)
     {
-        $this->db->select('r.*, u.name as user_name');
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
         $this->db->from('as_report r');
         $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
         $this->db->where('r.location_id', $location_id);
         $this->db->order_by('r.datetime', 'DESC');
 
@@ -249,13 +253,14 @@ class Report_model extends CI_Model
     }
 
     /**
-     * Search transactions
+     * Search transactions with batch information
      */
     public function search_transactions($search_term, $filters = array(), $limit = null, $offset = 0)
     {
-        $this->db->select('r.*, u.name as user_name');
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
         $this->db->from('as_report r');
         $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
 
         if ($search_term) {
             $this->db->group_start();
@@ -265,6 +270,8 @@ class Report_model extends CI_Model
             $this->db->or_like('r.type_id', $search_term);
             $this->db->or_like('r.note', $search_term);
             $this->db->or_like('u.name', $search_term);
+            $this->db->or_like('pb.project_name', $search_term);
+            $this->db->or_like('pb.batch_id', $search_term);
             $this->db->group_end();
         }
 
@@ -327,5 +334,107 @@ class Report_model extends CI_Model
         }
 
         return $this->db->count_all_results();
+    }
+
+    /**
+     * Search user transactions with filtering and pagination
+     */
+    public function search_user_transactions($nik, $search_term = '', $filters = array(), $limit = null, $offset = 0)
+    {
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
+        $this->db->from('as_report r');
+        $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
+        $this->db->where('r.nik', $nik);
+
+        if ($search_term) {
+            $this->db->group_start();
+            $this->db->like('r.storing_id', $search_term);
+            $this->db->or_like('r.location_id', $search_term);
+            $this->db->or_like('r.category', $search_term);
+            $this->db->or_like('r.type_id', $search_term);
+            $this->db->or_like('r.note', $search_term);
+            $this->db->or_like('pb.project_name', $search_term);
+            $this->db->or_like('pb.batch_id', $search_term);
+            $this->db->group_end();
+        }
+
+        // Apply action filter
+        if (isset($filters['action']) && !empty($filters['action'])) {
+            $this->db->where_in('r.action', $filters['action']);
+        }
+
+        // Apply location filter
+        if (isset($filters['location']) && !empty($filters['location'])) {
+            $this->db->where_in('r.location_id', $filters['location']);
+        }
+
+        // Apply category filter
+        if (isset($filters['category']) && !empty($filters['category'])) {
+            $this->db->where_in('r.category', $filters['category']);
+        }
+
+        $this->db->order_by('r.datetime', 'DESC');
+
+        if ($limit) {
+            $this->db->limit($limit, $offset);
+        }
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Count user transactions for pagination
+     */
+    public function count_user_transactions($nik, $search_term = '', $filters = array())
+    {
+        $this->db->from('as_report r');
+        $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
+        $this->db->where('r.nik', $nik);
+
+        if ($search_term) {
+            $this->db->group_start();
+            $this->db->like('r.storing_id', $search_term);
+            $this->db->or_like('r.location_id', $search_term);
+            $this->db->or_like('r.category', $search_term);
+            $this->db->or_like('r.type_id', $search_term);
+            $this->db->or_like('r.note', $search_term);
+            $this->db->or_like('pb.project_name', $search_term);
+            $this->db->or_like('pb.batch_id', $search_term);
+            $this->db->group_end();
+        }
+
+        if (isset($filters['action']) && !empty($filters['action'])) {
+            $this->db->where_in('r.action', $filters['action']);
+        }
+
+        if (isset($filters['location']) && !empty($filters['location'])) {
+            $this->db->where_in('r.location_id', $filters['location']);
+        }
+
+        if (isset($filters['category']) && !empty($filters['category'])) {
+            $this->db->where_in('r.category', $filters['category']);
+        }
+
+        return $this->db->count_all_results();
+    }
+
+    /**
+     * Get filter options for user transactions
+     */
+    public function get_user_transaction_filters($nik, $filter_type)
+    {
+        $this->db->distinct();
+        $this->db->select("r.{$filter_type}");
+        $this->db->from('as_report r');
+        $this->db->where('r.nik', $nik);
+        $this->db->where("r.{$filter_type} IS NOT NULL");
+        $this->db->where("r.{$filter_type} !=", '');
+        $this->db->order_by("r.{$filter_type}");
+
+        $query = $this->db->get();
+        return array_column($query->result_array(), $filter_type);
     }
 }

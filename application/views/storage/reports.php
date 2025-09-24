@@ -120,6 +120,7 @@
                                 <th scope="col" class="text-center">Lokasi</th>
                                 <th scope="col" class="text-center">Kategori</th>
                                 <th scope="col" class="text-center">ID Tipe</th>
+                                <th scope="col" class="text-center">Batch/Project</th>
                                 <th scope="col" class="text-center">Pengguna</th>
                                 <th scope="col" class="text-center pe-lg-5 pe-4">Catatan</th>
                             </tr>
@@ -142,7 +143,11 @@
                                         <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-secondary"><?= htmlspecialchars($transaction['location_id']); ?></span>
+                                        <a href="<?= site_url('storage/location/' . urlencode($transaction['location_id'])); ?>"
+                                            class="badge bg-secondary text-decoration-none"
+                                            title="Lihat detail lokasi">
+                                            <?= htmlspecialchars($transaction['location_id']); ?>
+                                        </a>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
@@ -154,6 +159,24 @@
                                                 <i class="fas fa-project-diagram text-primary ms-2" title="Barang Project"></i>
                                             <?php endif; ?>
                                         </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if (!empty($transaction['batch_id'])): ?>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <small class="badge bg-success mb-1" title="Batch ID">
+                                                    <?= htmlspecialchars($transaction['batch_id']); ?>
+                                                </small>
+                                                <?php if (!empty($transaction['project_name'])): ?>
+                                                    <small class="text-primary fw-bold" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
+                                                        <?= strlen($transaction['project_name']) > 15
+                                                            ? substr(htmlspecialchars($transaction['project_name']), 0, 15) . '...'
+                                                            : htmlspecialchars($transaction['project_name']); ?>
+                                                    </small>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-center">
                                         <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>

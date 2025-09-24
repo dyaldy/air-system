@@ -86,6 +86,9 @@
                         <!-- Edit Column -->
                         <th scope="col" class="text-center">Edit</th>
 
+                        <!-- History Column -->
+                        <th scope="col" class="text-center">History</th>
+
                         <!-- Delete Column -->
                         <th scope="col" class="text-center pe-lg-5 pe-4">Delete</th>
                     </tr>
@@ -100,6 +103,11 @@
                             <td class="text-center">
                                 <a href="<?= site_url('user/edit/' . $user['nik']); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit pengguna">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="<?= site_url('storage/user_history/' . urlencode(base64_encode($user['nik']))); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat history storage pengguna">
+                                    <img src="<?= base_url('assets/img/clock-history.svg'); ?>" alt="history" class="action-button">
                                 </a>
                             </td>
                             <td class="text-center pe-lg-5 pe-4">

@@ -432,28 +432,28 @@
 
     function displayProjectBatches(batches) {
         let html = '<div class="project-batches">';
-        
+
         // Store batches globally for batch selection
         window.availableBatches = batches;
-        
+
         // Show batch selection field
         const batchSelectionField = document.getElementById('batchSelectionField');
         const batchSelect = document.getElementById('batch_id');
-        
+
         if (batches.length > 0) {
             batchSelectionField.style.display = 'block';
             batchSelect.required = true;
-            
+
             // Clear and populate batch select options
             batchSelect.innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
-            
+
             batches.forEach((batch, index) => {
                 const option = document.createElement('option');
                 option.value = batch.batch_id;
                 option.textContent = `${batch.project_name || 'Unnamed Project'} (${batch.remaining_quantity} tersedia)`;
                 option.dataset.remainingQuantity = batch.remaining_quantity;
                 batchSelect.appendChild(option);
-                
+
                 html += `
                     <div class="batch-item mb-2 p-2 border rounded bg-light">
                         <div class="d-flex justify-content-between align-items-start">
@@ -480,7 +480,7 @@
             batchSelectionField.style.display = 'none';
             batchSelect.required = false;
         }
-        
+
         html += '</div>';
         document.getElementById('projectNotesText').innerHTML = html;
     }
@@ -503,7 +503,7 @@
 
         if (selectedOption && selectedOption.dataset.remainingQuantity && enteredQuantity) {
             const maxQuantity = parseInt(selectedOption.dataset.remainingQuantity);
-            
+
             if (enteredQuantity > maxQuantity) {
                 quantityInput.setCustomValidity(`Maksimum ${maxQuantity} barang tersedia dari batch ini`);
             } else {
@@ -518,13 +518,13 @@
         const batchSelect = document.getElementById('batch_id');
         const selectedOption = batchSelect.selectedOptions[0];
         const quantityInput = document.getElementById('quantity');
-        
+
         if (selectedOption && selectedOption.dataset.remainingQuantity) {
             const maxQuantity = parseInt(selectedOption.dataset.remainingQuantity);
             quantityInput.max = maxQuantity;
             quantityInput.value = '';
             quantityInput.placeholder = `Max: ${maxQuantity} barang`;
-            
+
             // Update available stock display for selected batch
             document.getElementById('availableStock').textContent = `${maxQuantity} barang (dari batch terpilih)`;
             document.getElementById('availableStock').className = maxQuantity <= 5 ? 'text-warning' : 'text-primary';

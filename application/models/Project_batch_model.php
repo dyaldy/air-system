@@ -148,23 +148,23 @@ class Project_batch_model extends CI_Model
     public function take_from_specific_batch($batch_id, $quantity)
     {
         $batch = $this->get_batch_by_id($batch_id);
-        
+
         if (!$batch) {
             return ['success' => false, 'message' => 'Batch not found'];
         }
-        
+
         if ($batch['remaining_quantity'] < $quantity) {
             return [
-                'success' => false, 
+                'success' => false,
                 'message' => 'Insufficient quantity in batch. Available: ' . $batch['remaining_quantity']
             ];
         }
-        
+
         $new_remaining = $batch['remaining_quantity'] - $quantity;
-        
+
         $this->db->where('batch_id', $batch_id);
         $result = $this->db->update('as_project_batches', ['remaining_quantity' => $new_remaining]);
-        
+
         if ($result) {
             return [
                 'success' => true,
@@ -202,6 +202,83 @@ class Project_batch_model extends CI_Model
         $this->db->join('as_user u', 'pb.created_by = u.nik', 'left');
         $this->db->where('pb.batch_id', $batch_id);
 
-        return $this->db->get()->row_array();
+        return $this->db->get()->row();
+    }
+
+    /**
+     * Get all batches for a specific item (for management interface)
+     */
+    public function get_batches_by_item($category, $type_id)
+    {
+        $this->db->select('pb.*, u.name as created_by_name');
+        $this->db->from('as_project_batches pb');
+        $this->db->join('as_user u', 'pb.created_by = u.nik', 'left');
+        $this->db->where('pb.category', $category);
+        $this->db->where('pb.type_id', $type_id);
+        $this->db->order_by('pb.created_at', 'DESC');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Create batch without location (for management interface)
+     */
+    public function create_item_batch($category, $type_id, $project_name, $project_notes, $quantity)
+    {
+        // Generate unique batch ID
+        $batch_id = $this->generate_batch_id_simple($category, $type_id);
+
+        $batch_data = [
+            'batch_id' => $batch_id,
+            'location_id' => 'GENERAL', // Default location for management batches
+            'category' => $category,
+            'type_id' => $type_id,
+            'project_name' => $project_name,
+            'project_notes' => $project_notes,
+            'batch_quantity' => $quantity,
+            'remaining_quantity' => $quantity,
+            'created_by' => 0 // System user
+        ];
+
+        $result = $this->db->insert('as_project_batches', $batch_data);
+        return $result ? $batch_id : false;
+    }
+
+    /**
+     * Update batch information
+     */
+    public function update_batch($batch_id, $project_name, $project_notes, $initial_quantity, $remaining_quantity)
+    {
+        $update_data = [
+            'project_name' => $project_name,
+            'project_notes' => $project_notes,
+            'batch_quantity' => $initial_quantity,
+            'remaining_quantity' => $remaining_quantity,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        $this->db->where('batch_id', $batch_id);
+        return $this->db->update('as_project_batches', $update_data);
+    }
+
+    /**
+     * Delete a batch
+     */
+    public function delete_batch($batch_id)
+    {
+        $this->db->where('batch_id', $batch_id);
+        return $this->db->delete('as_project_batches');
+    }
+
+    /**
+     * Generate simple batch ID (for management interface)
+     */
+    private function generate_batch_id_simple($category, $type_id)
+    {
+        $prefix = strtoupper(substr($category, 0, 3)) . '_' . $type_id;
+        $timestamp = date('YmdHis');
+        $random = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+
+        return $prefix . '_' . $timestamp . '_' . $random;
     }
 }

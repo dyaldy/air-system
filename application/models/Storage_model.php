@@ -239,4 +239,53 @@ class Storage_model extends CI_Model
         $query = $this->db->get();
         return $query->result_array();
     }
+
+    /**
+     * Get all locations where an item is stored
+     */
+    public function get_item_locations($category, $type_id)
+    {
+        $this->db->select('location_id, amount');
+        $this->db->where('category', $category);
+        $this->db->where('type_id', $type_id);
+        $this->db->where('amount >', 0);
+        $this->db->order_by('location_id');
+
+        return $this->db->get('as_storage')->result_array();
+    }
+
+    /**
+     * Update stock amount for a specific location
+     */
+    public function update_location_stock($location_id, $category, $type_id, $new_amount)
+    {
+        if ($new_amount <= 0) {
+            // Remove from location if amount is 0 or negative
+            return $this->remove_from_location($location_id, $category, $type_id);
+        } else {
+            $this->db->where('location_id', $location_id);
+            $this->db->where('category', $category);
+            $this->db->where('type_id', $type_id);
+
+            $update_data = [
+                'amount' => $new_amount,
+                'date_update' => date('Y-m-d H:i:s'),
+                'editor' => 'system'
+            ];
+
+            return $this->db->update('as_storage', $update_data);
+        }
+    }
+
+    /**
+     * Remove item from specific location
+     */
+    public function remove_from_location($location_id, $category, $type_id)
+    {
+        $this->db->where('location_id', $location_id);
+        $this->db->where('category', $category);
+        $this->db->where('type_id', $type_id);
+
+        return $this->db->delete('as_storage');
+    }
 }
