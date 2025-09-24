@@ -33,7 +33,7 @@ class Storage extends CI_Controller
         }
 
         // Load required models and libraries
-        $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model']);
+        $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model', 'Project_batch_model']);
         $this->load->library(['form_validation', 'session', 'pagination']);
         $this->load->helper(['url', 'common']);
 
@@ -151,9 +151,28 @@ class Storage extends CI_Controller
         // Prepare storage data for project flag
         $storage_data = null;
         $type_id_for_db = $type_id;
+        $batch_id = null;
+
         if ($is_project_item) {
             $type_id_for_db = $type_id . '_PROJECT';
-            $storage_data = json_encode(['is_project_item' => true, 'note' => $note]);
+
+            // Create project batch for tracking notes
+            $project_name = $this->input->post('project_name') ?: 'Unnamed Project';
+            $batch_id = $this->Project_batch_model->create_batch(
+                $location_id,
+                $category,
+                $type_id_for_db,
+                $project_name,
+                $note,
+                $quantity,
+                $editor_nik
+            );
+
+            if (!$batch_id) {
+                $this->session->set_flashdata('error', 'Failed to create project batch!');
+                redirect('storage/store');
+                return;
+            }
         }
 
         // Store the items
@@ -161,7 +180,7 @@ class Storage extends CI_Controller
 
         if ($store_result) {
             // Log the transaction
-            $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project_item);
+            $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project_item, $batch_id);
 
             $this->session->set_flashdata('success', 'Items stored successfully!');
             redirect('storage/location/' . $location_id);
@@ -186,6 +205,7 @@ class Storage extends CI_Controller
         $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[30]');
         $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('note', 'Note', 'max_length[255]');
+        $this->form_validation->set_rules('batch_id', 'Batch ID', 'callback_validate_batch_id');
 
         if ($this->form_validation->run() === FALSE) {
             $this->load->view('templates/header', $data);
@@ -206,6 +226,7 @@ class Storage extends CI_Controller
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
+        $batch_id = $this->input->post('batch_id'); // For project items
         $editor_nik = $this->session->userdata('user_data')['nik'];
 
         // Parse location value to separate location_id and project status
@@ -215,18 +236,45 @@ class Storage extends CI_Controller
         // For project items, append _PROJECT to type_id
         $type_id_for_db = $is_project ? $type_id . '_PROJECT' : $type_id;
 
-        // Take the items
-        $take_result = $this->Storage_model->take_items($location_id, $category, $type_id_for_db, $quantity, $editor_nik);
-
-        if ($take_result['success']) {
-            // Log the transaction
-            $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project);
-
-            $this->session->set_flashdata('success', $take_result['message']);
-            redirect('storage/location/' . $location_id);
+        if ($is_project && $batch_id) {
+            // Handle project batch taking
+            $batch_result = $this->Project_batch_model->take_from_specific_batch($batch_id, $quantity);
+            
+            if (!$batch_result['success']) {
+                $this->session->set_flashdata('error', $batch_result['message']);
+                redirect('storage/take');
+                return;
+            }
+            
+            // Update storage table
+            $take_result = $this->Storage_model->take_items($location_id, $category, $type_id_for_db, $quantity, $editor_nik);
+            
+            if ($take_result['success']) {
+                // Log the transaction with batch information
+                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project, $batch_id);
+                
+                $this->session->set_flashdata('success', 'Items taken from project batch successfully!');
+                redirect('storage/location/' . $location_id);
+            } else {
+                // Rollback batch changes if storage update failed
+                $this->Project_batch_model->add_back_to_batch($batch_id, $quantity);
+                $this->session->set_flashdata('error', $take_result['message']);
+                redirect('storage/take');
+            }
         } else {
-            $this->session->set_flashdata('error', $take_result['message']);
-            redirect('storage/take');
+            // Handle regular item taking
+            $take_result = $this->Storage_model->take_items($location_id, $category, $type_id_for_db, $quantity, $editor_nik);
+
+            if ($take_result['success']) {
+                // Log the transaction
+                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project);
+
+                $this->session->set_flashdata('success', $take_result['message']);
+                redirect('storage/location/' . $location_id);
+            } else {
+                $this->session->set_flashdata('error', $take_result['message']);
+                redirect('storage/take');
+            }
         }
     }
 
@@ -302,35 +350,14 @@ class Storage extends CI_Controller
                     'item' => $item
                 );
 
-                // Check if this is a project item and get notes
+                // Check if this is a project item and get all project notes
                 $is_project = strpos($type_id, '_PROJECT') !== false;
                 if ($is_project) {
-                    $project_notes = null;
+                    // Get all project batches for this item
+                    $project_batches = $this->Project_batch_model->get_project_batches($location_id, $category, $type_id);
 
-                    // First try to get note from storage_data
-                    if (!empty($item['storage_data'])) {
-                        $storage_data = json_decode($item['storage_data'], true);
-                        if (isset($storage_data['note'])) {
-                            $project_notes = $storage_data['note'];
-                        }
-                    }
-
-                    // If no note in storage_data, fall back to transaction history
-                    if ($project_notes === null) {
-                        $base_type_id = str_replace('_PROJECT', '', $type_id);
-                        $transactions = $this->Report_model->get_item_transactions($category, $base_type_id, 10);
-
-                        // Find the most recent store transaction with notes that is marked as project
-                        foreach ($transactions as $transaction) {
-                            if ($transaction['action'] == 'store' && !empty($transaction['note']) && $transaction['comment'] == 'PROJECT') {
-                                $project_notes = $transaction['note'];
-                                break;
-                            }
-                        }
-                    }
-
-                    if ($project_notes !== null) {
-                        $response['project_notes'] = $project_notes;
+                    if (!empty($project_batches)) {
+                        $response['project_batches'] = $project_batches;
                     }
                 }
             } else {
@@ -643,6 +670,37 @@ class Storage extends CI_Controller
         if (!preg_match('/^[A-Za-z0-9]+$/', $location_id)) {
             $this->form_validation->set_message('validate_location_id', 'The Location ID field may only contain alphanumeric characters.');
             return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Custom validation callback for batch_id field
+     * Required for project items only
+     */
+    public function validate_batch_id($batch_id)
+    {
+        $location_value = $this->input->post('location_id');
+        $is_project = strpos($location_value, '_project') !== false;
+        
+        if ($is_project && empty($batch_id)) {
+            $this->form_validation->set_message('validate_batch_id', 'The Batch ID field is required for project items.');
+            return FALSE;
+        }
+        
+        if (!empty($batch_id)) {
+            // Validate that the batch exists and has remaining quantity
+            $batch = $this->Project_batch_model->get_batch_by_id($batch_id);
+            if (!$batch) {
+                $this->form_validation->set_message('validate_batch_id', 'The selected batch does not exist.');
+                return FALSE;
+            }
+            
+            if ($batch['remaining_quantity'] <= 0) {
+                $this->form_validation->set_message('validate_batch_id', 'The selected batch has no remaining quantity.');
+                return FALSE;
+            }
         }
 
         return TRUE;

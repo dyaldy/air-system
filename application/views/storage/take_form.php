@@ -99,13 +99,25 @@
                                 </small>
                             </div>
                             <div id="projectNotes" class="mt-2" style="display: none;">
-                                <small class="text-muted">
-                                    <i class="fas fa-sticky-note"></i> <strong>Catatan Project:</strong>
-                                    <span id="projectNotesText"></span>
-                                </small>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-sticky-note"></i> <strong>Project Batches Available:</strong>
+                                    </small>
+                                </div>
+                                <div id="projectNotesText"></div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Batch Selection (only for project items) -->
+                <div class="mb-3" id="batchSelectionField" style="display: none;">
+                    <label for="batch_id" class="form-label">Pilih Batch Project <span class="text-danger">*</span></label>
+                    <select class="form-select" id="batch_id" name="batch_id" onchange="updateBatchQuantity()">
+                        <option value="">Pilih batch yang akan diambil</option>
+                        <!-- Options will be populated via JavaScript -->
+                    </select>
+                    <div class="form-text">Pilih batch project spesifik untuk diambil barangnya</div>
                 </div>
 
                 <!-- Quantity -->
@@ -405,8 +417,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.project_notes) {
-                    document.getElementById('projectNotesText').textContent = data.project_notes;
+                if (data.success && data.project_batches && data.project_batches.length > 0) {
+                    displayProjectBatches(data.project_batches);
                     document.getElementById('projectNotes').style.display = 'block';
                 } else {
                     hideProjectNotes();
@@ -418,8 +430,115 @@
             });
     }
 
+    function displayProjectBatches(batches) {
+        let html = '<div class="project-batches">';
+        
+        // Store batches globally for batch selection
+        window.availableBatches = batches;
+        
+        // Show batch selection field
+        const batchSelectionField = document.getElementById('batchSelectionField');
+        const batchSelect = document.getElementById('batch_id');
+        
+        if (batches.length > 0) {
+            batchSelectionField.style.display = 'block';
+            batchSelect.required = true;
+            
+            // Clear and populate batch select options
+            batchSelect.innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
+            
+            batches.forEach((batch, index) => {
+                const option = document.createElement('option');
+                option.value = batch.batch_id;
+                option.textContent = `${batch.project_name || 'Unnamed Project'} (${batch.remaining_quantity} tersedia)`;
+                option.dataset.remainingQuantity = batch.remaining_quantity;
+                batchSelect.appendChild(option);
+                
+                html += `
+                    <div class="batch-item mb-2 p-2 border rounded bg-light">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>${batch.project_name || 'Unnamed Project'}</strong>
+                                <small class="text-muted d-block">Batch: ${batch.batch_id}</small>
+                                <small class="text-muted d-block">Available: ${batch.remaining_quantity} / ${batch.batch_quantity}</small>
+                                <small class="text-muted d-block">Created: ${new Date(batch.created_at).toLocaleDateString()}</small>
+                                <small class="text-muted d-block">By: ${batch.created_by_name}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="badge bg-info">Batch ${index + 1}</small>
+                            </div>
+                        </div>
+                        ${batch.project_notes ? `
+                            <div class="mt-2">
+                                <small><strong>Notes:</strong> ${batch.project_notes}</small>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+        } else {
+            batchSelectionField.style.display = 'none';
+            batchSelect.required = false;
+        }
+        
+        html += '</div>';
+        document.getElementById('projectNotesText').innerHTML = html;
+    }
+
+    // Validate batch selection and quantity
+    document.getElementById('batch_id').addEventListener('change', function() {
+        updateBatchQuantity();
+        validateBatchQuantity();
+    });
+
+    document.getElementById('quantity').addEventListener('input', function() {
+        validateBatchQuantity();
+    });
+
+    function validateBatchQuantity() {
+        const batchSelect = document.getElementById('batch_id');
+        const selectedOption = batchSelect.selectedOptions[0];
+        const quantityInput = document.getElementById('quantity');
+        const enteredQuantity = parseInt(quantityInput.value);
+
+        if (selectedOption && selectedOption.dataset.remainingQuantity && enteredQuantity) {
+            const maxQuantity = parseInt(selectedOption.dataset.remainingQuantity);
+            
+            if (enteredQuantity > maxQuantity) {
+                quantityInput.setCustomValidity(`Maksimum ${maxQuantity} barang tersedia dari batch ini`);
+            } else {
+                quantityInput.setCustomValidity('');
+            }
+        } else {
+            quantityInput.setCustomValidity('');
+        }
+    }
+
+    function updateBatchQuantity() {
+        const batchSelect = document.getElementById('batch_id');
+        const selectedOption = batchSelect.selectedOptions[0];
+        const quantityInput = document.getElementById('quantity');
+        
+        if (selectedOption && selectedOption.dataset.remainingQuantity) {
+            const maxQuantity = parseInt(selectedOption.dataset.remainingQuantity);
+            quantityInput.max = maxQuantity;
+            quantityInput.value = '';
+            quantityInput.placeholder = `Max: ${maxQuantity} barang`;
+            
+            // Update available stock display for selected batch
+            document.getElementById('availableStock').textContent = `${maxQuantity} barang (dari batch terpilih)`;
+            document.getElementById('availableStock').className = maxQuantity <= 5 ? 'text-warning' : 'text-primary';
+        } else {
+            quantityInput.max = '';
+            quantityInput.placeholder = 'Masukkan jumlah yang akan diambil';
+        }
+    }
+
     function hideProjectNotes() {
         document.getElementById('projectNotes').style.display = 'none';
         document.getElementById('projectNotesText').textContent = '';
+        document.getElementById('batchSelectionField').style.display = 'none';
+        document.getElementById('batch_id').required = false;
+        window.availableBatches = null;
     }
 </script>

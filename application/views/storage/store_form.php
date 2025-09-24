@@ -112,12 +112,24 @@
                 <!-- Project Item Checkbox -->
                 <div class="mb-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="is_project_item" name="is_project_item" value="1" <?= set_checkbox('is_project_item', '1'); ?>>
+                        <input class="form-check-input" type="checkbox" id="is_project_item" name="is_project_item" value="1" <?= set_checkbox('is_project_item', '1'); ?> onchange="toggleProjectFields()">
                         <label class="form-check-label" for="is_project_item">
                             Barang untuk Project
                         </label>
                         <div class="form-text">Centang jika barang ini disimpan untuk keperluan project tertentu</div>
                     </div>
+                </div>
+
+                <!-- Project Name (only shown when project item is checked) -->
+                <div class="mb-3" id="projectNameField" style="display: none;">
+                    <label for="project_name" class="form-label">Nama Project <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control <?= form_error('project_name') ? 'is-invalid' : ''; ?>"
+                        id="project_name" name="project_name" value="<?= set_value('project_name'); ?>"
+                        maxlength="100" placeholder="Masukkan nama project">
+                    <div class="form-text">Nama project untuk identifikasi batch barang ini</div>
+                    <?php if (form_error('project_name')): ?>
+                        <div class="invalid-feedback"><?= form_error('project_name'); ?></div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Submit Button -->
@@ -244,6 +256,22 @@
             }
         }
 
+        // Toggle project fields visibility
+        function toggleProjectFields() {
+            const isChecked = document.getElementById('is_project_item').checked;
+            const projectNameField = document.getElementById('projectNameField');
+            const projectNameInput = document.getElementById('project_name');
+
+            if (isChecked) {
+                projectNameField.style.display = 'block';
+                projectNameInput.required = true;
+            } else {
+                projectNameField.style.display = 'none';
+                projectNameInput.required = false;
+                projectNameInput.value = '';
+            }
+        }
+
         // Event listeners
         document.getElementById('type_id').addEventListener('change', updateStockPreview);
 
@@ -253,6 +281,9 @@
             if (category) {
                 updateTypeOptions();
             }
+
+            // Initialize project fields state
+            toggleProjectFields();
         });
 
         // Bootstrap form validation

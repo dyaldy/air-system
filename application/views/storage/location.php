@@ -163,7 +163,7 @@
                                                     <strong><?= htmlspecialchars($displayTypeId); ?></strong>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-success fs-6"><?= number_format($item['amount']); ?></span>
+                                                    <span class="badge bg-success fs-6"><?= number_format($item['amount'] ?? 0); ?></span>
                                                 </td>
                                                 <td>
                                                     <?php if ($isProjectItem): ?>

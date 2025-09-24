@@ -27,6 +27,7 @@ class Report_model extends CI_Model
             'amount' => isset($data['amount']) ? (int)$data['amount'] : 1,
             'note' => isset($data['note']) ? $data['note'] : null,
             'comment' => isset($data['is_project']) && $data['is_project'] ? 'PROJECT' : null,
+            'batch_id' => isset($data['batch_id']) ? $data['batch_id'] : null,
             'nik' => $data['nik']
         );
 
@@ -47,7 +48,7 @@ class Report_model extends CI_Model
     /**
      * Log store transaction
      */
-    public function log_store_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1, $is_project = false)
+    public function log_store_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1, $is_project = false, $batch_id = null)
     {
         $data = array(
             'location_id' => $location_id,
@@ -57,7 +58,8 @@ class Report_model extends CI_Model
             'amount' => (int)$amount,
             'nik' => $nik,
             'note' => $note,
-            'is_project' => $is_project
+            'is_project' => $is_project,
+            'batch_id' => $batch_id
         );
 
         return $this->log_transaction($data);
@@ -66,7 +68,7 @@ class Report_model extends CI_Model
     /**
      * Log take transaction
      */
-    public function log_take_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1, $is_project = false)
+    public function log_take_transaction($location_id, $category, $type_id, $nik, $note = null, $amount = 1, $is_project = false, $batch_id = null)
     {
         $data = array(
             'location_id' => $location_id,
@@ -76,7 +78,8 @@ class Report_model extends CI_Model
             'amount' => (int)$amount,
             'nik' => $nik,
             'note' => $note,
-            'is_project' => $is_project
+            'is_project' => $is_project,
+            'batch_id' => $batch_id
         );
 
         return $this->log_transaction($data);

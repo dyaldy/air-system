@@ -213,7 +213,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <small class="text-white-50">Total Transaksi</small>
-                                        <h4 class="mb-0"><?= number_format($stats['total_transactions']); ?></h4>
+                                        <h4 class="mb-0"><?= number_format($stats['total_transactions'] ?? 0); ?></h4>
                                     </div>
                                     <div class="align-self-center">
                                         <i class="fas fa-exchange-alt fa-lg"></i>
@@ -229,7 +229,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <small class="text-white-50">Operasi Simpan</small>
-                                        <h4 class="mb-0"><?= number_format($stats['store_transactions']); ?></h4>
+                                        <h4 class="mb-0"><?= number_format($stats['store_transactions'] ?? 0); ?></h4>
                                     </div>
                                     <div class="align-self-center">
                                         <i class="fas fa-plus fa-lg"></i>
@@ -245,7 +245,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <small class="text-white-50">Operasi Ambil</small>
-                                        <h4 class="mb-0"><?= number_format($stats['take_transactions']); ?></h4>
+                                        <h4 class="mb-0"><?= number_format($stats['take_transactions'] ?? 0); ?></h4>
                                     </div>
                                     <div class="align-self-center">
                                         <i class="fas fa-minus fa-lg"></i>
@@ -261,7 +261,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <small class="text-white-50">Pengguna Aktif</small>
-                                        <h4 class="mb-0"><?= number_format($stats['users_involved']); ?></h4>
+                                        <h4 class="mb-0"><?= number_format($stats['users_involved'] ?? 0); ?></h4>
                                     </div>
                                     <div class="align-self-center">
                                         <i class="fas fa-users fa-lg"></i>

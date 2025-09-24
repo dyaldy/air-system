@@ -113,7 +113,7 @@
                                                 </td>
                                                 <td><?= htmlspecialchars($item['type_id']); ?></td>
                                                 <td>
-                                                    <strong><?= number_format($item['total_amount']); ?></strong>
+                                                    <strong><?= number_format($item['total_amount'] ?? 0); ?></strong>
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-info"><?= $item['location_count']; ?> lokasi</span>
