@@ -151,6 +151,9 @@ class Fitting extends CI_Controller
             'sort'   => $this->session->userdata('sort'),
         ];
 
+        // Provide distinct values for filter dropdowns (respect current search/filter state)
+        $typeOptions = $this->Fitting_model->getFittingFilter('type', $sessionData['search'], $sessionData['filter']);
+
         // Count total records
         $totalRows = $this->Fitting_model->countFitting($sessionData['search'], $sessionData['filter']);
 
@@ -181,7 +184,7 @@ class Fitting extends CI_Controller
             'sortKeyword'    => ($sessionData['sort'] && strpos($sessionData['sort'], '-') !== false) ? explode('-', $sessionData['sort'], 2) : ['', ''],
             'filterKeyword'  => $sessionData['filter'],
             'hasFilters'     => (!empty($sessionData['search']) || !empty($sessionData['filter']) || !empty($sessionData['sort'])),
-            'type_options'   => $this->Fitting_model->getDistinctValues('type'),
+            'type_options'   => $typeOptions,
         ];
 
         render_view('fitting/index', $data);

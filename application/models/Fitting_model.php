@@ -39,23 +39,7 @@ class Fitting_model extends CI_Model
      */
     public function getFitting(int $limit, int $start, ?string $searchKeyword = null, ?array $filterKeyword = null, ?string $sortKeyword = null): array
     {
-        // Apply search
-        if (!empty($searchKeyword)) {
-            $this->db->group_start()
-                ->like('fitting_id', $searchKeyword)
-                ->or_like('type', $searchKeyword)
-                ->or_like('R_DRAT', $searchKeyword)
-                ->group_end();
-        }
-
-        // Apply filter
-        if (!empty($filterKeyword) && is_array($filterKeyword)) {
-            foreach ($filterKeyword as $field => $values) {
-                if (!empty($values) && is_array($values)) {
-                    $this->db->where_in($field, $values);
-                }
-            }
-        }
+        $this->fittingSearchAndFilters($searchKeyword, $filterKeyword);
 
         // Apply sorting
         if (!empty($sortKeyword)) {
@@ -81,25 +65,27 @@ class Fitting_model extends CI_Model
      */
     public function countFitting(?string $searchKeyword = null, ?array $filterKeyword = null): int
     {
-        // Apply search
-        if (!empty($searchKeyword)) {
-            $this->db->group_start()
-                ->like('fitting_id', $searchKeyword)
-                ->or_like('type', $searchKeyword)
-                ->or_like('R_DRAT', $searchKeyword)
-                ->group_end();
-        }
-
-        // Apply filter
-        if (!empty($filterKeyword) && is_array($filterKeyword)) {
-            foreach ($filterKeyword as $field => $values) {
-                if (!empty($values) && is_array($values)) {
-                    $this->db->where_in($field, $values);
-                }
-            }
-        }
+        $this->fittingSearchAndFilters($searchKeyword, $filterKeyword);
 
         return $this->db->count_all_results($this->fittingTable);
+    }
+
+    /**
+     * Retrieves unique values from a specific field for filter dropdown options.
+     *
+     * @param string      $field         The field to get unique values from.
+     * @param string|null $searchKeyword Search term for filtering results.
+     * @param array|null  $filterKeyword Associative array of filter criteria.
+     *
+     * @return array An array of unique values from the specified field.
+     */
+    public function getFittingFilter(string $field, ?string $searchKeyword = null, ?array $filterKeyword = null): array
+    {
+        $this->db->select($field);
+        $this->fittingSearchAndFilters($searchKeyword, $filterKeyword);
+        $this->db->distinct()->order_by($field, 'ASC');
+        $query = $this->db->get($this->fittingTable);
+        return array_column($query->result_array(), $field);
     }
 
     /**
@@ -248,5 +234,34 @@ class Fitting_model extends CI_Model
     {
         $this->db->select($column)->distinct()->order_by($column);
         return array_column($this->db->get($this->fittingTable)->result_array(), $column);
+    }
+
+    /**
+     * Private helper method to apply search and filter conditions.
+     *
+     * @param string|null $searchKeyword Search term for filtering results.
+     * @param array|null  $filterKeyword Associative array of filter criteria.
+     *
+     * @return void
+     */
+    private function fittingSearchAndFilters(?string $searchKeyword, ?array $filterKeyword): void
+    {
+        if ($searchKeyword && trim($searchKeyword) !== '') {
+            $this->db->group_start()
+                ->like('fitting_id', trim($searchKeyword))
+                ->or_like('type', trim($searchKeyword))
+                ->or_like('D1', trim($searchKeyword))
+                ->or_like('D2', trim($searchKeyword))
+                ->or_like('D3', trim($searchKeyword))
+                ->or_like('R_DRAT', trim($searchKeyword))
+                ->group_end();
+        }
+        if ($filterKeyword && is_array($filterKeyword)) {
+            foreach ($filterKeyword as $key => $value) {
+                if (is_array($value) && !empty($value)) {
+                    $this->db->where_in($key, $value);
+                }
+            }
+        }
     }
 }

@@ -29,7 +29,7 @@
                         <div class="input-group">
                             <!-- make the input area a positioned container so absolute children are anchored inside it -->
                             <div class="position-relative flex-grow-1">
-                                <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, type, drat..." name="keyword" value="<?= $searchKeyword ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
+                                <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, type, D1, D2, D3, drat..." name="keyword" value="<?= $searchKeyword ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
                                 <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button" onclick="clearKeyword()">
                             </div>
 
@@ -75,12 +75,12 @@
                                 <span>Fitting ID</span>
                                 <?php if ($sortKeyword[0] === 'fitting_id') : ?>
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Descending)">
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan ID (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan ID">
                                     <?php endif ?>
                                 <?php else : ?>
-                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Fitting ID (Ascending)">
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('fitting_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan ID (Ascending)">
                                 <?php endif ?>
                             </div>
                         </th>
@@ -93,7 +93,7 @@
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Type">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
@@ -109,7 +109,7 @@
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan D1">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D1-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D1 (Ascending)">
@@ -125,7 +125,7 @@
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan D2">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D2-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D2 (Ascending)">
@@ -141,7 +141,7 @@
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan D3">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('D3-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan D3 (Ascending)">
@@ -157,7 +157,7 @@
                                     <?php if ($sortKeyword[1] === 'ASC') : ?>
                                         <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Descending)">
                                     <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Ascending)">
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan R(DRAT)">
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('R_DRAT-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan R(DRAT) (Ascending)">
@@ -265,108 +265,30 @@
 </div>
 
 <script>
-    // Sort functionality
-    function sort_table(column) {
-        const currentSort = "<?= isset($_POST['sort-send']) ? $_POST['sort-send'] : ''; ?>";
-        const currentOrder = "<?= isset($_POST['order']) ? $_POST['order'] : 'asc'; ?>";
-        const newOrder = (currentSort === column && currentOrder === 'asc') ? 'desc' : 'asc';
+    (function() {
+        function applyFittingFilters() {
+            const type = document.getElementById('type-filter')?.value || '';
 
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.style.display = 'none';
+            const filterObj = {};
+            if (type) filterObj.type = [type];
 
-        const inputs = [{
-                name: 'sort-send',
-                value: column
-            },
-            {
-                name: 'order',
-                value: newOrder
-            }
-        ];
+            // Build transient POST form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
 
-        // Preserve other form data
-        const preserveInputs = ['search', 'type-filter'];
-        preserveInputs.forEach(inputName => {
-            const existingInput = document.querySelector(`input[name="${inputName}"], select[name="${inputName}"]`);
-            if (existingInput && existingInput.value) {
-                inputs.push({
-                    name: inputName,
-                    value: existingInput.value
-                });
-            }
-        });
-
-        inputs.forEach(inputData => {
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = inputData.name;
-            input.value = inputData.value;
+            input.name = 'filter';
+            input.value = JSON.stringify(filterObj);
             form.appendChild(input);
-        });
 
-        document.body.appendChild(form);
-        form.submit();
-    }
-
-    // Clear search functionality
-    function clearSearch() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('typeFilter').value = '';
-    }
-
-    // Type filter handler
-    document.addEventListener('DOMContentLoaded', function() {
-        const typeFilter = document.getElementById('typeFilter');
-        if (typeFilter) {
-            typeFilter.addEventListener('change', function() {
-                const type = this.value;
-
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.style.display = 'none';
-
-                const filterObj = {};
-                if (type) filterObj.type = [type];
-
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'filter';
-                input.value = JSON.stringify(filterObj);
-                form.appendChild(input);
-
-                // Preserve search
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput && searchInput.value) {
-                    const searchHidden = document.createElement('input');
-                    searchHidden.type = 'hidden';
-                    searchHidden.name = 'search';
-                    searchHidden.value = searchInput.value;
-                    form.appendChild(searchHidden);
-                }
-
-                document.body.appendChild(form);
-                form.submit();
-            });
+            document.body.appendChild(form);
+            form.submit();
         }
 
-        // Upload form handler
-        const uploadForm = document.getElementById('uploadForm');
-        const uploadBtn = document.getElementById('uploadBtn');
+        const typeEl = document.getElementById('type-filter');
 
-        if (uploadForm && uploadBtn) {
-            uploadBtn.addEventListener('click', function() {
-                const fileInput = uploadForm.querySelector('input[type="file"]');
-                if (!fileInput.files.length) {
-                    alert('Silakan pilih file Excel terlebih dahulu!');
-                    return false;
-                }
-
-                uploadBtn.disabled = true;
-                uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...';
-
-                uploadForm.submit();
-            });
-        }
-    });
+        if (typeEl) typeEl.addEventListener('change', applyFittingFilters);
+    })();
 </script>
