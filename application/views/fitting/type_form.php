@@ -222,28 +222,23 @@
 
     // Load subtypes function
     function loadSubtypes() {
-        console.log('loadSubtypes called for type:', currentType);
         if (!currentType) return;
 
-        console.log('Fetching subtypes...');
         fetch('<?= site_url('fitting_type/getSubtypes') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'type=' + encodeURIComponent(currentType)
-            })
-            .then(response => {
-                console.log('Response received:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Data received:', data);
-                displaySubtypes(data);
-            })
-            .catch(error => {
-                console.error('Error loading subtypes:', error);
-            });
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'type=' + encodeURIComponent(currentType)
+        })
+        .then(response => response.json())
+        .then(data => {
+            displaySubtypes(data);
+        })
+        .catch(error => {
+            console.error('Error loading subtypes:', error);
+        });
     }        // Display subtypes in table
         function displaySubtypes(subtypes) {
             const tbody = document.getElementById('subtypesTableBody');
@@ -255,6 +250,26 @@
 
             let html = '';
             subtypes.forEach((subtype, index) => {
+                // Determine delete button HTML based on usage
+                let deleteButtonHtml;
+                if (subtype.is_in_use) {
+                    deleteButtonHtml = `
+                        <span class="btn btn-outline-secondary btn-sm" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="Tidak dapat dihapus karena sedang digunakan oleh fitting"
+                            style="cursor: not-allowed;">
+                            <i class="fas fa-trash"></i>
+                        </span>
+                    `;
+                } else {
+                    deleteButtonHtml = `
+                        <button type="button" class="btn btn-outline-danger btn-sm delete-btn" onclick="deleteSubtype(${subtype.id}, '${subtype.subtype}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                }
+
                 html += `
                 <tr id="subtypeRow${subtype.id}">
                     <td>${index + 1}</td>
@@ -268,18 +283,16 @@
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm action-buttons">
-                            <button type="button" class="btn btn-outline-primary edit-btn" onclick="editSubtype(${subtype.id})">
+                            <button type="button" class="btn btn-outline-primary btn-sm edit-btn" onclick="editSubtype(${subtype.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button type="button" class="btn btn-outline-danger delete-btn" onclick="deleteSubtype(${subtype.id}, '${subtype.subtype}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            ${deleteButtonHtml}
                         </div>
                         <div class="btn-group btn-group-sm edit-buttons" style="display: none;">
-                            <button type="button" class="btn btn-success save-btn" onclick="saveEditSubtype(${subtype.id})">
+                            <button type="button" class="btn btn-success btn-sm save-btn" onclick="saveEditSubtype(${subtype.id})">
                                 <i class="fas fa-save"></i>
                             </button>
-                            <button type="button" class="btn btn-secondary cancel-btn" onclick="cancelEditSubtype(${subtype.id})">
+                            <button type="button" class="btn btn-secondary btn-sm cancel-btn" onclick="cancelEditSubtype(${subtype.id})">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -288,31 +301,33 @@
             `;
             });
             tbody.innerHTML = html;
+            
+            // Initialize tooltips for the newly created elements
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         }
 
         // Save new subtype
         function saveSubtype(subtype, description) {
-            console.log('saveSubtype called:', subtype, description);
             fetch('<?= site_url('fitting_type/addSubtype') ?>', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
-                })
-                .then(response => {
-                    console.log('Add response:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Add data:', data);
-                    if (data.status === 'success') {
-                        // Reset form
-                        document.getElementById('newSubtype').value = '';
-                        document.getElementById('newSubtypeDescription').value = '';
-                        document.getElementById('addSubtypeForm').style.display = 'none';
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Reset form
+                    document.getElementById('newSubtype').value = '';
+                    document.getElementById('newSubtypeDescription').value = '';
+                    document.getElementById('addSubtypeForm').style.display = 'none';
 
-                        // Reload subtypes
+                    // Reload subtypes
                         loadSubtypes();
 
                         // Show success message
@@ -377,15 +392,12 @@
 
         // Save edit subtype
         function saveEditSubtype(id) {
-            console.log('saveEditSubtype called for id:', id);
             const row = document.getElementById(`subtypeRow${id}`);
             const subtypeEdit = row.querySelector('.subtype-edit');
             const descriptionEdit = row.querySelector('.description-edit');
 
             const subtype = subtypeEdit.value.trim();
             const description = descriptionEdit.value.trim();
-            
-            console.log('Updating subtype:', subtype, 'description:', description);
 
             if (!subtype) {
                 alert('Nama subtype harus diisi');
@@ -393,23 +405,20 @@
             }
 
             fetch('<?= site_url('fitting_type/updateSubtype') ?>', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `id=${id}&parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
-                })
-                .then(response => {
-                    console.log('Update response:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Update data:', data);
-                    if (data.status === 'success') {
-                        // Reload subtypes to show updated data
-                        loadSubtypes();
-                        showMessage('success', data.message);
-                    } else {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `id=${id}&parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Reload subtypes to show updated data
+                    loadSubtypes();
+                    showMessage('success', data.message);
+                } else {
                         showMessage('error', data.message);
                     }
                 })
@@ -421,32 +430,28 @@
 
         // Delete subtype
         function deleteSubtype(id, subtypeName) {
-            console.log('deleteSubtype called for id:', id, 'name:', subtypeName);
             if (!confirm(`Apakah Anda yakin ingin menghapus subtype "${subtypeName}"?\n\nPerhatian: Subtype yang sedang digunakan oleh fitting tidak dapat dihapus.`)) {
                 return;
             }
 
             fetch('<?= site_url('fitting_type/deleteSubtype') ?>', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `id=${id}`
-                })
-                .then(response => {
-                    console.log('Delete response:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Delete data:', data);
-                    if (data.status === 'success') {
-                        // Reload subtypes
-                        loadSubtypes();
-                        showMessage('success', data.message);
-                    } else {
-                        showMessage('error', data.message);
-                    }
-                })
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `id=${id}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Reload subtypes
+                    loadSubtypes();
+                    showMessage('success', data.message);
+                } else {
+                    showMessage('error', data.message);
+                }
+            })
                 .catch(error => {
                     console.error('Error deleting subtype:', error);
                     showMessage('error', 'Terjadi kesalahan saat menghapus subtype');
