@@ -238,8 +238,12 @@
                         </form>
                     <?php endif; ?>
 
+                    <!-- Storage Links -->
+                    <a href="<?= site_url('storage/store'); ?>" class="btn btn-success <?= $hasFilters ? '' : 'rounded-start-pill' ?>" title="Store Fitting Items">Store</a>
+                    <a href="<?= site_url('storage/take'); ?>" class="btn btn-warning" title="Take Fitting Items">Take</a>
+
                     <!-- Download Button -->
-                    <a href="<?= site_url('fitting/download'); ?>" class="btn btn-primary <?= $hasFilters ? '' : 'rounded-start-pill' ?>">Download</a>
+                    <a href="<?= site_url('fitting/download'); ?>" class="btn btn-primary">Download</a>
 
                     <!-- Upload Modal Trigger -->
                     <button type="button" class="btn btn-primary rounded-end-pill" data-bs-toggle="modal" data-bs-target="#uploadModal">

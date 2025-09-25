@@ -79,6 +79,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="<?= site_url('storage'); ?>">Storage</a>
                         </li>
+
+                        <!-- Link to Reports -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= site_url('storage/reports'); ?>">Reports</a>
+                        </li>
                     </ul>
                 </div>
             </div>

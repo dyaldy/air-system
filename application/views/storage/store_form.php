@@ -164,6 +164,8 @@
     <script>
         // Pneumatic items data from PHP
         const pneumaticItems = <?= json_encode($pneumatic_items ?? []); ?>;
+        // Fitting items data from PHP
+        const fittingItems = <?= json_encode($fitting_items ?? []); ?>;
 
         function updateTypeOptions() {
             const category = document.getElementById('category').value;
@@ -178,6 +180,27 @@
                     const option = document.createElement('option');
                     option.value = item.pneumatic_id;
                     option.textContent = `${item.pneumatic_id} (${item.brand} ${item.type} - ${item.bore}x${item.stroke})`;
+                    if (option.value === '<?= set_value('type_id'); ?>') {
+                        option.selected = true;
+                    }
+                    typeSelect.appendChild(option);
+                });
+            } else if (category === 'fitting') {
+                // Populate with fitting items
+                fittingItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.fitting_id;
+
+                    // Build dimension display string
+                    let dimensions = [];
+                    if (item.D1) dimensions.push(`D1:${item.D1}`);
+                    if (item.D2) dimensions.push(`D2:${item.D2}`);
+                    if (item.D3) dimensions.push(`D3:${item.D3}`);
+                    if (item.R_DRAT) dimensions.push(`DRAT:${item.R_DRAT}`);
+
+                    const dimensionString = dimensions.length > 0 ? dimensions.join(' ') : 'No dimensions';
+                    option.textContent = `${item.fitting_id} (${item.type} ${item.subtype || ''} - ${dimensionString})`;
+
                     if (option.value === '<?= set_value('type_id'); ?>') {
                         option.selected = true;
                     }

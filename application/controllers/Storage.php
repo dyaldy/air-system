@@ -33,7 +33,7 @@ class Storage extends CI_Controller
         }
 
         // Load required models and libraries
-        $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model', 'Project_batch_model']);
+        $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model', 'Fitting_model', 'Fitting_type_model', 'Project_batch_model']);
         $this->load->library(['form_validation', 'session', 'pagination']);
         $this->load->helper(['url', 'common']);
 
@@ -120,6 +120,7 @@ class Storage extends CI_Controller
     {
         $data['title'] = 'Store Items';
         $data['pneumatic_items'] = $this->Pneumatic_model->getAllPneumatics();
+        $data['fitting_items'] = $this->Fitting_model->getFitting(1000, 0); // Get all fittings for dropdown
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -156,6 +157,16 @@ class Storage extends CI_Controller
             $pneumatic = $this->Pneumatic_model->getById($type_id);
             if (!$pneumatic) {
                 $this->session->set_flashdata('error', 'Pneumatic item not found!');
+                redirect('storage/store');
+                return;
+            }
+        }
+
+        // Validate if fitting exists (for fitting category)
+        if ($category === 'fitting') {
+            $fitting = $this->Fitting_model->getById($type_id);
+            if (!$fitting) {
+                $this->session->set_flashdata('error', 'Fitting item not found!');
                 redirect('storage/store');
                 return;
             }
