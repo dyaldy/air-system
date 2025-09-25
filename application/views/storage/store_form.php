@@ -61,10 +61,10 @@
                         id="category" name="category" required onchange="updateTypeOptions()">
                         <option value="">Pilih Kategori</option>
                         <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
-                        <option value="valve" <?= set_select('category', 'valve'); ?>>Valve</option>
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
-                        <option value="sensor" <?= set_select('category', 'sensor'); ?>>Sensor</option>
-                        <option value="other" <?= set_select('category', 'other'); ?>>Other</option>
+                        <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid (under development)</option>
+                        <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold (under development)</option>
+                        <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
                     </select>
                     <?php if (form_error('category')): ?>
                         <div class="invalid-feedback"><?= form_error('category'); ?></div>
@@ -174,6 +174,12 @@
             // Clear existing options
             typeSelect.innerHTML = '<option value="">Pilih ID Tipe</option>';
 
+            // Remove any existing manual input field
+            const existingManualInput = document.getElementById('manual_type_id');
+            if (existingManualInput) {
+                existingManualInput.remove();
+            }
+
             if (category === 'pneumatic') {
                 // Populate with pneumatic items
                 pneumaticItems.forEach(item => {
@@ -206,29 +212,46 @@
                     }
                     typeSelect.appendChild(option);
                 });
-            } else if (category) {
-                // For other categories, allow manual input by changing to text input
-                // Or you could implement similar lookups for other categories
+            } else if (category === 'solenoid' || category === 'manifold' || category === 'regulator') {
+                // For categories under development, allow manual input
                 const option = document.createElement('option');
                 option.value = 'manual';
                 option.textContent = 'Masukkan secara manual di bawah';
                 typeSelect.appendChild(option);
 
                 // Add input field for manual entry
-                if (!document.getElementById('manual_type_id')) {
-                    const manualInput = document.createElement('input');
-                    manualInput.type = 'text';
-                    manualInput.className = 'form-control mt-2';
-                    manualInput.id = 'manual_type_id';
-                    manualInput.placeholder = 'Masukkan ID tipe secara manual';
-                    manualInput.maxLength = 30;
+                const manualInput = document.createElement('input');
+                manualInput.type = 'text';
+                manualInput.className = 'form-control mt-2';
+                manualInput.id = 'manual_type_id';
+                manualInput.placeholder = 'Masukkan ID tipe secara manual';
+                manualInput.maxLength = 30;
 
-                    manualInput.addEventListener('input', function() {
-                        typeSelect.value = this.value;
-                    });
+                manualInput.addEventListener('input', function() {
+                    typeSelect.value = this.value;
+                });
 
-                    typeSelect.parentNode.appendChild(manualInput);
-                }
+                typeSelect.parentNode.appendChild(manualInput);
+            } else if (category) {
+                // For other categories, allow manual input by changing to text input
+                const option = document.createElement('option');
+                option.value = 'manual';
+                option.textContent = 'Masukkan secara manual di bawah';
+                typeSelect.appendChild(option);
+
+                // Add input field for manual entry
+                const manualInput = document.createElement('input');
+                manualInput.type = 'text';
+                manualInput.className = 'form-control mt-2';
+                manualInput.id = 'manual_type_id';
+                manualInput.placeholder = 'Masukkan ID tipe secara manual';
+                manualInput.maxLength = 30;
+
+                manualInput.addEventListener('input', function() {
+                    typeSelect.value = this.value;
+                });
+
+                typeSelect.parentNode.appendChild(manualInput);
             }
 
             // Update stock preview

@@ -49,10 +49,10 @@
                         id="category" name="category" required onchange="updateAvailableItems()">
                         <option value="">Pilih Kategori</option>
                         <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
-                        <option value="valve" <?= set_select('category', 'valve'); ?>>Valve</option>
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
-                        <option value="sensor" <?= set_select('category', 'sensor'); ?>>Sensor</option>
-                        <option value="other" <?= set_select('category', 'other'); ?>>Other</option>
+                        <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid (under development)</option>
+                        <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold (under development)</option>
+                        <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
                     </select>
                     <?php if (form_error('category')): ?>
                         <div class="invalid-feedback"><?= form_error('category'); ?></div>

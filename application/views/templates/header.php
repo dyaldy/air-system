@@ -75,14 +75,29 @@
                             <a class="nav-link" href="<?= site_url('fitting/type'); ?>">Fitting</a>
                         </li>
 
+                        <!-- Link to Solenoid Controller (under development) -->
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#" style="opacity: 0.6;">Solenoid (under development)</a>
+                        </li>
+
+                        <!-- Link to Manifold Controller (under development) -->
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#" style="opacity: 0.6;">Manifold (under development)</a>
+                        </li>
+
+                        <!-- Link to Regulator Controller (under development) -->
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#" style="opacity: 0.6;">Regulator (under development)</a>
+                        </li>
+
                         <!-- Link to Storage Controller -->
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= site_url('storage'); ?>">Storage</a>
+                            <a class="nav-link" href="<?= site_url('storage'); ?>">Penyimpanan</a>
                         </li>
 
                         <!-- Link to Reports -->
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= site_url('storage/reports'); ?>">Reports</a>
+                            <a class="nav-link" href="<?= site_url('storage/reports'); ?>">Laporan</a>
                         </li>
                     </ul>
                 </div>
