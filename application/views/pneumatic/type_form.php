@@ -31,14 +31,14 @@
                     id="type"
                     value="<?= set_value('type', $type['type'] ?? ''); ?>"
                     placeholder="Masukkan nama type pneumatic (contoh: CYLINDER, VALVE, ACTUATOR)"
-                    maxlength="10"
+                    maxlength="15"
                     required>
                 <?php if (form_error('type')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('type'); ?>
                     </div>
                 <?php endif; ?>
-                <div class="form-text">Maksimal 10 karakter. Gunakan huruf besar dan underscore untuk pemisah kata.</div>
+                <div class="form-text">Maksimal 15 karakter. Hanya boleh huruf besar, angka, dan underscore. Contoh: CYLINDER, NBC_NFPA, SQN</div>
             </div>
 
             <!-- Image Field -->
@@ -121,6 +121,30 @@
                 document.getElementById('image').parentNode.insertAdjacentElement('afterend', preview);
             };
             reader.readAsDataURL(file);
+        }
+    });
+
+    // Enforce uppercase and underscore format for type field
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeInput = document.getElementById('type');
+        if (typeInput) {
+            // Convert to uppercase and filter allowed characters on input
+            typeInput.addEventListener('input', function(e) {
+                let value = e.target.value.toUpperCase();
+                // Only allow letters, numbers, and underscores
+                value = value.replace(/[^A-Z0-9_]/g, '');
+                e.target.value = value;
+            });
+
+            // Validate format on blur
+            typeInput.addEventListener('blur', function(e) {
+                const value = e.target.value;
+                if (value && !value.match(/^[A-Z0-9_]+$/)) {
+                    e.target.setCustomValidity('Type harus menggunakan huruf besar, angka, dan underscore saja');
+                } else {
+                    e.target.setCustomValidity('');
+                }
+            });
         }
     });
 </script>

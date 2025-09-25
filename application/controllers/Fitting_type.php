@@ -34,7 +34,7 @@ class Fitting_type extends CI_Controller
     {
         if ($this->input->method() === 'post') {
             $type = $this->input->post('type', true);
-            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[30]');
+            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[30]|callback_validate_type_format');
             if ($this->form_validation->run() && !$this->Fitting_type_model->isTypeExists($type)) {
                 $imageFilename = $this->handleUpload();
                 $this->Fitting_type_model->addType($type, $imageFilename);
@@ -62,7 +62,7 @@ class Fitting_type extends CI_Controller
 
         if ($this->input->method() === 'post') {
             $type = $this->input->post('type', true);
-            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[30]');
+            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[30]|callback_validate_type_format');
 
             if ($this->form_validation->run()) {
                 $imageFilename = $this->handleUpload();
@@ -294,5 +294,17 @@ class Fitting_type extends CI_Controller
             set_message(['danger', 'Upload gambar gagal: ' . $this->upload->display_errors()]);
             return null;
         }
+    }
+
+    /**
+     * Custom validation for type format (uppercase letters, numbers, and underscores only)
+     */
+    public function validate_type_format($str): bool
+    {
+        if (!preg_match('/^[A-Z0-9_]+$/', $str)) {
+            $this->form_validation->set_message('validate_type_format', 'Type harus menggunakan huruf besar, angka, dan underscore saja (contoh: ELBOW_90, TEE, REDUCER)');
+            return false;
+        }
+        return true;
     }
 }

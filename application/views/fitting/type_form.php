@@ -38,7 +38,7 @@
                         <?= form_error('type'); ?>
                     </div>
                 <?php endif; ?>
-                <div class="form-text">Maksimal 30 karakter. Gunakan huruf besar dan underscore untuk pemisah kata.</div>
+                <div class="form-text">Maksimal 30 karakter. Hanya boleh huruf besar, angka, dan underscore. Contoh: ELBOW_90, TEE, BALL_VALVE</div>
             </div>
 
             <!-- Image Field -->
@@ -487,4 +487,28 @@
             }, 5000);
         }
     <?php endif; ?>
+
+    // Enforce uppercase and underscore format for type field
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeInput = document.getElementById('type');
+        if (typeInput) {
+            // Convert to uppercase and filter allowed characters on input
+            typeInput.addEventListener('input', function(e) {
+                let value = e.target.value.toUpperCase();
+                // Only allow letters, numbers, and underscores
+                value = value.replace(/[^A-Z0-9_]/g, '');
+                e.target.value = value;
+            });
+
+            // Validate format on blur
+            typeInput.addEventListener('blur', function(e) {
+                const value = e.target.value;
+                if (value && !value.match(/^[A-Z0-9_]+$/)) {
+                    e.target.setCustomValidity('Type harus menggunakan huruf besar, angka, dan underscore saja');
+                } else {
+                    e.target.setCustomValidity('');
+                }
+            });
+        }
+    });
 </script>

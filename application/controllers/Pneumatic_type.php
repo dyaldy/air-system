@@ -33,7 +33,7 @@ class Pneumatic_type extends CI_Controller
     {
         if ($this->input->method() === 'post') {
             $type = $this->input->post('type', true);
-            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[10]');
+            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[15]|callback_validate_type_format');
             if ($this->form_validation->run() && !$this->Pneumatic_type_model->isTypeExists($type)) {
                 $imageFilename = $this->handleUpload();
                 $this->Pneumatic_type_model->addType($type, $imageFilename);
@@ -58,7 +58,7 @@ class Pneumatic_type extends CI_Controller
 
         if ($this->input->method() === 'post') {
             $type = $this->input->post('type', true);
-            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[10]');
+            $this->form_validation->set_rules('type', 'Type', 'required|trim|max_length[15]|callback_validate_type_format');
             if ($this->form_validation->run() && !$this->Pneumatic_type_model->isTypeExists($type, $id)) {
                 $imageFilename = $this->handleUpload($typeRow['image']);
                 $this->Pneumatic_type_model->editType($id, $type, $imageFilename);
@@ -316,5 +316,17 @@ class Pneumatic_type extends CI_Controller
 
         // If more than 60% of edge pixels are light, assume it needs background removal
         return $totalSamples > 0 && ($lightPixelCount / $totalSamples) > 0.6;
+    }
+
+    /**
+     * Custom validation for type format (uppercase letters, numbers, and underscores only)
+     */
+    public function validate_type_format($str): bool
+    {
+        if (!preg_match('/^[A-Z0-9_]+$/', $str)) {
+            $this->form_validation->set_message('validate_type_format', 'Type harus menggunakan huruf besar, angka, dan underscore saja (contoh: CYLINDER, NBC_NFPA, SQN)');
+            return false;
+        }
+        return true;
     }
 }
