@@ -18,7 +18,7 @@ class Auth extends CI_Controller
     public function index(): void
     {
         if ($this->session->userdata('user_data')) {
-            redirect('user');
+            redirect('home');
         }
 
         // air-system does not use machine registration. Skip machine checks.
@@ -55,7 +55,7 @@ class Auth extends CI_Controller
         $userDetail = $this->user_model->getByNik((int) $nik);
         if (!$userDetail) {
             set_message(['danger', 'NIK tidak terdaftar']);
-            redirect(base_url());
+            redirect('auth');
             return;
         }
 
@@ -70,14 +70,14 @@ class Auth extends CI_Controller
         ];
 
         $this->session->set_userdata($data);
-        // After successful login redirect the user to the user page
-        redirect('user');
+        // After successful login redirect the user to the home page
+        redirect('home');
     }
 
     public function logout(): void
     {
         session_destroy();
         set_message(['success', 'Anda berhasil Logout']);
-        redirect(base_url());
+        redirect('auth');
     }
 }

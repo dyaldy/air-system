@@ -50,6 +50,14 @@ class Storage_model extends CI_Model
     }
 
     /**
+     * Count total storage items (distinct combinations of location, category, type)
+     */
+    public function countStorage()
+    {
+        return $this->db->count_all_results('as_storage');
+    }
+
+    /**
      * Get storage by location
      */
     public function get_storage_by_location($location_id)
