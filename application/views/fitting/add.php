@@ -14,11 +14,26 @@
 
     <!-- Card Body -->
     <div class="card-body p-4 pt-3">
+        <?php if (validation_errors()): ?>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Terjadi kesalahan validasi:</strong>
+                <?= validation_errors(); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($this->session->flashdata('message')): ?>
+            <?php list($type, $message) = $this->session->flashdata('message'); ?>
+            <div class="alert alert-<?= $type === 'danger' ? 'danger' : ($type === 'warning' ? 'warning' : 'info') ?>">
+                <i class="fas fa-info-circle"></i> <?= $message ?>
+            </div>
+        <?php endif; ?>
+
         <form action="" method="post">
             <!-- Note about auto-generated ID -->
             <div class="mb-3">
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Fitting ID akan dibuat otomatis berdasarkan format: fit-type-D1-D2-D3-R(DRAT)
+                    <i class="fas fa-info-circle"></i> Fitting ID akan dibuat otomatis berdasarkan format: fit-type-subtype-D1-D2-D3-R(DRAT)
                 </div>
             </div>
 
@@ -38,6 +53,28 @@
                 <?php if (form_error('type')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('type'); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Subtype Field -->
+            <div class="mb-3">
+                <label for="subtype" class="form-label">Subtype <span class="text-danger">*</span></label>
+                <select class="form-select <?= form_error('subtype') ? 'is-invalid' : ''; ?>"
+                    name="subtype" id="subtype" required>
+                    <option value="">Pilih Subtype</option>
+                    <?php if (!empty($subtypes)): ?>
+                        <?php foreach ($subtypes as $subtype): ?>
+                            <option value="<?= $subtype['subtype']; ?>"
+                                <?= (set_value('subtype') == $subtype['subtype']) ? 'selected' : ''; ?>>
+                                <?= $subtype['subtype']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+                <?php if (form_error('subtype')): ?>
+                    <div class="invalid-feedback">
+                        <?= form_error('subtype'); ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -126,23 +163,71 @@
 </div>
 
 <script>
-    // Preview fitting ID as user types
+    // Handle dynamic subtype loading and preview fitting ID
     document.addEventListener('DOMContentLoaded', function() {
-        const typeInput = document.getElementById('type');
+        const typeSelect = document.getElementById('type');
+        const subtypeSelect = document.getElementById('subtype');
         const D1Input = document.getElementById('D1');
         const D2Input = document.getElementById('D2');
         const D3Input = document.getElementById('D3');
         const RDratInput = document.getElementById('R_DRAT');
 
+        // Load subtypes when type changes
+        typeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+
+            // Clear subtype dropdown
+            subtypeSelect.innerHTML = '<option value="">Pilih Subtype</option>';
+
+            if (selectedType) {
+                // Make AJAX request to get subtypes
+                fetch('<?= site_url('fitting/getSubtypes'); ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: 'type=' + encodeURIComponent(selectedType)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.subtypes) {
+                            const currentSubtype = '<?= set_value('subtype'); ?>'; // Get the current subtype value
+
+                            data.subtypes.forEach(function(subtype) {
+                                const option = document.createElement('option');
+                                option.value = subtype.subtype;
+                                option.textContent = subtype.subtype;
+
+                                // Pre-select the subtype if it matches form data
+                                if (subtype.subtype === currentSubtype) {
+                                    option.selected = true;
+                                }
+
+                                subtypeSelect.appendChild(option);
+                            });
+
+                            updatePreview(); // Update preview after loading subtypes
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading subtypes:', error);
+                    });
+            }
+
+            updatePreview();
+        });
+
         function updatePreview() {
-            const type = typeInput.value.toLowerCase().replace(/\s+/g, '_');
+            const type = typeSelect.value.toLowerCase().replace(/\s+/g, '_');
+            const subtype = subtypeSelect.value.toLowerCase().replace(/\s+/g, '_');
             const D1 = parseFloat(D1Input.value) || 0;
             const D2 = parseFloat(D2Input.value) || 0;
             const D3 = parseFloat(D3Input.value) || 0;
             const rDrat = RDratInput.value.replace(/"/g, '');
 
-            if (type && D1 && D2 && D3 && rDrat) {
-                const previewId = `fit-${type}-${D1.toFixed(1)}-${D2.toFixed(1)}-${D3.toFixed(1)}-${rDrat}`;
+            if (type && subtype && D1 && D2 && D3 && rDrat) {
+                const previewId = `fit-${type}-${subtype}-${D1.toFixed(1)}-${D2.toFixed(1)}-${D3.toFixed(1)}-${rDrat}`;
 
                 // Update or create preview element
                 let preview = document.getElementById('id-preview');
@@ -156,9 +241,14 @@
             }
         }
 
-        [typeInput, D1Input, D2Input, D3Input, RDratInput].forEach(input => {
+        [typeSelect, subtypeSelect, D1Input, D2Input, D3Input, RDratInput].forEach(input => {
             input.addEventListener('input', updatePreview);
             input.addEventListener('change', updatePreview);
         });
+
+        // Initialize subtypes on page load if type is already selected (from form validation failure)
+        if (typeSelect.value) {
+            typeSelect.dispatchEvent(new Event('change'));
+        }
     });
 </script>

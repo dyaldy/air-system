@@ -96,15 +96,17 @@ class Fitting_model extends CI_Model
     public function addFitting(): void
     {
         $type = strtoupper($this->input->post('type', true));
+        $subtype = strtoupper($this->input->post('subtype', true));
         $D1 = (float)$this->input->post('D1', true);
         $D2 = (float)$this->input->post('D2', true);
         $D3 = (float)$this->input->post('D3', true);
         $R_DRAT = $this->input->post('R_DRAT', true);
 
-        // Generate fitting_id with format: fit-{type}-{D1}-{D2}-{D3}-{R_DRAT}
+        // Generate fitting_id with format: fit-{type}-{subtype}-{D1}-{D2}-{D3}-{R_DRAT}
         $fittingId = sprintf(
-            'fit-%s-%.1f-%.1f-%.1f-%s',
-            strtolower(str_replace(' ', '_', $type)),
+            'fit-%s-%s-%.1f-%.1f-%.1f-%s',
+            strtolower(str_replace('_', '-', $type)),
+            strtolower(str_replace('_', '-', $subtype)),
             $D1,
             $D2,
             $D3,
@@ -114,6 +116,7 @@ class Fitting_model extends CI_Model
         $data = [
             'fitting_id' => $fittingId,
             'type' => $type,
+            'subtype' => $subtype,
             'D1' => $D1,
             'D2' => $D2,
             'D3' => $D3,
@@ -148,15 +151,17 @@ class Fitting_model extends CI_Model
     public function editFitting(string $fittingId): void
     {
         $type = strtoupper($this->input->post('type', true));
+        $subtype = strtoupper($this->input->post('subtype', true));
         $D1 = (float)$this->input->post('D1', true);
         $D2 = (float)$this->input->post('D2', true);
         $D3 = (float)$this->input->post('D3', true);
         $R_DRAT = $this->input->post('R_DRAT', true);
 
-        // Generate new fitting_id with format: fit-{type}-{D1}-{D2}-{D3}-{R_DRAT}
+        // Generate new fitting_id with format: fit-{type}-{subtype}-{D1}-{D2}-{D3}-{R_DRAT}
         $newFittingId = sprintf(
-            'fit-%s-%.1f-%.1f-%.1f-%s',
-            strtolower(str_replace(' ', '_', $type)),
+            'fit-%s-%s-%.1f-%.1f-%.1f-%s',
+            strtolower(str_replace('_', '-', $type)),
+            strtolower(str_replace('_', '-', $subtype)),
             $D1,
             $D2,
             $D3,
@@ -166,6 +171,7 @@ class Fitting_model extends CI_Model
         $data = [
             'fitting_id' => $newFittingId,
             'type' => $type,
+            'subtype' => $subtype,
             'D1' => $D1,
             'D2' => $D2,
             'D3' => $D3,
@@ -250,6 +256,7 @@ class Fitting_model extends CI_Model
             $this->db->group_start()
                 ->like('fitting_id', trim($searchKeyword))
                 ->or_like('type', trim($searchKeyword))
+                ->or_like('subtype', trim($searchKeyword))
                 ->or_like('D1', trim($searchKeyword))
                 ->or_like('D2', trim($searchKeyword))
                 ->or_like('D3', trim($searchKeyword))

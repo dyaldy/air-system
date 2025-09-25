@@ -49,6 +49,15 @@ class Fitting extends CI_Controller
                     'max_length' => '%s maksimal 15 karakter',
                 ],
             ],
+            'subtype' => [
+                'field' => 'subtype',
+                'label' => 'Subtype',
+                'rules' => 'required|trim|max_length[50]',
+                'errors' => [
+                    'required'   => '%s harus diisi',
+                    'max_length' => '%s maksimal 50 karakter',
+                ],
+            ],
             'D1' => [
                 'field' => 'D1',
                 'label' => 'D1',
@@ -109,6 +118,7 @@ class Fitting extends CI_Controller
 
         $this->load->model('Fitting_model');
         $this->load->model('Fitting_type_model');
+        $this->load->model('Fitting_subtype_model');
         $this->load->library(['form_validation', 'pagination']);
         $this->load->helper('common');
 
@@ -153,6 +163,7 @@ class Fitting extends CI_Controller
 
         // Provide distinct values for filter dropdowns (respect current search/filter state)
         $typeOptions = $this->Fitting_model->getFittingFilter('type', $sessionData['search'], $sessionData['filter']);
+        $subtypeOptions = $this->Fitting_model->getFittingFilter('subtype', $sessionData['search'], $sessionData['filter']);
 
         // Count total records
         $totalRows = $this->Fitting_model->countFitting($sessionData['search'], $sessionData['filter']);
@@ -185,6 +196,7 @@ class Fitting extends CI_Controller
             'filterKeyword'  => $sessionData['filter'],
             'hasFilters'     => (!empty($sessionData['search']) || !empty($sessionData['filter']) || !empty($sessionData['sort'])),
             'type_options'   => $typeOptions,
+            'subtype_options' => $subtypeOptions,
         ];
 
         render_view('fitting/index', $data);
@@ -239,22 +251,33 @@ class Fitting extends CI_Controller
             $this->setValidationRules();
 
             if ($this->form_validation->run()) {
-                $this->Fitting_model->addFitting();
-                set_message(['success', 'Data fitting berhasil ditambahkan!']);
-                redirect('fitting');
+                try {
+                    $this->Fitting_model->addFitting();
+                    set_message(['success', 'Data fitting berhasil ditambahkan!']);
+                    redirect('fitting');
+                } catch (Exception $e) {
+                    set_message(['danger', 'Error: ' . $e->getMessage()]);
+                }
             }
         }
 
         // Fetch available fitting types for dropdown
         $fittingTypes = $this->Fitting_type_model->getAllTypes();
 
-        // Check if type is pre-selected from URL parameter
-        $preselectedType = $this->input->get('type', true);
+        // Check if type is pre-selected from URL parameter or form data
+        $preselectedType = $this->input->get('type', true) ?: set_value('type');
+
+        // Get subtypes for preselected type if available
+        $subtypes = [];
+        if ($preselectedType) {
+            $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($preselectedType);
+        }
 
         $data = [
             'title' => 'Tambah Fitting',
             'fitting_types' => $fittingTypes,
-            'preselected_type' => $preselectedType
+            'preselected_type' => $preselectedType,
+            'subtypes' => $subtypes
         ];
         render_view('fitting/add', $data);
     }
@@ -287,9 +310,16 @@ class Fitting extends CI_Controller
         // Fetch available fitting types for dropdown
         $fittingTypes = $this->Fitting_type_model->getAllTypes();
 
+        // Get subtypes for the current fitting's type
+        $subtypes = [];
+        if ($fitting && isset($fitting['type'])) {
+            $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($fitting['type']);
+        }
+
         $data['fitting'] = $fitting;
         $data['title'] = 'Edit Fitting';
         $data['fitting_types'] = $fittingTypes;
+        $data['subtypes'] = $subtypes;
         render_view('fitting/edit', $data);
     }
 
@@ -478,8 +508,13 @@ class Fitting extends CI_Controller
      */
     private function setValidationRules(bool $isEdit = false): void
     {
-        foreach (self::CONFIG['validation_rules'] as $rules) {
-            $this->form_validation->set_rules($rules);
+        foreach (self::CONFIG['validation_rules'] as $fieldName => $rules) {
+            $this->form_validation->set_rules(
+                $rules['field'],
+                $rules['label'],
+                $rules['rules'],
+                $rules['errors'] ?? []
+            );
         }
     }
 
@@ -597,6 +632,36 @@ class Fitting extends CI_Controller
         }
 
         redirect('fitting');
+    }
+
+    /**
+     * Get subtypes for a specific fitting type via AJAX.
+     * 
+     * @return void
+     */
+    public function getSubtypes(): void
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $type = $this->input->post('type', true);
+
+        if (!$type) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Type is required']));
+            return;
+        }
+
+        $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($type);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'status' => 'success',
+                'subtypes' => $subtypes
+            ]));
     }
 
     /**

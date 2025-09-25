@@ -46,6 +46,15 @@
                                     <option value="<?= $type; ?>" <?= $selected; ?>><?= $type; ?></option>
                                 <?php endforeach; ?>
                             </select>
+
+                            <!-- Subtype Filter -->
+                            <select class="form-select form-select-sm" id="subtype-filter" aria-label="Filter Subtype">
+                                <option value="">Semua Subtype</option>
+                                <?php foreach (($subtype_options ?? []) as $subtype) : ?>
+                                    <?php $selected = (!empty($filterKeyword['subtype']) && in_array($subtype, (array)$filterKeyword['subtype'])) ? 'selected' : ''; ?>
+                                    <option value="<?= $subtype; ?>" <?= $selected; ?>><?= $subtype; ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </form>
 
@@ -97,6 +106,22 @@
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
+
+                        <!-- Subtype Column -->
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Subtype</span>
+                                <?php if ($sortKeyword[0] === 'subtype') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('subtype-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Subtype (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Subtype">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('subtype-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Subtype (Ascending)">
                                 <?php endif ?>
                             </div>
                         </th>
@@ -176,6 +201,7 @@
                         <tr>
                             <th scope="row" class="text-center ps-lg-5 ps-4"><?= $fitting['fitting_id']; ?></th>
                             <td class="text-center"><?= $fitting['type']; ?></td>
+                            <td class="text-center"><?= $fitting['subtype'] ?? 'N/A'; ?></td>
                             <td class="text-center"><?= $fitting['D1']; ?></td>
                             <td class="text-center"><?= $fitting['D2']; ?></td>
                             <td class="text-center"><?= $fitting['D3']; ?></td>
@@ -268,9 +294,11 @@
     (function() {
         function applyFittingFilters() {
             const type = document.getElementById('type-filter')?.value || '';
+            const subtype = document.getElementById('subtype-filter')?.value || '';
 
             const filterObj = {};
             if (type) filterObj.type = [type];
+            if (subtype) filterObj.subtype = [subtype];
 
             // Build transient POST form
             const form = document.createElement('form');
@@ -288,7 +316,9 @@
         }
 
         const typeEl = document.getElementById('type-filter');
+        const subtypeEl = document.getElementById('subtype-filter');
 
         if (typeEl) typeEl.addEventListener('change', applyFittingFilters);
+        if (subtypeEl) subtypeEl.addEventListener('change', applyFittingFilters);
     })();
 </script>
