@@ -197,10 +197,18 @@
                                                             onclick="viewItemDetails('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
                                                             <i class="fas fa-eye"></i>
                                                         </button>
-                                                        <button type="button" class="btn btn-outline-danger"
-                                                            onclick="deleteItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
+                                                        <?php if ($item['amount'] > 0): ?>
+                                                            <button type="button" class="btn btn-outline-danger disabled-delete-btn"
+                                                                title="Tidak dapat dihapus - masih ada <?= $item['amount']; ?> item di lokasi ini. Silakan kosongkan stok terlebih dahulu."
+                                                                style="opacity: 0.6; cursor: not-allowed;">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <button type="button" class="btn btn-outline-danger"
+                                                                onclick="deleteItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -288,10 +296,18 @@
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                                        onclick="deleteBatch('<?= htmlspecialchars($batch['batch_id']); ?>')">
-                                                        <i class="fas fa-trash"></i> Hapus
-                                                    </button>
+                                                    <?php if ($batch['remaining_quantity'] > 0): ?>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger disabled-delete-btn"
+                                                            title="Tidak dapat dihapus - masih ada <?= $batch['remaining_quantity']; ?> item tersisa dalam batch ini. Silakan habiskan batch terlebih dahulu."
+                                                            style="opacity: 0.6; cursor: not-allowed;">
+                                                            <i class="fas fa-trash"></i> Hapus
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="deleteBatch('<?= htmlspecialchars($batch['batch_id']); ?>')">
+                                                            <i class="fas fa-trash"></i> Hapus
+                                                        </button>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -697,4 +713,26 @@
         var modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
         modal.hide();
     }
+
+    // Initialize Bootstrap tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips for all buttons with title attribute
+        var tooltips = document.querySelectorAll('[title]');
+        tooltips.forEach(function(element) {
+            new bootstrap.Tooltip(element, {
+                placement: 'top',
+                trigger: 'hover'
+            });
+        });
+
+        // Prevent click events on disabled delete buttons
+        var disabledBtns = document.querySelectorAll('.disabled-delete-btn');
+        disabledBtns.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+        });
+    });
 </script>

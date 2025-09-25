@@ -143,9 +143,17 @@
                                                         <button type="button" class="btn btn-outline-info" onclick="manageItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')" title="Kelola item dan batch">
                                                             <i class="fas fa-cogs"></i> Kelola
                                                         </button>
-                                                        <button type="button" class="btn btn-outline-danger" onclick="deleteItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')" title="Hapus item">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
+                                                        <?php if ($item['total_amount'] > 0): ?>
+                                                            <button type="button" class="btn btn-outline-danger disabled-delete-btn"
+                                                                title="Tidak dapat dihapus - masih ada <?= $item['total_amount']; ?> item tersisa. Silakan kosongkan stok terlebih dahulu."
+                                                                style="opacity: 0.6; cursor: not-allowed;">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <button type="button" class="btn btn-outline-danger" onclick="deleteItem('<?= $item['category']; ?>', '<?= $item['type_id']; ?>')" title="Hapus item">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -704,8 +712,8 @@
             `;
         } else {
             batches.forEach(batch => {
-                const progressPercentage = batch.initial_quantity > 0 ?
-                    Math.round((batch.remaining_quantity / batch.initial_quantity) * 100) : 0;
+                const progressPercentage = batch.batch_quantity > 0 ?
+                    Math.round((batch.remaining_quantity / batch.batch_quantity) * 100) : 0;
 
                 html += `
                     <div class="card mb-3">
@@ -721,7 +729,7 @@
                                         <small class="text-muted">Stok Tersisa</small>
                                         <div class="d-flex align-items-center">
                                             <strong class="me-2">${batch.remaining_quantity}</strong>
-                                            <span class="text-muted">/ ${batch.initial_quantity}</span>
+                                            <span class="text-muted">/ ${batch.batch_quantity}</span>
                                         </div>
                                         <div class="progress mt-1" style="height: 6px;">
                                             <div class="progress-bar ${progressPercentage < 25 ? 'bg-danger' : progressPercentage < 50 ? 'bg-warning' : 'bg-success'}" 
@@ -732,12 +740,17 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" onclick="editBatch('${batch.batch_id}', '${batch.project_name}', '${batch.project_notes}', ${batch.initial_quantity}, ${batch.remaining_quantity})" title="Edit batch">
+                                        <button class="btn btn-outline-primary" onclick="editBatch('${batch.batch_id}', '${batch.project_name}', '${batch.project_notes}', ${batch.batch_quantity}, ${batch.remaining_quantity})" title="Edit batch">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
-                                        <button class="btn btn-outline-danger" onclick="deleteBatch('${batch.batch_id}', '${batch.project_name}')" title="Hapus batch">
-                                            <i class="fas fa-trash"></i> Hapus
-                                        </button>
+                                        ${batch.remaining_quantity > 0 ? 
+                                            `<button class="btn btn-outline-danger disabled-delete-btn" title="Tidak dapat dihapus - masih ada ${batch.remaining_quantity} item tersisa dalam batch ini. Silakan habiskan batch terlebih dahulu." style="opacity: 0.6; cursor: not-allowed;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>` : 
+                                            `<button class="btn btn-outline-danger" onclick="deleteBatch('${batch.batch_id}', '${batch.project_name}')" title="Hapus batch">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>`
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -748,6 +761,17 @@
         }
 
         document.getElementById('batchesList').innerHTML = html;
+        // Reinitialize tooltips for dynamically created elements
+        setTimeout(function() {
+            var tooltips = document.querySelectorAll('[title]');
+            tooltips.forEach(function(element) {
+                if (element.getAttribute('data-bs-original-title')) return; // Skip if already initialized
+                new bootstrap.Tooltip(element, {
+                    placement: 'top',
+                    trigger: 'hover'
+                });
+            });
+        }, 100);
     }
 
     // Load item locations
@@ -802,12 +826,14 @@
                                 </div>
                                 <div class="col-md-4 text-end">
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" onclick="editLocationStock('${location.location_id}', ${location.amount})" title="Edit stok">
-                                            <i class="fas fa-edit"></i> Edit Stok
-                                        </button>
-                                        <button class="btn btn-outline-danger" onclick="removeFromLocation('${location.location_id}')" title="Hapus dari lokasi">
-                                            <i class="fas fa-times"></i> Hapus
-                                        </button>
+                                        ${location.amount > 0 ? 
+                                            `<button class="btn btn-outline-danger disabled-delete-btn" title="Tidak dapat dihapus - masih ada ${location.amount} item di lokasi ini. Silakan kosongkan stok terlebih dahulu." style="opacity: 0.6; cursor: not-allowed;">
+                                                <i class="fas fa-times"></i> Hapus
+                                            </button>` : 
+                                            `<button class="btn btn-outline-danger" onclick="removeFromLocation('${location.location_id}')" title="Hapus dari lokasi">
+                                                <i class="fas fa-times"></i> Hapus
+                                            </button>`
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -818,6 +844,17 @@
         }
 
         document.getElementById('locationsList').innerHTML = html;
+        // Reinitialize tooltips for dynamically created elements
+        setTimeout(function() {
+            var tooltips = document.querySelectorAll('[title]');
+            tooltips.forEach(function(element) {
+                if (element.getAttribute('data-bs-original-title')) return; // Skip if already initialized
+                new bootstrap.Tooltip(element, {
+                    placement: 'top',
+                    trigger: 'hover'
+                });
+            });
+        }, 100);
     }
 
     // Edit batch function
@@ -962,45 +999,6 @@
         }
     }
 
-    // Edit location stock
-    function editLocationStock(locationId, currentAmount) {
-        const newAmount = prompt(`Edit stok untuk lokasi ${locationId}:\n\nStok saat ini: ${currentAmount}\nMasukkan jumlah baru:`, currentAmount);
-
-        if (newAmount !== null && newAmount !== '' && !isNaN(newAmount)) {
-            const amount = parseInt(newAmount);
-
-            if (amount >= 0) {
-                updateLocationStock(locationId, amount);
-            } else {
-                alert('Jumlah tidak boleh negatif');
-            }
-        }
-    }
-
-    // Update location stock
-    function updateLocationStock(locationId, newAmount) {
-        fetch('<?= site_url('storage/update_location_stock'); ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    category: currentCategory,
-                    type_id: currentTypeId,
-                    location_id: locationId,
-                    new_amount: newAmount
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadItemLocations(currentCategory, currentTypeId);
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            });
-    }
-
     // Remove from location
     function removeFromLocation(locationId) {
         if (confirm(`Apakah Anda yakin ingin menghapus item dari lokasi ${locationId}?`)) {
@@ -1025,4 +1023,26 @@
                 });
         }
     }
+
+    // Initialize Bootstrap tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips for all buttons with title attribute
+        var tooltips = document.querySelectorAll('[title]');
+        tooltips.forEach(function(element) {
+            new bootstrap.Tooltip(element, {
+                placement: 'top',
+                trigger: 'hover'
+            });
+        });
+
+        // Prevent click events on disabled delete buttons
+        var disabledBtns = document.querySelectorAll('.disabled-delete-btn');
+        disabledBtns.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+        });
+    });
 </script>

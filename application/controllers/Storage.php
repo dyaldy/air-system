@@ -910,6 +910,7 @@ class Storage extends CI_Controller
 
     /**
      * Delete item - removes all data for a specific category and type_id from a specific location (or all locations if no location specified)
+     * This should only be called for items with no stock remaining
      */
     public function delete_item()
     {
@@ -925,54 +926,63 @@ class Storage extends CI_Controller
             $type_id = $input['type_id'];
             $location_id = isset($input['location_id']) ? strtoupper($input['location_id']) : null;
 
-            // Start transaction
-            $this->db->trans_start();
-
-            try {
-                // Delete from project batches first (foreign key constraint)
-                $this->db->where('category', $category);
-                $this->db->where('type_id', $type_id);
-                if ($location_id) {
-                    $this->db->where('location_id', $location_id);
-                }
-                $this->db->delete('as_project_batches');
-
-                // Delete from report table
-                $this->db->where('category', $category);
-                $this->db->where('type_id', $type_id);
-                if ($location_id) {
-                    $this->db->where('location_id', $location_id);
-                }
-                $this->db->delete('as_report');
-
-                // Delete from storage table
-                $this->db->where('category', $category);
-                $this->db->where('type_id', $type_id);
-                if ($location_id) {
-                    $this->db->where('location_id', $location_id);
-                }
-                $this->db->delete('as_storage');
-
-                $this->db->trans_complete();
-
-                if ($this->db->trans_status() === FALSE) {
-                    $response = array(
-                        'success' => false,
-                        'message' => 'Failed to delete item'
-                    );
-                } else {
-                    $message = $location_id ? 'Item deleted successfully from this location' : 'Item deleted successfully from all locations';
-                    $response = array(
-                        'success' => true,
-                        'message' => $message
-                    );
-                }
-            } catch (Exception $e) {
-                $this->db->trans_rollback();
+            // Double-check if there's any stock left (safety check)
+            $total_stock = $this->Storage_model->get_total_stock($category, $type_id);
+            if ($total_stock > 0) {
                 $response = array(
                     'success' => false,
-                    'message' => 'Error deleting item: ' . $e->getMessage()
+                    'message' => 'Cannot delete item - stock remaining: ' . $total_stock . ' items. Please remove all stock first.'
                 );
+            } else {
+                // Start transaction
+                $this->db->trans_start();
+
+                try {
+                    // Delete from project batches first (foreign key constraint)
+                    $this->db->where('category', $category);
+                    $this->db->where('type_id', $type_id);
+                    if ($location_id) {
+                        $this->db->where('location_id', $location_id);
+                    }
+                    $this->db->delete('as_project_batches');
+
+                    // Delete from report table
+                    $this->db->where('category', $category);
+                    $this->db->where('type_id', $type_id);
+                    if ($location_id) {
+                        $this->db->where('location_id', $location_id);
+                    }
+                    $this->db->delete('as_report');
+
+                    // Delete from storage table
+                    $this->db->where('category', $category);
+                    $this->db->where('type_id', $type_id);
+                    if ($location_id) {
+                        $this->db->where('location_id', $location_id);
+                    }
+                    $this->db->delete('as_storage');
+
+                    $this->db->trans_complete();
+
+                    if ($this->db->trans_status() === FALSE) {
+                        $response = array(
+                            'success' => false,
+                            'message' => 'Failed to delete item'
+                        );
+                    } else {
+                        $message = $location_id ? 'Item deleted successfully from this location' : 'Item deleted successfully from all locations';
+                        $response = array(
+                            'success' => true,
+                            'message' => $message
+                        );
+                    }
+                } catch (Exception $e) {
+                    $this->db->trans_rollback();
+                    $response = array(
+                        'success' => false,
+                        'message' => 'Error deleting item: ' . $e->getMessage()
+                    );
+                }
             }
         }
 
@@ -1189,37 +1199,14 @@ class Storage extends CI_Controller
     }
 
     /**
-     * Update location stock
+     * Update location stock - DISABLED to prevent direct stock editing
      */
     public function update_location_stock()
     {
-        $json = json_decode($this->input->raw_input_stream, true);
-        $category = isset($json['category']) ? $json['category'] : null;
-        $type_id = isset($json['type_id']) ? $json['type_id'] : null;
-        $location_id = isset($json['location_id']) ? $json['location_id'] : null;
-        $new_amount = isset($json['new_amount']) ? (int)$json['new_amount'] : null;
-
-        if (!$category || !$type_id || !$location_id || $new_amount === null) {
-            $response = array(
-                'success' => false,
-                'message' => 'All parameters are required'
-            );
-        } else {
-            $type_id_for_db = ($category == 'Screw') ? (int)$type_id : $type_id;
-            $update_result = $this->Storage_model->update_location_stock($location_id, $category, $type_id_for_db, $new_amount);
-
-            if ($update_result) {
-                $response = array(
-                    'success' => true,
-                    'message' => 'Location stock updated successfully'
-                );
-            } else {
-                $response = array(
-                    'success' => false,
-                    'message' => 'Failed to update location stock'
-                );
-            }
-        }
+        $response = array(
+            'success' => false,
+            'message' => 'Direct stock editing is not allowed. Use store/take operations instead.'
+        );
 
         header('Content-Type: application/json');
         echo json_encode($response);
