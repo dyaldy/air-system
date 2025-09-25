@@ -100,7 +100,7 @@ class Fitting_model extends CI_Model
         $D1 = (float)$this->input->post('D1', true);
         $D2 = (float)$this->input->post('D2', true);
         $D3 = (float)$this->input->post('D3', true);
-        $R_DRAT = $this->input->post('R_DRAT', true);
+        $R_DRAT = strtoupper($this->input->post('R_DRAT', true));
 
         // Generate fitting_id with format: fit-{type}-{subtype}-{D1}-{D2}-{D3}-{R_DRAT}
         $fittingId = sprintf(
@@ -155,7 +155,7 @@ class Fitting_model extends CI_Model
         $D1 = (float)$this->input->post('D1', true);
         $D2 = (float)$this->input->post('D2', true);
         $D3 = (float)$this->input->post('D3', true);
-        $R_DRAT = $this->input->post('R_DRAT', true);
+        $R_DRAT = strtoupper($this->input->post('R_DRAT', true));
 
         // Generate new fitting_id with format: fit-{type}-{subtype}-{D1}-{D2}-{D3}-{R_DRAT}
         $newFittingId = sprintf(

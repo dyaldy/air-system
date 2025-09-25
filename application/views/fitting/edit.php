@@ -137,7 +137,7 @@
                     name="R_DRAT"
                     id="R_DRAT"
                     value="<?= set_value('R_DRAT', $fitting['R_DRAT']); ?>"
-                    placeholder="Contoh: 1/4&quot;, 3/8&quot;, 1/2&quot;"
+                    placeholder="Contoh: M5, M6, 01, 02, 03"
                     maxlength="20"
                     required>
                 <?php if (form_error('R_DRAT')): ?>
