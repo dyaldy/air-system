@@ -9,7 +9,7 @@
 <?php endif; ?>
 
 <!-- Main Content Card -->
-<div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
+<div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; width: 98%;">
     <!-- Card Header with Title -->
     <div class="card-header bg-white border-bottom px-lg-5 px-4 py-4 rounded-top-5">
         <div class="d-flex justify-content-between align-items-center">
@@ -110,84 +110,77 @@
             <!-- Transactions Table -->
             <?php if (!empty($transactions)): ?>
                 <div class="table-responsive">
-                    <table class="table table-borderless table-hover table-striped mb-0" id="transactionsTable">
+                    <table class="table table-sm" id="transactionsTable">
                         <thead>
                             <tr>
-                                <th scope="col" class="text-center ps-lg-5 ps-4">ID Penyimpanan</th>
-                                <th scope="col" class="text-center">Tanggal/Waktu</th>
-                                <th scope="col" class="text-center">Aksi</th>
-                                <th scope="col" class="text-center">Jumlah</th>
-                                <th scope="col" class="text-center">Lokasi</th>
-                                <th scope="col" class="text-center">Kategori</th>
-                                <th scope="col" class="text-center">ID Tipe</th>
-                                <th scope="col" class="text-center">Batch/Project</th>
-                                <th scope="col" class="text-center">Pengguna</th>
-                                <th scope="col" class="text-center pe-lg-5 pe-4">Catatan</th>
+                                <th>ID Penyimpanan</th>
+                                <th>Tanggal/Waktu</th>
+                                <th>Aksi</th>
+                                <th>Jumlah</th>
+                                <th>Lokasi</th>
+                                <th>Kategori</th>
+                                <th>ID Tipe</th>
+                                <th>Project</th>
+                                <th>Pengguna</th>
+                                <th>Catatan</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($transactions as $transaction): ?>
                                 <tr>
-                                    <th scope="row" class="text-center ps-lg-5 ps-4">
+                                    <td>
                                         <code><?= htmlspecialchars($transaction['storing_id']); ?></code>
-                                    </th>
-                                    <td class="text-center">
-                                        <?= date('d M Y, H:i:s', strtotime($transaction['datetime'])); ?>
                                     </td>
-                                    <td class="text-center">
-                                        <span class="badge rounded-pill text-bg-<?= $transaction['action'] == 'store' ? 'success' : 'warning' ?>">
-                                            <?= $transaction['action'] == 'store' ? 'Simpan' : 'Ambil'; ?>
-                                        </span>
+                                    <td>
+                                        <?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?>
                                     </td>
-                                    <td class="text-center">
+                                    <td>
+                                        <?php if ($transaction['action'] == 'store'): ?>
+                                            <span class="badge bg-success">Simpan</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning">Ambil</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
                                         <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
                                     </td>
-                                    <td class="text-center">
+                                    <td>
                                         <a href="<?= site_url('storage/location/' . urlencode($transaction['location_id'])); ?>"
-                                            class="badge bg-secondary text-decoration-none"
+                                            class="text-decoration-none"
                                             title="Lihat detail lokasi">
                                             <?= htmlspecialchars($transaction['location_id']); ?>
                                         </a>
                                     </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-primary"><?= htmlspecialchars($transaction['category']); ?></span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex align-items-center justify-content-center">
+                                    <td><?= htmlspecialchars($transaction['category']); ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
                                             <?= htmlspecialchars($transaction['type_id']); ?>
                                             <?php if (isset($transaction['comment']) && $transaction['comment'] === 'PROJECT'): ?>
                                                 <i class="fas fa-project-diagram text-primary ms-2" title="Barang Project"></i>
                                             <?php endif; ?>
                                         </div>
                                     </td>
-                                    <td class="text-center">
-                                        <?php if (!empty($transaction['batch_id'])): ?>
-                                            <div class="d-flex flex-column align-items-center">
-                                                <small class="badge bg-success mb-1" title="Batch ID">
-                                                    <?= htmlspecialchars($transaction['batch_id']); ?>
-                                                </small>
-                                                <?php if (!empty($transaction['project_name'])): ?>
-                                                    <small class="text-primary fw-bold" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
-                                                        <?= strlen($transaction['project_name']) > 15
-                                                            ? substr(htmlspecialchars($transaction['project_name']), 0, 15) . '...'
-                                                            : htmlspecialchars($transaction['project_name']); ?>
-                                                    </small>
-                                                <?php endif; ?>
-                                            </div>
+                                    <td>
+                                        <?php if (!empty($transaction['project_name'])): ?>
+                                            <span class="text-primary" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
+                                                <?= strlen($transaction['project_name']) > 15
+                                                    ? substr(htmlspecialchars($transaction['project_name']), 0, 15) . '...'
+                                                    : htmlspecialchars($transaction['project_name']); ?>
+                                            </span>
+                                        <?php elseif (!empty($transaction['batch_id'])): ?>
+                                            <span class="text-muted">Batch</span>
                                         <?php else: ?>
                                             <span class="text-muted">-</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="text-center">
-                                        <?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?>
-                                    </td>
-                                    <td class="text-center pe-lg-5 pe-4">
+                                    <td><?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?></td>
+                                    <td>
                                         <?php if ($transaction['note']): ?>
-                                            <div class="d-flex align-items-center justify-content-center">
+                                            <div class="d-flex align-items-center">
                                                 <span class="text-muted me-2" title="<?= htmlspecialchars($transaction['note']); ?>">
-                                                    <?= strlen($transaction['note']) > 30 ? substr(htmlspecialchars($transaction['note']), 0, 30) . '...' : htmlspecialchars($transaction['note']); ?>
+                                                    <?= strlen($transaction['note']) > 20 ? substr(htmlspecialchars($transaction['note']), 0, 20) . '...' : htmlspecialchars($transaction['note']); ?>
                                                 </span>
-                                                <?php if (strlen($transaction['note']) > 30): ?>
+                                                <?php if (strlen($transaction['note']) > 20): ?>
                                                     <button type="button" class="btn btn-sm btn-outline-secondary"
                                                         onclick="showFullNote('<?= htmlspecialchars(addslashes($transaction['storing_id'])); ?>', '<?= htmlspecialchars(addslashes($transaction['note'])); ?>')"
                                                         title="Lihat catatan lengkap">
@@ -327,6 +320,17 @@
     </div>
 </div>
 
+<style>
+    /* Simple styling for compact table */
+    #transactionsTable {
+        width: 100%;
+    }
+
+    /* Ensure table takes full available width */
+    .table-responsive {
+        overflow-x: auto;
+    }
+</style>
 <script>
     function exportToExcel() {
         // Get current filter parameters
