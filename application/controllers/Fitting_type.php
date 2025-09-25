@@ -117,9 +117,9 @@ class Fitting_type extends CI_Controller
      */
     public function getSubtypes(): void
     {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
+        // if (!$this->input->is_ajax_request()) {
+        //     show_404();
+        // }
 
         $type = $this->input->post('type', true);
         if (empty($type)) {
@@ -140,9 +140,9 @@ class Fitting_type extends CI_Controller
      */
     public function addSubtype(): void
     {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
+        // if (!$this->input->is_ajax_request()) {
+        //     show_404();
+        // }
 
         $parentType = $this->input->post('parent_type', true);
         $subtype = $this->input->post('subtype', true);
@@ -180,9 +180,9 @@ class Fitting_type extends CI_Controller
      */
     public function updateSubtype(): void
     {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
+        // if (!$this->input->is_ajax_request()) {
+        //     show_404();
+        // }
 
         $id = $this->input->post('id', true);
         $parentType = $this->input->post('parent_type', true);
@@ -221,9 +221,9 @@ class Fitting_type extends CI_Controller
      */
     public function deleteSubtype(): void
     {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
+        // if (!$this->input->is_ajax_request()) {
+        //     show_404();
+        // }
 
         $id = $this->input->post('id', true);
 

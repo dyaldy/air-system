@@ -220,27 +220,31 @@
             }
         });
 
-        // Load subtypes function
-        function loadSubtypes() {
-            if (!currentType) return;
+    // Load subtypes function
+    function loadSubtypes() {
+        console.log('loadSubtypes called for type:', currentType);
+        if (!currentType) return;
 
-            fetch('<?= site_url('fitting_type/getSubtypes') ?>', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'type=' + encodeURIComponent(currentType)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    displaySubtypes(data);
-                })
-                .catch(error => {
-                    console.error('Error loading subtypes:', error);
-                });
-        }
-
-        // Display subtypes in table
+        console.log('Fetching subtypes...');
+        fetch('<?= site_url('fitting_type/getSubtypes') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'type=' + encodeURIComponent(currentType)
+            })
+            .then(response => {
+                console.log('Response received:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                displaySubtypes(data);
+            })
+            .catch(error => {
+                console.error('Error loading subtypes:', error);
+            });
+    }        // Display subtypes in table
         function displaySubtypes(subtypes) {
             const tbody = document.getElementById('subtypesTableBody');
 
@@ -288,6 +292,7 @@
 
         // Save new subtype
         function saveSubtype(subtype, description) {
+            console.log('saveSubtype called:', subtype, description);
             fetch('<?= site_url('fitting_type/addSubtype') ?>', {
                     method: 'POST',
                     headers: {
@@ -295,8 +300,12 @@
                     },
                     body: `parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Add response:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Add data:', data);
                     if (data.status === 'success') {
                         // Reset form
                         document.getElementById('newSubtype').value = '';
@@ -368,12 +377,15 @@
 
         // Save edit subtype
         function saveEditSubtype(id) {
+            console.log('saveEditSubtype called for id:', id);
             const row = document.getElementById(`subtypeRow${id}`);
             const subtypeEdit = row.querySelector('.subtype-edit');
             const descriptionEdit = row.querySelector('.description-edit');
 
             const subtype = subtypeEdit.value.trim();
             const description = descriptionEdit.value.trim();
+            
+            console.log('Updating subtype:', subtype, 'description:', description);
 
             if (!subtype) {
                 alert('Nama subtype harus diisi');
@@ -387,8 +399,12 @@
                     },
                     body: `id=${id}&parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Update response:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Update data:', data);
                     if (data.status === 'success') {
                         // Reload subtypes to show updated data
                         loadSubtypes();
@@ -405,6 +421,7 @@
 
         // Delete subtype
         function deleteSubtype(id, subtypeName) {
+            console.log('deleteSubtype called for id:', id, 'name:', subtypeName);
             if (!confirm(`Apakah Anda yakin ingin menghapus subtype "${subtypeName}"?\n\nPerhatian: Subtype yang sedang digunakan oleh fitting tidak dapat dihapus.`)) {
                 return;
             }
@@ -416,8 +433,12 @@
                     },
                     body: `id=${id}`
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Delete response:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Delete data:', data);
                     if (data.status === 'success') {
                         // Reload subtypes
                         loadSubtypes();
