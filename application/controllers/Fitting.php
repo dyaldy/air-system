@@ -216,7 +216,7 @@ class Fitting extends CI_Controller
         // Build list of type rows with image information
         $typeOptions = [];
         $imgPath = FCPATH . 'assets/img/fitting_types/';
-        $defaultUrl = base_url('assets/img/fitting-default.jpg');
+        $defaultUrl = base_url('assets/img/placeholder-image.svg');
 
         foreach ($allTypes as $typeRow) {
             $type = $typeRow['type'];

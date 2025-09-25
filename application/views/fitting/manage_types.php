@@ -16,7 +16,7 @@
         <?php if (!empty($types)): ?>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 <?php foreach ($types as $t): ?>
-                    <?php $img = !empty($t['image']) ? base_url('assets/img/fitting_types/' . $t['image']) : base_url('assets/img/fitting-default.jpg'); ?>
+                    <?php $img = !empty($t['image']) ? base_url('assets/img/fitting_types/' . $t['image']) : base_url('assets/img/placeholder-image.svg'); ?>
                     <div class="col">
                         <div class="card h-100 shadow-sm rounded-4">
                             <div class="fitting-thumb">

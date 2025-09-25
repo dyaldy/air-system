@@ -188,7 +188,7 @@ class Pneumatic extends CI_Controller
         // Build list of type rows with image information
         $typeOptions = [];
         $imgPath = FCPATH . 'assets/img/pneumatic_types/';
-        $defaultUrl = base_url('assets/img/pneumatic-default.jpg');
+        $defaultUrl = base_url('assets/img/placeholder-image.svg');
         foreach ($allTypes as $row) {
             $t = (string)($row['type'] ?? '');
             if ($t === '') continue;

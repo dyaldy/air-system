@@ -16,7 +16,7 @@
         <?php if (!empty($types)): ?>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 <?php foreach ($types as $t): ?>
-                    <?php $img = !empty($t['image']) ? base_url('assets/img/pneumatic_types/' . $t['image']) : base_url('assets/img/pneumatic-default.jpg'); ?>
+                    <?php $img = !empty($t['image']) ? base_url('assets/img/pneumatic_types/' . $t['image']) : base_url('assets/img/placeholder-image.svg'); ?>
                     <div class="col">
                         <div class="card h-100 shadow-sm rounded-4">
                             <div class="pneumatic-thumb">
@@ -27,51 +27,72 @@
 
                                 <?php if ($t['is_in_use']): ?>
                                     <!-- Show usage count if type is in use -->
-                                    <small class="text-muted mb-2 d-block">Digunakan oleh <?= $t['usage_count'] ?> pneumatic</small>
-                                <?php endif; ?>
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-info-circle"></i>
+                                        Digunakan pada <?= $t['usage_count'] ?> pneumatic
+                                    </p>
 
-                                <div class="d-flex justify-content-center gap-2">
-                                    <a href="<?= site_url('pneumatic_type/edit/' . $t['id']) ?>" class="btn btn-sm btn-outline-warning">Edit</a>
-
-                                    <?php if ($t['is_in_use']): ?>
-                                        <!-- Wrapper for disabled button to ensure tooltip works -->
-                                        <span class="d-inline-block"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-placement="top"
-                                            title="Tidak dapat dihapus karena sedang digunakan oleh <?= $t['usage_count'] ?> pneumatic">
-                                            <button type="button"
-                                                class="btn btn-sm btn-outline-secondary"
-                                                disabled
-                                                style="pointer-events: none;">
-                                                Hapus
-                                            </button>
-                                        </span>
-                                    <?php else: ?>
-                                        <!-- Normal delete button for unused types -->
-                                        <a href="<?= site_url('pneumatic_type/delete/' . $t['id']) ?>"
-                                            class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Hapus type ini?')">
-                                            Hapus
+                                    <!-- Edit button only (no delete for used types) -->
+                                    <div class="d-grid gap-2">
+                                        <a href="<?= site_url('pneumatic_type/edit/' . $t['id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill">
+                                            <i class="fas fa-edit"></i> Edit
                                         </a>
-                                    <?php endif; ?>
-                                </div>
+                                        <button class="btn btn-outline-secondary btn-sm rounded-pill" disabled title="Type sedang digunakan">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </div>
+                                <?php else: ?>
+                                    <!-- Full edit and delete options for unused types -->
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        Tidak digunakan
+                                    </p>
+
+                                    <div class="d-grid gap-2">
+                                        <a href="<?= site_url('pneumatic_type/edit/' . $t['id']) ?>" class="btn btn-outline-primary btn-sm rounded-pill">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="<?= site_url('pneumatic_type/delete/' . $t['id']) ?>"
+                                            class="btn btn-outline-danger btn-sm rounded-pill"
+                                            onclick="return confirm('Apakah Anda yakin ingin menghapus type <?= htmlspecialchars($t['type'], ENT_QUOTES, 'UTF-8') ?>?')">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <div class="alert alert-info">Tidak ada type.</div>
+            <div class="alert alert-info text-center">
+                <h4>Belum Ada Type Pneumatic</h4>
+                <p class="mb-3">Tambahkan type pneumatic pertama untuk mulai mengelola data pneumatic.</p>
+                <a href="<?= site_url('pneumatic_type/add') ?>" class="btn btn-primary rounded-pill px-4">Tambah Type Pneumatic</a>
+            </div>
         <?php endif; ?>
     </div>
 </div>
 
-<script>
-    // Initialize Bootstrap tooltips
-    document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-</script>
+<style>
+    .pneumatic-thumb {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 1rem 1rem 0 0;
+        background-color: #f8f9fa;
+    }
+
+    .pneumatic-thumb img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: cover;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        transition: transform 0.2s ease-in-out;
+    }
+</style>

@@ -22,7 +22,7 @@
             <div class="row pneumatic-type-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 <?php foreach ($type_options as $row) :
                     $type = $row['type'] ?? '';
-                    $imgUrl = $row['image_url'] ?? base_url('assets/img/pneumatic-default.jpg');
+                    $imgUrl = $row['image_url'] ?? base_url('assets/img/placeholder-image.svg');
                     $typeSafe = htmlspecialchars($type, ENT_QUOTES, 'UTF-8');
                 ?>
                     <div class="col">
