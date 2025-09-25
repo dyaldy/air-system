@@ -372,19 +372,14 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <?php if (!empty($transaction['batch_id'])): ?>
-                                                        <div class="d-flex flex-column">
-                                                            <small class="badge bg-success mb-1" style="font-size: 0.7em;">
-                                                                <?= htmlspecialchars($transaction['batch_id']); ?>
-                                                            </small>
-                                                            <?php if (!empty($transaction['project_name'])): ?>
-                                                                <small class="text-primary" style="font-size: 0.75em;" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
-                                                                    <?= strlen($transaction['project_name']) > 12
-                                                                        ? substr(htmlspecialchars($transaction['project_name']), 0, 12) . '...'
-                                                                        : htmlspecialchars($transaction['project_name']); ?>
-                                                                </small>
-                                                            <?php endif; ?>
-                                                        </div>
+                                                    <?php if (!empty($transaction['project_name'])): ?>
+                                                        <span class="text-primary" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
+                                                            <?= strlen($transaction['project_name']) > 15
+                                                                ? substr(htmlspecialchars($transaction['project_name']), 0, 15) . '...'
+                                                                : htmlspecialchars($transaction['project_name']); ?>
+                                                        </span>
+                                                    <?php elseif (!empty($transaction['batch_id'])): ?>
+                                                        <span class="text-muted">Batch</span>
                                                     <?php else: ?>
                                                         <span class="text-muted">-</span>
                                                     <?php endif; ?>

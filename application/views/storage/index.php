@@ -185,11 +185,14 @@
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
+                                            <th>ID Penyimpanan</th>
                                             <th>Tanggal/Waktu</th>
                                             <th>Aksi</th>
+                                            <th>Jumlah</th>
                                             <th>Lokasi</th>
                                             <th>Kategori</th>
                                             <th>ID Tipe</th>
+                                            <th>Project</th>
                                             <th>Pengguna</th>
                                             <th>Catatan</th>
                                         </tr>
@@ -197,6 +200,9 @@
                                     <tbody>
                                         <?php foreach ($recent_transactions as $transaction): ?>
                                             <tr>
+                                                <td>
+                                                    <code><?= htmlspecialchars($transaction['storing_id']); ?></code>
+                                                </td>
                                                 <td><?= date('M d, Y H:i', strtotime($transaction['datetime'])); ?></td>
                                                 <td>
                                                     <?php if ($transaction['action'] == 'store'): ?>
@@ -205,7 +211,16 @@
                                                         <span class="badge bg-warning">Ambil</span>
                                                     <?php endif; ?>
                                                 </td>
-                                                <td><?= htmlspecialchars($transaction['location_id']); ?></td>
+                                                <td>
+                                                    <span class="badge bg-info"><?= isset($transaction['amount']) ? (int)$transaction['amount'] : 1; ?></span>
+                                                </td>
+                                                <td>
+                                                    <a href="<?= site_url('storage/location/' . urlencode($transaction['location_id'])); ?>"
+                                                        class="text-decoration-none"
+                                                        title="Lihat detail lokasi">
+                                                        <?= htmlspecialchars($transaction['location_id']); ?>
+                                                    </a>
+                                                </td>
                                                 <td><?= htmlspecialchars($transaction['category']); ?></td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
@@ -214,6 +229,19 @@
                                                             <i class="fas fa-project-diagram text-primary ms-2" title="Barang Project"></i>
                                                         <?php endif; ?>
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <?php if (!empty($transaction['project_name'])): ?>
+                                                        <span class="text-primary" title="Project: <?= htmlspecialchars($transaction['project_name']); ?>">
+                                                            <?= strlen($transaction['project_name']) > 15
+                                                                ? substr(htmlspecialchars($transaction['project_name']), 0, 15) . '...'
+                                                                : htmlspecialchars($transaction['project_name']); ?>
+                                                        </span>
+                                                    <?php elseif (!empty($transaction['batch_id'])): ?>
+                                                        <span class="text-muted">Batch</span>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td><?= htmlspecialchars($transaction['user_name'] ?? 'Tidak Diketahui'); ?></td>
                                                 <td>
