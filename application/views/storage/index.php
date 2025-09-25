@@ -467,24 +467,30 @@
                     <input type="hidden" id="editBatchId" name="batch_id">
 
                     <div class="mb-3">
-                        <label for="editProjectName" class="form-label">Nama Project</label>
-                        <input type="text" class="form-control" id="editProjectName" name="project_name" required>
+                        <label for="editProjectName" class="form-label">Nama Project <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editProjectName" name="project_name" required maxlength="255" placeholder="Masukkan nama project">
+                        <div class="form-text">Nama project untuk identifikasi batch ini</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="editProjectNotes" class="form-label">Catatan Project</label>
-                        <textarea class="form-control" id="editProjectNotes" name="project_notes" rows="3" placeholder="Deskripsi atau catatan tambahan untuk project ini..."></textarea>
+                        <textarea class="form-control" id="editProjectNotes" name="project_notes" rows="3" maxlength="1000" placeholder="Deskripsi atau catatan tambahan untuk project ini..."></textarea>
+                        <div class="form-text">Catatan opsional untuk project ini</div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="editInitialQuantity" class="form-label">Jumlah Awal</label>
-                            <input type="number" class="form-control" id="editInitialQuantity" name="initial_quantity" min="0" required>
+                    <!-- Information display only (not editable) -->
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Jumlah Awal:</strong> <span id="displayInitialQuantity" class="badge bg-primary"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Sisa Stok:</strong> <span id="displayRemainingQuantity" class="badge bg-success"></span>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="editRemainingQuantity" class="form-label">Sisa Stok</label>
-                            <input type="number" class="form-control" id="editRemainingQuantity" name="remaining_quantity" min="0" required>
-                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-info-circle"></i> Jumlah awal dan sisa stok dikelola otomatis oleh sistem berdasarkan transaksi simpan/ambil barang.
+                        </small>
                     </div>
                 </form>
             </div>
@@ -862,8 +868,10 @@
         document.getElementById('editBatchId').value = batchId;
         document.getElementById('editProjectName').value = projectName;
         document.getElementById('editProjectNotes').value = projectNotes || '';
-        document.getElementById('editInitialQuantity').value = initialQty;
-        document.getElementById('editRemainingQuantity').value = remainingQty;
+
+        // Display quantities as read-only information
+        document.getElementById('displayInitialQuantity').textContent = initialQty;
+        document.getElementById('displayRemainingQuantity').textContent = remainingQty;
 
         const modal = new bootstrap.Modal(document.getElementById('batchEditModal'));
         modal.show();
@@ -872,7 +880,28 @@
     // Save batch edit
     function saveBatchEdit() {
         const form = document.getElementById('batchEditForm');
+        const projectName = document.getElementById('editProjectName').value.trim();
+        const batchId = document.getElementById('editBatchId').value;
+
+        // Client-side validation
+        if (!projectName) {
+            alert('Nama project harus diisi!');
+            document.getElementById('editProjectName').focus();
+            return;
+        }
+
+        if (!batchId) {
+            alert('Batch ID tidak ditemukan! Silakan tutup dan buka kembali form edit.');
+            return;
+        }
+
         const formData = new FormData(form);
+
+        // Show loading state
+        const submitButton = document.querySelector('#batchEditModal .btn-primary');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Menyimpan...';
+        submitButton.disabled = true;
 
         fetch('<?= site_url('storage/update_batch'); ?>', {
                 method: 'POST',
@@ -886,9 +915,21 @@
 
                     // Reload batches
                     loadItemBatches(currentCategory, currentTypeId);
+
+                    // Show success message
+                    alert('Batch berhasil diperbarui!');
                 } else {
                     alert('Error: ' + data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
+            })
+            .finally(() => {
+                // Restore button state
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
             });
     }
 

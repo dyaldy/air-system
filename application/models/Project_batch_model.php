@@ -251,6 +251,20 @@ class Project_batch_model extends CI_Model
     }
 
     /**
+     * Update batch information (only editable fields)
+     */
+    public function update_batch_info($batch_id, $project_name, $project_notes)
+    {
+        $update_data = [
+            'project_name' => $project_name,
+            'project_notes' => $project_notes
+        ];
+
+        $this->db->where('batch_id', $batch_id);
+        return $this->db->update('as_project_batches', $update_data);
+    }
+
+    /**
      * Update batch information
      */
     public function update_batch($batch_id, $project_name, $project_notes, $initial_quantity, $remaining_quantity)

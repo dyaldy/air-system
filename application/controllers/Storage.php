@@ -1052,19 +1052,47 @@ class Storage extends CI_Controller
      */
     public function update_batch()
     {
-        $batch_id = $this->input->post('batch_id');
-        $project_name = $this->input->post('project_name');
-        $project_notes = $this->input->post('project_notes');
-        $initial_quantity = $this->input->post('initial_quantity');
-        $remaining_quantity = $this->input->post('remaining_quantity');
+        // Set JSON response header
+        header('Content-Type: application/json');
 
-        if (!$batch_id) {
-            $response = array(
-                'success' => false,
-                'message' => 'Batch ID is required'
-            );
-        } else {
-            $update_result = $this->Project_batch_model->update_batch($batch_id, $project_name, $project_notes, $initial_quantity, $remaining_quantity);
+        try {
+            $batch_id = $this->input->post('batch_id');
+            $project_name = $this->input->post('project_name');
+            $project_notes = $this->input->post('project_notes');
+
+            // Validate required fields
+            if (!$batch_id) {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Batch ID is required'
+                );
+                echo json_encode($response);
+                return;
+            }
+
+            if (!$project_name || trim($project_name) === '') {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Project name is required'
+                );
+                echo json_encode($response);
+                return;
+            }
+
+            // Check if batch exists first
+            $batch = $this->Project_batch_model->get_batch_by_id($batch_id);
+            if (!$batch) {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Batch not found with ID: ' . $batch_id
+                );
+                echo json_encode($response);
+                return;
+            }
+
+            // Only update editable fields: project_name and project_notes
+            // Initial quantity and remaining quantity are managed automatically by the system
+            $update_result = $this->Project_batch_model->update_batch_info($batch_id, trim($project_name), $project_notes);
 
             if ($update_result) {
                 $response = array(
@@ -1074,12 +1102,16 @@ class Storage extends CI_Controller
             } else {
                 $response = array(
                     'success' => false,
-                    'message' => 'Failed to update batch'
+                    'message' => 'Failed to update batch. Database update returned false.'
                 );
             }
+        } catch (Exception $e) {
+            $response = array(
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            );
         }
 
-        header('Content-Type: application/json');
         echo json_encode($response);
     }
 
