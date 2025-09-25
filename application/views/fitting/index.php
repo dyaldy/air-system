@@ -229,7 +229,8 @@
                 <?= $pagination['links']; ?>
 
                 <!-- Action Buttons -->
-                <div class="d-flex">
+                <div class="btn-group">
+                    <!-- Reset All Filters -->
                     <?php if ($hasFilters) : ?>
                         <form action="" method="post" class="d-inline">
                             <input type="hidden" name="reset" value="1">
