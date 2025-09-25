@@ -161,6 +161,14 @@ class Fitting_type extends CI_Controller
             return;
         }
 
+        // Validate subtype format
+        if (!preg_match('/^[A-Z0-9_]+$/', $subtype)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Subtype harus menggunakan huruf besar, angka, dan underscore saja (contoh: MALE_THREAD, FEMALE_THREAD)']));
+            return;
+        }
+
         // Check if subtype already exists for this parent type
         if ($this->Fitting_subtype_model->isSubtypeExists($parentType, $subtype)) {
             $this->output
@@ -199,6 +207,14 @@ class Fitting_type extends CI_Controller
             $this->output
                 ->set_content_type('application/json')
                 ->set_output(json_encode(['status' => 'error', 'message' => 'ID, parent type dan subtype harus diisi']));
+            return;
+        }
+
+        // Validate subtype format
+        if (!preg_match('/^[A-Z0-9_]+$/', $subtype)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Subtype harus menggunakan huruf besar, angka, dan underscore saja (contoh: MALE_THREAD, FEMALE_THREAD)']));
             return;
         }
 

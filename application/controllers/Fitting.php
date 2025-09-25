@@ -52,7 +52,7 @@ class Fitting extends CI_Controller
             'subtype' => [
                 'field' => 'subtype',
                 'label' => 'Subtype',
-                'rules' => 'required|trim|max_length[50]',
+                'rules' => 'required|trim|max_length[50]|callback_validate_subtype_format',
                 'errors' => [
                     'required'   => '%s harus diisi',
                     'max_length' => '%s maksimal 50 karakter',
@@ -680,5 +680,17 @@ class Fitting extends CI_Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+    }
+
+    /**
+     * Custom validation for subtype format (uppercase letters, numbers, and underscores only)
+     */
+    public function validate_subtype_format($str): bool
+    {
+        if (!preg_match('/^[A-Z0-9_]+$/', $str)) {
+            $this->form_validation->set_message('validate_subtype_format', 'Subtype harus menggunakan huruf besar, angka, dan underscore saja (contoh: MALE_THREAD, FEMALE_THREAD, 90_DEGREE)');
+            return false;
+        }
+        return true;
     }
 }

@@ -88,7 +88,8 @@
                             <h6 class="card-title">Tambah Subtype Baru</h6>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" id="newSubtype" placeholder="Nama Subtype" maxlength="50">
+                                    <input type="text" class="form-control" id="newSubtype" placeholder="Nama Subtype (contoh: MALE_THREAD)" maxlength="50">
+                                    <small class="form-text text-muted">Hanya huruf besar, angka, dan underscore</small>
                                 </div>
                                 <div class="col-md-6">
                                     <input type="text" class="form-control" id="newSubtypeDescription" placeholder="Deskripsi (opsional)">
@@ -510,5 +511,50 @@
                 }
             });
         }
+
+        // Enforce uppercase and underscore format for subtype fields
+        function enforceSubtypeFormat(input) {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.toUpperCase();
+                // Only allow letters, numbers, and underscores
+                value = value.replace(/[^A-Z0-9_]/g, '');
+                e.target.value = value;
+            });
+
+            input.addEventListener('blur', function(e) {
+                const value = e.target.value;
+                if (value && !value.match(/^[A-Z0-9_]+$/)) {
+                    e.target.setCustomValidity('Subtype harus menggunakan huruf besar, angka, dan underscore saja');
+                } else {
+                    e.target.setCustomValidity('');
+                }
+            });
+        }
+
+        // Apply format enforcement to new subtype input
+        const newSubtypeInput = document.getElementById('newSubtype');
+        if (newSubtypeInput) {
+            enforceSubtypeFormat(newSubtypeInput);
+        }
+
+        // Apply format enforcement to existing subtype edit inputs (will be created dynamically)
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('subtype-edit')) {
+                let value = e.target.value.toUpperCase();
+                value = value.replace(/[^A-Z0-9_]/g, '');
+                e.target.value = value;
+            }
+        });
+
+        document.addEventListener('blur', function(e) {
+            if (e.target.classList.contains('subtype-edit')) {
+                const value = e.target.value;
+                if (value && !value.match(/^[A-Z0-9_]+$/)) {
+                    e.target.setCustomValidity('Subtype harus menggunakan huruf besar, angka, dan underscore saja');
+                } else {
+                    e.target.setCustomValidity('');
+                }
+            }
+        });
     });
 </script>
