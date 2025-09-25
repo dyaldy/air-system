@@ -202,10 +202,10 @@
                             <th scope="row" class="text-center ps-lg-5 ps-4"><?= $fitting['fitting_id']; ?></th>
                             <td class="text-center"><?= $fitting['type']; ?></td>
                             <td class="text-center"><?= $fitting['subtype'] ?? 'N/A'; ?></td>
-                            <td class="text-center"><?= $fitting['D1']; ?></td>
-                            <td class="text-center"><?= $fitting['D2']; ?></td>
-                            <td class="text-center"><?= $fitting['D3']; ?></td>
-                            <td class="text-center"><?= $fitting['R_DRAT']; ?></td>
+                            <td class="text-center"><?= !empty($fitting['D1']) ? $fitting['D1'] : '-'; ?></td>
+                            <td class="text-center"><?= !empty($fitting['D2']) ? $fitting['D2'] : '-'; ?></td>
+                            <td class="text-center"><?= !empty($fitting['D3']) ? $fitting['D3'] : '-'; ?></td>
+                            <td class="text-center"><?= !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '-'; ?></td>
                             <td class="text-center pe-lg-5 pe-4">
                                 <a href="<?= site_url('fitting/edit/' . urlencode($fitting['fitting_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit fitting">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
@@ -267,11 +267,12 @@
                         <li>Download template <a href="<?= site_url('fitting/template'); ?>">disini</a>.</li>
                         <li>Ketentuan pengisian tabel:
                             <ol>
-                                <li>Fitting ID akan dibuat otomatis berdasarkan format: fit-type-D1-D2-D3-R(DRAT).</li>
-                                <li>Type maksimal 15 karakter, akan otomatis diformat menjadi huruf besar.</li>
-                                <li>D1, D2, D3 harus berupa angka positif.</li>
-                                <li>R(DRAT) maksimal 20 karakter.</li>
-                                <li>Kombinasi type, D1, D2, D3, dan R(DRAT) harus unik.</li>
+                                <li>Fitting ID akan dibuat otomatis berdasarkan field yang diisi.</li>
+                                <li>Type wajib diisi, maksimal 30 karakter, akan otomatis diformat menjadi huruf besar.</li>
+                                <li>Minimal satu field dimensi (D1, D2, D3, atau R(DRAT)) harus diisi.</li>
+                                <li>D1, D2, D3 jika diisi harus berupa angka positif.</li>
+                                <li>R(DRAT) jika diisi maksimal 20 karakter.</li>
+                                <li>Kombinasi field yang diisi harus menghasilkan ID yang unik.</li>
                             </ol>
                         </li>
                     </ul>

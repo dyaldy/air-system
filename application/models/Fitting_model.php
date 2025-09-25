@@ -97,21 +97,27 @@ class Fitting_model extends CI_Model
     {
         $type = strtoupper($this->input->post('type', true));
         $subtype = strtoupper($this->input->post('subtype', true));
-        $D1 = (float)$this->input->post('D1', true);
-        $D2 = (float)$this->input->post('D2', true);
-        $D3 = (float)$this->input->post('D3', true);
-        $R_DRAT = strtoupper($this->input->post('R_DRAT', true));
 
-        // Generate fitting_id with format: fit-{type}-{subtype}-{D1}-{D2}-{D3}-{R_DRAT}
-        $fittingId = sprintf(
-            'fit-%s-%s-%.1f-%.1f-%.1f-%s',
-            strtolower(str_replace('_', '-', $type)),
-            strtolower(str_replace('_', '-', $subtype)),
-            $D1,
-            $D2,
-            $D3,
-            str_replace('"', '', $R_DRAT)
-        );
+        // Handle optional fields based on checkboxes
+        $enableD1 = $this->input->post('enable_d1');
+        $enableD2 = $this->input->post('enable_d2');
+        $enableD3 = $this->input->post('enable_d3');
+        $enableRDrat = $this->input->post('enable_r_drat');
+
+        $D1 = $enableD1 ? (float)$this->input->post('D1', true) : null;
+        $D2 = $enableD2 ? (float)$this->input->post('D2', true) : null;
+        $D3 = $enableD3 ? (float)$this->input->post('D3', true) : null;
+        $R_DRAT = $enableRDrat ? strtoupper($this->input->post('R_DRAT', true)) : null;
+
+        // Generate fitting_id with format including only non-null values
+        $idParts = ['fit', strtolower(str_replace('_', '-', $type)), strtolower(str_replace('_', '-', $subtype))];
+
+        if ($D1 !== null) $idParts[] = number_format($D1, 1);
+        if ($D2 !== null) $idParts[] = number_format($D2, 1);
+        if ($D3 !== null) $idParts[] = number_format($D3, 1);
+        if ($R_DRAT !== null) $idParts[] = str_replace('"', '', $R_DRAT);
+
+        $fittingId = implode('-', $idParts);
 
         $data = [
             'fitting_id' => $fittingId,
@@ -152,21 +158,27 @@ class Fitting_model extends CI_Model
     {
         $type = strtoupper($this->input->post('type', true));
         $subtype = strtoupper($this->input->post('subtype', true));
-        $D1 = (float)$this->input->post('D1', true);
-        $D2 = (float)$this->input->post('D2', true);
-        $D3 = (float)$this->input->post('D3', true);
-        $R_DRAT = strtoupper($this->input->post('R_DRAT', true));
 
-        // Generate new fitting_id with format: fit-{type}-{subtype}-{D1}-{D2}-{D3}-{R_DRAT}
-        $newFittingId = sprintf(
-            'fit-%s-%s-%.1f-%.1f-%.1f-%s',
-            strtolower(str_replace('_', '-', $type)),
-            strtolower(str_replace('_', '-', $subtype)),
-            $D1,
-            $D2,
-            $D3,
-            str_replace('"', '', $R_DRAT)
-        );
+        // Handle optional fields based on checkboxes
+        $enableD1 = $this->input->post('enable_d1');
+        $enableD2 = $this->input->post('enable_d2');
+        $enableD3 = $this->input->post('enable_d3');
+        $enableRDrat = $this->input->post('enable_r_drat');
+
+        $D1 = $enableD1 ? (float)$this->input->post('D1', true) : null;
+        $D2 = $enableD2 ? (float)$this->input->post('D2', true) : null;
+        $D3 = $enableD3 ? (float)$this->input->post('D3', true) : null;
+        $R_DRAT = $enableRDrat ? strtoupper($this->input->post('R_DRAT', true)) : null;
+
+        // Generate new fitting_id with format including only non-null values
+        $idParts = ['fit', strtolower(str_replace('_', '-', $type)), strtolower(str_replace('_', '-', $subtype))];
+
+        if ($D1 !== null) $idParts[] = number_format($D1, 1);
+        if ($D2 !== null) $idParts[] = number_format($D2, 1);
+        if ($D3 !== null) $idParts[] = number_format($D3, 1);
+        if ($R_DRAT !== null) $idParts[] = str_replace('"', '', $R_DRAT);
+
+        $newFittingId = implode('-', $idParts);
 
         $data = [
             'fitting_id' => $newFittingId,

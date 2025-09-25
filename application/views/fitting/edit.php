@@ -72,8 +72,56 @@
                 <?php endif; ?>
             </div>
 
+            <!-- Field Selection Section -->
+            <div class="mb-4">
+                <label class="form-label">Pilih Field yang akan diisi <span class="text-danger">*</span></label>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Pilih field dimensi yang ingin Anda isi. Minimal satu field harus dipilih.
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_d1" id="enable_d1" value="1" <?= set_checkbox('enable_d1', '1', !empty($fitting['D1'])); ?>>
+                            <label class="form-check-label" for="enable_d1">
+                                D1
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_d2" id="enable_d2" value="1" <?= set_checkbox('enable_d2', '1', !empty($fitting['D2'])); ?>>
+                            <label class="form-check-label" for="enable_d2">
+                                D2
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_d3" id="enable_d3" value="1" <?= set_checkbox('enable_d3', '1', !empty($fitting['D3'])); ?>>
+                            <label class="form-check-label" for="enable_d3">
+                                D3
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_r_drat" id="enable_r_drat" value="1" <?= set_checkbox('enable_r_drat', '1', !empty($fitting['R_DRAT'])); ?>>
+                            <label class="form-check-label" for="enable_r_drat">
+                                R(DRAT)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <?php if (form_error('enable_d1')): ?>
+                    <div class="text-danger mt-1">
+                        <?= form_error('enable_d1'); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <!-- D1 Field -->
-            <div class="mb-3">
+            <div class="mb-3" id="d1_field" style="display: none;">
                 <label for="D1" class="form-label">D1 <span class="text-danger">*</span></label>
                 <input type="number"
                     class="form-control <?= form_error('D1') ? 'is-invalid' : ''; ?>"
@@ -82,8 +130,7 @@
                     value="<?= set_value('D1', $fitting['D1']); ?>"
                     step="0.01"
                     min="0.01"
-                    placeholder="Masukkan dimensi D1"
-                    required>
+                    placeholder="Masukkan dimensi D1">
                 <?php if (form_error('D1')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('D1'); ?>
@@ -92,7 +139,7 @@
             </div>
 
             <!-- D2 Field -->
-            <div class="mb-3">
+            <div class="mb-3" id="d2_field" style="display: none;">
                 <label for="D2" class="form-label">D2 <span class="text-danger">*</span></label>
                 <input type="number"
                     class="form-control <?= form_error('D2') ? 'is-invalid' : ''; ?>"
@@ -101,8 +148,7 @@
                     value="<?= set_value('D2', $fitting['D2']); ?>"
                     step="0.01"
                     min="0.01"
-                    placeholder="Masukkan dimensi D2"
-                    required>
+                    placeholder="Masukkan dimensi D2">
                 <?php if (form_error('D2')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('D2'); ?>
@@ -111,7 +157,7 @@
             </div>
 
             <!-- D3 Field -->
-            <div class="mb-3">
+            <div class="mb-3" id="d3_field" style="display: none;">
                 <label for="D3" class="form-label">D3 <span class="text-danger">*</span></label>
                 <input type="number"
                     class="form-control <?= form_error('D3') ? 'is-invalid' : ''; ?>"
@@ -120,8 +166,7 @@
                     value="<?= set_value('D3', $fitting['D3']); ?>"
                     step="0.01"
                     min="0.01"
-                    placeholder="Masukkan dimensi D3"
-                    required>
+                    placeholder="Masukkan dimensi D3">
                 <?php if (form_error('D3')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('D3'); ?>
@@ -130,7 +175,7 @@
             </div>
 
             <!-- R(DRAT) Field -->
-            <div class="mb-3">
+            <div class="mb-3" id="r_drat_field" style="display: none;">
                 <label for="R_DRAT" class="form-label">R(DRAT) <span class="text-danger">*</span></label>
                 <input type="text"
                     class="form-control <?= form_error('R_DRAT') ? 'is-invalid' : ''; ?>"
@@ -138,8 +183,7 @@
                     id="R_DRAT"
                     value="<?= set_value('R_DRAT', $fitting['R_DRAT']); ?>"
                     placeholder="Contoh: M5, M6, 01, 02, 03"
-                    maxlength="20"
-                    required>
+                    maxlength="20">
                 <?php if (form_error('R_DRAT')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('R_DRAT'); ?>
@@ -161,7 +205,7 @@
 </div>
 
 <script>
-    // Handle dynamic subtype loading and preview new fitting ID as user edits
+    // Handle dynamic subtype loading, field visibility, and preview new fitting ID as user edits
     document.addEventListener('DOMContentLoaded', function() {
         const typeSelect = document.getElementById('type');
         const subtypeSelect = document.getElementById('subtype');
@@ -170,6 +214,50 @@
         const D3Input = document.getElementById('D3');
         const RDratInput = document.getElementById('R_DRAT');
         const currentIdInput = document.getElementById('fitting_id');
+
+        // Checkbox elements
+        const enableD1 = document.getElementById('enable_d1');
+        const enableD2 = document.getElementById('enable_d2');
+        const enableD3 = document.getElementById('enable_d3');
+        const enableRDrat = document.getElementById('enable_r_drat');
+
+        // Field containers
+        const d1Field = document.getElementById('d1_field');
+        const d2Field = document.getElementById('d2_field');
+        const d3Field = document.getElementById('d3_field');
+        const rDratField = document.getElementById('r_drat_field');
+
+        // Handle checkbox changes to show/hide fields
+        function toggleField(checkbox, fieldContainer, input) {
+            fieldContainer.style.display = checkbox.checked ? 'block' : 'none';
+            input.required = checkbox.checked;
+            if (!checkbox.checked) {
+                input.value = '';
+            }
+            updatePreview();
+        }
+
+        enableD1.addEventListener('change', function() {
+            toggleField(this, d1Field, D1Input);
+        });
+
+        enableD2.addEventListener('change', function() {
+            toggleField(this, d2Field, D2Input);
+        });
+
+        enableD3.addEventListener('change', function() {
+            toggleField(this, d3Field, D3Input);
+        });
+
+        enableRDrat.addEventListener('change', function() {
+            toggleField(this, rDratField, RDratInput);
+        });
+
+        // Initialize field visibility based on checkbox state
+        toggleField(enableD1, d1Field, D1Input);
+        toggleField(enableD2, d2Field, D2Input);
+        toggleField(enableD3, d3Field, D3Input);
+        toggleField(enableRDrat, rDratField, RDratInput);
 
         // Load subtypes when type changes
         typeSelect.addEventListener('change', function() {
@@ -213,13 +301,25 @@
         function updatePreview() {
             const type = typeSelect.value.toLowerCase().replace(/\s+/g, '_');
             const subtype = subtypeSelect.value.toLowerCase().replace(/\s+/g, '_');
-            const D1 = parseFloat(D1Input.value) || 0;
-            const D2 = parseFloat(D2Input.value) || 0;
-            const D3 = parseFloat(D3Input.value) || 0;
-            const rDrat = RDratInput.value.replace(/"/g, '');
 
-            if (type && subtype && D1 && D2 && D3 && rDrat) {
-                const newId = `fit-${type}-${subtype}-${D1.toFixed(1)}-${D2.toFixed(1)}-${D3.toFixed(1)}-${rDrat}`;
+            // Only include enabled fields in preview
+            const idParts = ['fit', type, subtype];
+
+            if (enableD1.checked && D1Input.value) {
+                idParts.push(parseFloat(D1Input.value).toFixed(1));
+            }
+            if (enableD2.checked && D2Input.value) {
+                idParts.push(parseFloat(D2Input.value).toFixed(1));
+            }
+            if (enableD3.checked && D3Input.value) {
+                idParts.push(parseFloat(D3Input.value).toFixed(1));
+            }
+            if (enableRDrat.checked && RDratInput.value) {
+                idParts.push(RDratInput.value.replace(/"/g, ''));
+            }
+
+            if (type && subtype && idParts.length > 3) {
+                const newId = idParts.filter(part => part && part !== '').join('-');
 
                 // Update the current ID display if different
                 if (newId !== currentIdInput.value) {
@@ -234,6 +334,11 @@
         [typeSelect, subtypeSelect, D1Input, D2Input, D3Input, RDratInput].forEach(input => {
             input.addEventListener('input', updatePreview);
             input.addEventListener('change', updatePreview);
+        });
+
+        // Add change listeners for checkboxes
+        [enableD1, enableD2, enableD3, enableRDrat].forEach(checkbox => {
+            checkbox.addEventListener('change', updatePreview);
         });
 
         // Initialize subtypes on page load if type is already selected

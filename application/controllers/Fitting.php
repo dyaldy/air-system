@@ -480,10 +480,10 @@ class Fitting extends CI_Controller
         foreach ($fittings as $fitting) {
             $sheet->setCellValue("A{$row}", $fitting['fitting_id']);
             $sheet->setCellValue("B{$row}", $fitting['type']);
-            $sheet->setCellValue("C{$row}", $fitting['D1']);
-            $sheet->setCellValue("D{$row}", $fitting['D2']);
-            $sheet->setCellValue("E{$row}", $fitting['D3']);
-            $sheet->setCellValue("F{$row}", $fitting['R_DRAT']);
+            $sheet->setCellValue("C{$row}", !empty($fitting['D1']) ? $fitting['D1'] : '');
+            $sheet->setCellValue("D{$row}", !empty($fitting['D2']) ? $fitting['D2'] : '');
+            $sheet->setCellValue("E{$row}", !empty($fitting['D3']) ? $fitting['D3'] : '');
+            $sheet->setCellValue("F{$row}", !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '');
             $sheet->setCellValue("G{$row}", $fitting['created_at']);
             $sheet->setCellValue("H{$row}", $fitting['updated_at']);
             $sheet->setCellValue("I{$row}", $fitting['editor']);
@@ -508,14 +508,82 @@ class Fitting extends CI_Controller
      */
     private function setValidationRules(bool $isEdit = false): void
     {
-        foreach (self::CONFIG['validation_rules'] as $fieldName => $rules) {
-            $this->form_validation->set_rules(
-                $rules['field'],
-                $rules['label'],
-                $rules['rules'],
-                $rules['errors'] ?? []
-            );
+        // Set basic required rules for type and subtype
+        foreach (['type', 'subtype'] as $fieldName) {
+            if (isset(self::CONFIG['validation_rules'][$fieldName])) {
+                $rules = self::CONFIG['validation_rules'][$fieldName];
+                $this->form_validation->set_rules(
+                    $rules['field'],
+                    $rules['label'],
+                    $rules['rules'],
+                    $rules['errors'] ?? []
+                );
+            }
         }
+
+        // Set conditional rules for D1, D2, D3, R_DRAT based on checkboxes
+        $dimensionFields = ['D1', 'D2', 'D3', 'R_DRAT'];
+        foreach ($dimensionFields as $fieldName) {
+            $checkboxName = 'enable_' . strtolower($fieldName);
+            $isFieldEnabled = $this->input->post($checkboxName);
+
+            if ($isFieldEnabled) {
+                // Field is enabled, apply validation rules
+                if (in_array($fieldName, ['D1', 'D2', 'D3'])) {
+                    $this->form_validation->set_rules(
+                        $fieldName,
+                        $fieldName,
+                        'required|numeric|greater_than[0]',
+                        [
+                            'required'     => $fieldName . ' harus diisi',
+                            'numeric'      => $fieldName . ' harus berupa angka',
+                            'greater_than' => $fieldName . ' harus lebih besar dari 0',
+                        ]
+                    );
+                } elseif ($fieldName === 'R_DRAT') {
+                    $this->form_validation->set_rules(
+                        'R_DRAT',
+                        'R(DRAT)',
+                        'required|trim|max_length[20]',
+                        [
+                            'required'   => 'R(DRAT) harus diisi',
+                            'max_length' => 'R(DRAT) maksimal 20 karakter',
+                        ]
+                    );
+                }
+            } else {
+                // Field is not enabled, set optional validation
+                if (in_array($fieldName, ['D1', 'D2', 'D3'])) {
+                    $this->form_validation->set_rules(
+                        $fieldName,
+                        $fieldName,
+                        'callback_validate_optional_numeric',
+                        [
+                            'validate_optional_numeric' => $fieldName . ' harus berupa angka yang valid jika diisi'
+                        ]
+                    );
+                } elseif ($fieldName === 'R_DRAT') {
+                    $this->form_validation->set_rules(
+                        'R_DRAT',
+                        'R(DRAT)',
+                        'trim|max_length[20]',
+                        [
+                            'max_length' => 'R(DRAT) maksimal 20 karakter',
+                        ]
+                    );
+                }
+            }
+        }
+
+        // Custom validation to ensure at least one dimension field is enabled
+        $this->form_validation->set_rules(
+            'enable_d1',
+            'Field Selection',
+            'callback_validate_at_least_one_field',
+            [
+                'validate_at_least_one_field' => 'Minimal satu field dimensi harus dipilih'
+            ]
+        );
     }
 
     /**
@@ -569,36 +637,58 @@ class Fitting extends CI_Controller
                 continue;
             }
 
-            // Validate required fields
-            if (empty($type) || empty($D1) || empty($D2) || empty($D3) || empty($R_DRAT)) {
-                $errors[] = "Baris {$row}: Data tidak lengkap";
+            // Validate required type field
+            if (empty($type)) {
+                $errors[] = "Baris {$row}: Type harus diisi";
                 continue;
             }
 
-            // Validate numeric fields
-            if (!is_numeric($D1) || !is_numeric($D2) || !is_numeric($D3)) {
-                $errors[] = "Baris {$row}: D1, D2, D3 harus berupa angka";
+            // Check if at least one dimension field is provided
+            if (empty($D1) && empty($D2) && empty($D3) && empty($R_DRAT)) {
+                $errors[] = "Baris {$row}: Minimal satu field dimensi (D1, D2, D3, atau R_DRAT) harus diisi";
                 continue;
             }
 
-            $D1 = (float)$D1;
-            $D2 = (float)$D2;
-            $D3 = (float)$D3;
+            // Validate numeric fields if provided
+            $validatedD1 = null;
+            $validatedD2 = null;
+            $validatedD3 = null;
 
-            if ($D1 <= 0 || $D2 <= 0 || $D3 <= 0) {
-                $errors[] = "Baris {$row}: D1, D2, D3 harus lebih besar dari 0";
-                continue;
+            if (!empty($D1)) {
+                if (!is_numeric($D1) || (float)$D1 <= 0) {
+                    $errors[] = "Baris {$row}: D1 harus berupa angka positif";
+                    continue;
+                }
+                $validatedD1 = (float)$D1;
+            }
+
+            if (!empty($D2)) {
+                if (!is_numeric($D2) || (float)$D2 <= 0) {
+                    $errors[] = "Baris {$row}: D2 harus berupa angka positif";
+                    continue;
+                }
+                $validatedD2 = (float)$D2;
+            }
+
+            if (!empty($D3)) {
+                if (!is_numeric($D3) || (float)$D3 <= 0) {
+                    $errors[] = "Baris {$row}: D3 harus berupa angka positif";
+                    continue;
+                }
+                $validatedD3 = (float)$D3;
             }
 
             $type = strtoupper($type);
-            $fittingId = sprintf(
-                'fit-%s-%.1f-%.1f-%.1f-%s',
-                strtolower(str_replace(' ', '_', $type)),
-                $D1,
-                $D2,
-                $D3,
-                str_replace('"', '', $R_DRAT)
-            );
+
+            // Generate fitting_id with only non-null values
+            $idParts = ['fit', strtolower(str_replace(' ', '_', $type))];
+
+            if ($validatedD1 !== null) $idParts[] = number_format($validatedD1, 1);
+            if ($validatedD2 !== null) $idParts[] = number_format($validatedD2, 1);
+            if ($validatedD3 !== null) $idParts[] = number_format($validatedD3, 1);
+            if (!empty($R_DRAT)) $idParts[] = str_replace('"', '', $R_DRAT);
+
+            $fittingId = implode('-', $idParts);
 
             // Check for duplicate ID
             if ($this->Fitting_model->isFittingIdExists($fittingId)) {
@@ -609,10 +699,10 @@ class Fitting extends CI_Controller
             $batchData[] = [
                 'fitting_id' => $fittingId,
                 'type' => $type,
-                'D1' => $D1,
-                'D2' => $D2,
-                'D3' => $D3,
-                'R_DRAT' => $R_DRAT,
+                'D1' => $validatedD1,
+                'D2' => $validatedD2,
+                'D3' => $validatedD3,
+                'R_DRAT' => !empty($R_DRAT) ? $R_DRAT : null,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
                 'editor' => $this->session->userdata('user_data')['nik'],
@@ -692,5 +782,34 @@ class Fitting extends CI_Controller
             return false;
         }
         return true;
+    }
+
+    /**
+     * Custom validation for optional numeric fields
+     */
+    public function validate_optional_numeric($str): bool
+    {
+        if (empty($str)) {
+            return true; // Allow empty values
+        }
+
+        if (!is_numeric($str) || floatval($str) <= 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Custom validation to ensure at least one dimension field is selected
+     */
+    public function validate_at_least_one_field($str): bool
+    {
+        $enableD1 = $this->input->post('enable_d1');
+        $enableD2 = $this->input->post('enable_d2');
+        $enableD3 = $this->input->post('enable_d3');
+        $enableRDrat = $this->input->post('enable_r_drat');
+
+        return ($enableD1 || $enableD2 || $enableD3 || $enableRDrat);
     }
 }
