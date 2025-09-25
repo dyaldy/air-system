@@ -43,10 +43,10 @@ class Fitting extends CI_Controller
             'type' => [
                 'field' => 'type',
                 'label' => 'Type',
-                'rules' => 'required|trim|max_length[15]',
+                'rules' => 'required|trim|max_length[30]',
                 'errors' => [
                     'required'   => '%s harus diisi',
-                    'max_length' => '%s maksimal 15 karakter',
+                    'max_length' => '%s maksimal 30 karakter',
                 ],
             ],
             'subtype' => [

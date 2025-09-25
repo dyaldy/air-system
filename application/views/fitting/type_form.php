@@ -31,14 +31,14 @@
                     id="type"
                     value="<?= set_value('type', $type['type'] ?? ''); ?>"
                     placeholder="Masukkan nama type fitting (contoh: ELBOW_90, TEE, REDUCER)"
-                    maxlength="15"
+                    maxlength="30"
                     required>
                 <?php if (form_error('type')): ?>
                     <div class="invalid-feedback">
                         <?= form_error('type'); ?>
                     </div>
                 <?php endif; ?>
-                <div class="form-text">Maksimal 15 karakter. Gunakan huruf besar dan underscore untuk pemisah kata.</div>
+                <div class="form-text">Maksimal 30 karakter. Gunakan huruf besar dan underscore untuk pemisah kata.</div>
             </div>
 
             <!-- Image Field -->
