@@ -10,6 +10,7 @@ class Fitting_type extends CI_Controller
             redirect(base_url());
         }
         $this->load->model('Fitting_type_model');
+        $this->load->model('Fitting_subtype_model');
         $this->load->helper(['url', 'file', 'form']);
         $this->load->library('form_validation');
     }
@@ -71,12 +72,15 @@ class Fitting_type extends CI_Controller
             }
         }
 
+        // Get subtypes for this type
+        $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($typeRow['type']);
+
         $data = [
             'title' => 'Edit Type Fitting',
             'form_action' => site_url('fitting_type/edit/' . $id),
             'type' => $typeRow,
+            'subtypes' => $subtypes,
         ];
-        $data['type'] = $typeRow;
         render_view('fitting/type_form', $data);
     }
 
@@ -106,6 +110,157 @@ class Fitting_type extends CI_Controller
         $this->Fitting_type_model->deleteType($id);
         set_message(['success', 'Type berhasil dihapus']);
         redirect('fitting_type');
+    }
+
+    /**
+     * Get subtypes for a specific type (AJAX endpoint)
+     */
+    public function getSubtypes(): void
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $type = $this->input->post('type', true);
+        if (empty($type)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([]));
+            return;
+        }
+
+        $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($type);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($subtypes));
+    }
+
+    /**
+     * Add a new subtype for a specific type
+     */
+    public function addSubtype(): void
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $parentType = $this->input->post('parent_type', true);
+        $subtype = $this->input->post('subtype', true);
+        $description = $this->input->post('description', true);
+
+        if (empty($parentType) || empty($subtype)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Parent type dan subtype harus diisi']));
+            return;
+        }
+
+        // Check if subtype already exists for this parent type
+        if ($this->Fitting_subtype_model->isSubtypeExists($parentType, $subtype)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Subtype sudah ada untuk type ini']));
+            return;
+        }
+
+        try {
+            $this->Fitting_subtype_model->addSubtype($parentType, $subtype, $description);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'success', 'message' => 'Subtype berhasil ditambahkan']));
+        } catch (Exception $e) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Gagal menambahkan subtype: ' . $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Update a subtype
+     */
+    public function updateSubtype(): void
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $id = $this->input->post('id', true);
+        $parentType = $this->input->post('parent_type', true);
+        $subtype = $this->input->post('subtype', true);
+        $description = $this->input->post('description', true);
+
+        if (empty($id) || empty($parentType) || empty($subtype)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'ID, parent type dan subtype harus diisi']));
+            return;
+        }
+
+        // Check if subtype already exists for this parent type (excluding current subtype)
+        if ($this->Fitting_subtype_model->isSubtypeExists($parentType, $subtype, $id)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Subtype sudah ada untuk type ini']));
+            return;
+        }
+
+        try {
+            $this->Fitting_subtype_model->editSubtype($id, $parentType, $subtype, $description);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'success', 'message' => 'Subtype berhasil diperbarui']));
+        } catch (Exception $e) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Gagal memperbarui subtype: ' . $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Delete a subtype
+     */
+    public function deleteSubtype(): void
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $id = $this->input->post('id', true);
+
+        if (empty($id)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'ID subtype harus diisi']));
+            return;
+        }
+
+        // Get subtype data to check usage
+        $subtypeData = $this->Fitting_subtype_model->getById($id);
+        if (!$subtypeData) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Subtype tidak ditemukan']));
+            return;
+        }
+
+        // Check if subtype is being used by any fitting
+        if ($this->Fitting_subtype_model->isSubtypeInUse($subtypeData['parent_type'], $subtypeData['subtype'])) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Subtype tidak dapat dihapus karena sedang digunakan oleh fitting']));
+            return;
+        }
+
+        try {
+            $this->Fitting_subtype_model->deleteSubtype($id);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'success', 'message' => 'Subtype berhasil dihapus']));
+        } catch (Exception $e) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Gagal menghapus subtype: ' . $e->getMessage()]));
+        }
     }
 
     private function handleUpload(): ?string
