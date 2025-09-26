@@ -377,6 +377,9 @@ class Storage extends CI_Controller
                 // Check if this is a project item and get all project notes
                 $is_project = strpos($type_id, '_PROJECT') !== false;
                 if ($is_project) {
+                    // Load Project_batch_model if not loaded
+                    $this->load->model('Project_batch_model');
+
                     // Get all project batches for this item
                     $project_batches = $this->Project_batch_model->get_project_batches($location_id, $category, $type_id);
 
@@ -472,6 +475,7 @@ class Storage extends CI_Controller
         $type_id = $this->input->post('type_id');
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
+        $batch_id = $this->input->post('batch_id'); // For project items
         $editor_nik = $this->session->userdata('user_data')['nik'];
 
         if ($action === 'store') {
@@ -483,9 +487,15 @@ class Storage extends CI_Controller
                 $response = array('success' => false, 'message' => 'Failed to store items');
             }
         } elseif ($action === 'take') {
-            $result = $this->Storage_model->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
+            // For project items, include batch_id in the take operation
+            if ($batch_id && strpos($type_id, '_PROJECT') !== false) {
+                $result = $this->Storage_model->take_project_items($location_id, $category, $type_id, $quantity, $editor_nik, $batch_id);
+            } else {
+                $result = $this->Storage_model->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
+            }
+
             if ($result['success']) {
-                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
+                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $batch_id);
             }
             $response = $result;
         } else {

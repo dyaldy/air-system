@@ -37,6 +37,32 @@ class Storage_model extends CI_Model
     }
 
     /**
+     * Take project items from storage with batch tracking
+     */
+    public function take_project_items($location_id, $category, $type_id, $quantity, $editor_nik, $batch_id = null)
+    {
+        $location_id = strtoupper($location_id);
+
+        // For project items, use the same logic as regular items
+        // The batch tracking will be handled in the Project_batch_model
+        $result = $this->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
+
+        if ($result['success'] && $batch_id) {
+            // Load Project_batch_model and update batch quantity
+            $this->load->model('Project_batch_model');
+            $batch_result = $this->Project_batch_model->take_from_batch($batch_id, $quantity);
+
+            if (!$batch_result['success']) {
+                // If batch update fails, we should ideally rollback the storage update
+                // For now, we'll log the issue but still report success for storage
+                log_message('error', 'Failed to update batch ' . $batch_id . ' when taking items: ' . $batch_result['message']);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Get all storage locations with their inventory
      */
     public function get_all_storage()

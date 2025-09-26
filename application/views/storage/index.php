@@ -346,6 +346,22 @@
                             <div id="takeItemInfo" class="form-control-plaintext"></div>
                         </div>
 
+                        <!-- Branch Selection -->
+                        <div class="mb-3" id="takeBranchSelection" style="display: none;">
+                            <label class="form-label">Pilih Cabang:</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="branch_type" id="takeRegularBranch" value="regular" checked>
+                                <label class="btn btn-outline-primary" for="takeRegularBranch">
+                                    <i class="fas fa-cube"></i> Stok Regular
+                                </label>
+                                <input type="radio" class="btn-check" name="branch_type" id="takeProjectBranch" value="project">
+                                <label class="btn btn-outline-warning" for="takeProjectBranch">
+                                    <i class="fas fa-project-diagram"></i> Stok Project
+                                </label>
+                            </div>
+                            <div class="form-text">Pilih dari stok regular atau project</div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="takeLocationId" class="form-label">ID Lokasi:</label>
                             <select class="form-select" id="takeLocationId" name="location_id" required>
@@ -356,7 +372,21 @@
                         <div class="mb-3">
                             <label for="takeQuantity" class="form-label">Jumlah:</label>
                             <input type="number" class="form-control" id="takeQuantity" name="quantity" min="1" required>
-                            <div class="form-text">Tersedia: <span id="availableStock">-</span></div>
+                            <div class="form-text">
+                                Tersedia: <span id="takeAvailableStock">-</span>
+                                <span id="takeProjectIndicator" class="badge bg-warning ms-2" style="display: none;">
+                                    <i class="fas fa-project-diagram"></i> Project
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Batch Selection for Project Items -->
+                        <div class="mb-3" id="takeBatchSelection" style="display: none;">
+                            <label for="takeBatchId" class="form-label">Pilih Batch Project:</label>
+                            <select class="form-select" id="takeBatchId" name="batch_id">
+                                <option value="">Pilih batch yang akan diambil</option>
+                            </select>
+                            <div class="form-text">Pilih batch project spesifik</div>
                         </div>
 
                         <div class="mb-3">
@@ -586,18 +616,77 @@
     }
 
     function quickTake(category, typeId) {
-        document.getElementById('takeCategory').value = category;
-        document.getElementById('takeTypeId').value = typeId;
-        document.getElementById('takeItemInfo').textContent = category + ' - ' + typeId;
+        // Store the base type_id (without _PROJECT suffix)
+        const baseTypeId = typeId.replace('_PROJECT', '');
 
-        // Load available locations for this item
+        document.getElementById('takeCategory').value = category;
+        // Initially set the base type_id, will be updated based on branch selection
+        document.getElementById('takeTypeId').value = baseTypeId;
+        document.getElementById('takeItemInfo').textContent = category + ' - ' + baseTypeId;
+
+        // Reset form
+        document.getElementById('takeLocationId').innerHTML = '<option value="">Pilih Lokasi</option>';
+        document.getElementById('takeAvailableStock').textContent = '-';
+        document.getElementById('takeQuantity').value = '';
+        document.getElementById('takeNote').value = '';
+        document.getElementById('takeBatchId').innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
+
+        // Reset branch selection
+        document.getElementById('takeRegularBranch').checked = true;
+        document.getElementById('takeProjectBranch').checked = false;
+
+        // Store base type_id for later use
+        window.currentBaseTypeId = baseTypeId;
+
+        // Check if both regular and project versions exist
+        Promise.all([
+                fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + baseTypeId),
+                fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + baseTypeId + '_PROJECT')
+            ]).then(responses => Promise.all(responses.map(r => r.json())))
+            .then(([regularData, projectData]) => {
+                const hasRegular = regularData.success && regularData.stock_locations.length > 0;
+                const hasProject = projectData.success && projectData.stock_locations.length > 0;
+
+                // Show branch selection only if both types exist
+                const branchSelection = document.getElementById('takeBranchSelection');
+                if (hasRegular && hasProject) {
+                    branchSelection.style.display = 'block';
+                } else {
+                    branchSelection.style.display = 'none';
+                    // Auto-select available branch
+                    if (hasProject && !hasRegular) {
+                        document.getElementById('takeProjectBranch').checked = true;
+                    }
+                }
+
+                // Load initial locations based on available stock
+                loadTakeLocations();
+            });
+
+        // Add event listeners for branch selection
+        document.getElementById('takeRegularBranch').addEventListener('change', loadTakeLocations);
+        document.getElementById('takeProjectBranch').addEventListener('change', loadTakeLocations);
+
+        var modal = new bootstrap.Modal(document.getElementById('quickTakeModal'));
+        modal.show();
+    }
+
+    function loadTakeLocations() {
+        const category = document.getElementById('takeCategory').value;
+        const baseTypeId = window.currentBaseTypeId || document.getElementById('takeTypeId').value.replace('_PROJECT', '');
+        const isProject = document.getElementById('takeProjectBranch').checked;
+        const typeId = isProject ? baseTypeId + '_PROJECT' : baseTypeId;
+
+        // Update hidden field with actual type_id
+        document.getElementById('takeTypeId').value = typeId;
+
         fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + typeId)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    const locationSelect = document.getElementById('takeLocationId');
-                    locationSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+                const locationSelect = document.getElementById('takeLocationId');
+                locationSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
 
+                if (data.success && data.stock_locations.length > 0) {
                     data.stock_locations.forEach(location => {
                         const option = document.createElement('option');
                         option.value = location.location_id;
@@ -605,12 +694,23 @@
                         locationSelect.appendChild(option);
                     });
 
-                    document.getElementById('availableStock').textContent = data.total_stock;
+                    document.getElementById('takeAvailableStock').textContent = data.total_stock;
+                } else {
+                    document.getElementById('takeAvailableStock').textContent = '0';
+                }
+
+                // Show/hide project indicator
+                const projectIndicator = document.getElementById('takeProjectIndicator');
+                projectIndicator.style.display = isProject ? 'inline-block' : 'none';
+
+                // Handle batch selection for project items
+                const batchSelection = document.getElementById('takeBatchSelection');
+                if (isProject) {
+                    batchSelection.style.display = 'block';
+                } else {
+                    batchSelection.style.display = 'none';
                 }
             });
-
-        var modal = new bootstrap.Modal(document.getElementById('quickTakeModal'));
-        modal.show();
     }
 
     function submitQuickStore() {
@@ -631,9 +731,79 @@
             });
     }
 
+    // Initialize event listeners when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Remove previous event listeners to avoid duplication
+        const regularBranch = document.getElementById('takeRegularBranch');
+        const projectBranch = document.getElementById('takeProjectBranch');
+
+        if (regularBranch) {
+            regularBranch.removeEventListener('change', loadTakeLocations);
+        }
+        if (projectBranch) {
+            projectBranch.removeEventListener('change', loadTakeLocations);
+        }
+    });
+
+    // Helper function to show notifications
+    function showNotification(type, message) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'cust-notification m-3';
+        notification.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+
+        // Insert at top of body
+        document.body.insertBefore(notification, document.body.firstChild);
+
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            const alert = notification.querySelector('.alert');
+            if (alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    }
+
     function submitQuickTake() {
         const form = document.getElementById('quickTakeForm');
         const formData = new FormData(form);
+
+        // Validate required fields
+        const locationId = document.getElementById('takeLocationId').value;
+        const quantity = document.getElementById('takeQuantity').value;
+        const typeId = document.getElementById('takeTypeId').value;
+
+        if (!locationId) {
+            alert('Pilih lokasi terlebih dahulu');
+            return;
+        }
+
+        if (!quantity || quantity <= 0) {
+            alert('Masukkan jumlah yang valid');
+            return;
+        }
+
+        // Check if batch selection is required for project items
+        const isProject = typeId.endsWith('_PROJECT');
+        const batchId = document.getElementById('takeBatchId').value;
+
+        if (isProject && !batchId) {
+            alert('Pilih batch project terlebih dahulu');
+            return;
+        }
+
+        // Find the submit button
+        const submitBtn = document.querySelector('#quickTakeModal .btn-warning');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Memproses...';
+        }
 
         fetch('<?= site_url('storage/quick_action'); ?>', {
                 method: 'POST',
@@ -642,9 +812,30 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    // Show success message
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickTakeModal'));
+                    modal.hide();
+
+                    // Show success notification
+                    showNotification('success', 'Barang berhasil diambil dari penyimpanan');
+
+                    // Reload page after short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
                 } else {
                     alert('Error: ' + data.message);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Ambil Barang';
+                    }
+                }
+            })
+            .catch(error => {
+                alert('Terjadi kesalahan: ' + error.message);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Ambil Barang';
                 }
             });
     }
@@ -660,8 +851,22 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        document.getElementById('availableStock').textContent = data.item.amount;
+                        document.getElementById('takeAvailableStock').textContent = data.item.amount;
                         document.getElementById('takeQuantity').max = data.item.amount;
+
+                        // If this is a project item, load batch information
+                        const isProject = typeId.endsWith('_PROJECT');
+                        if (isProject && data.project_batches) {
+                            const batchSelect = document.getElementById('takeBatchId');
+                            batchSelect.innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
+
+                            data.project_batches.forEach(batch => {
+                                const option = document.createElement('option');
+                                option.value = batch.batch_id;
+                                option.textContent = `Batch ${batch.batch_id} (${batch.remaining_quantity} pcs) - ${batch.project_name}`;
+                                batchSelect.appendChild(option);
+                            });
+                        }
                     }
                 });
         }
