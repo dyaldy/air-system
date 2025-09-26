@@ -69,8 +69,15 @@ class Storage extends CI_Controller
             // Get storage overview data using available methods
             $keyword = $this->session->userdata('keyword');
             $data['storage_overview'] = $this->Storage_model->get_storage_overview($keyword);
-            $data['recent_transactions'] = $this->Report_model->get_all_transactions(7);
-            $data['locations'] = $this->Storage_model->get_all_locations();
+
+            // Use search-aware methods for locations and transactions when keyword is present
+            if ($keyword) {
+                $data['locations'] = $this->Storage_model->get_locations_with_search($keyword);
+                $data['recent_transactions'] = $this->Report_model->get_transactions_with_search($keyword, 7);
+            } else {
+                $data['locations'] = $this->Storage_model->get_all_locations();
+                $data['recent_transactions'] = $this->Report_model->get_all_transactions(7);
+            }
 
             // Get search and filter data from session
             $data['keyword'] = $keyword ?: '';

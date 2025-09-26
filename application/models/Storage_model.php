@@ -332,6 +332,26 @@ class Storage_model extends CI_Model
     }
 
     /**
+     * Get unique locations that contain items matching the search term
+     */
+    public function get_locations_with_search($search_term = null)
+    {
+        $this->db->distinct();
+        $this->db->select('location_id');
+
+        if ($search_term) {
+            $this->db->group_start();
+            $this->db->like('type_id', $search_term);
+            $this->db->or_like('category', $search_term);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('location_id');
+        $query = $this->db->get('as_storage');
+        return $query->result_array();
+    }
+
+    /**
      * Remove item from specific location
      */
     public function remove_from_location($location_id, $category, $type_id)

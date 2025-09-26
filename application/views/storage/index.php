@@ -71,7 +71,12 @@
             <div class="col-12">
                 <div class="card rounded-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Lokasi Penyimpanan</h5>
+                        <h5 class="mb-0">
+                            Lokasi Penyimpanan
+                            <?php if ($keyword): ?>
+                                <small class="text-muted">(difilter untuk: "<?= htmlspecialchars($keyword); ?>")</small>
+                            <?php endif; ?>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($locations)): ?>
@@ -91,7 +96,11 @@
                             </div>
                         <?php else: ?>
                             <div class="alert alert-info">
-                                Tidak ada lokasi penyimpanan ditemukan. Mulai dengan menyimpan beberapa barang!
+                                <?php if ($keyword): ?>
+                                    Tidak ada lokasi penyimpanan yang mengandung item dengan kata kunci "<?= htmlspecialchars($keyword); ?>".
+                                <?php else: ?>
+                                    Tidak ada lokasi penyimpanan ditemukan. Mulai dengan menyimpan beberapa barang!
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -104,7 +113,12 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Overview Inventaris</h5>
+                        <h5 class="mb-0">
+                            Overview Inventaris
+                            <?php if ($keyword): ?>
+                                <small class="text-muted">(difilter untuk: "<?= htmlspecialchars($keyword); ?>")</small>
+                            <?php endif; ?>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($storage_overview)): ?>
@@ -163,7 +177,11 @@
                             </div>
                         <?php else: ?>
                             <div class="alert alert-info">
-                                Belum ada barang di penyimpanan. <a href="<?= site_url('storage/store'); ?>">Mulai simpan barang</a>!
+                                <?php if ($keyword): ?>
+                                    Tidak ada barang di penyimpanan yang mengandung kata kunci "<?= htmlspecialchars($keyword); ?>".
+                                <?php else: ?>
+                                    Belum ada barang di penyimpanan. <a href="<?= site_url('storage/store'); ?>">Mulai simpan barang</a>!
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -176,7 +194,12 @@
             <div class="col-12">
                 <div class="card rounded-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Transaksi Terbaru</h5>
+                        <h5 class="mb-0">
+                            Transaksi Terbaru
+                            <?php if ($keyword): ?>
+                                <small class="text-muted">(difilter untuk: "<?= htmlspecialchars($keyword); ?>")</small>
+                            <?php endif; ?>
+                        </h5>
                         <a href="<?= site_url('storage/reports'); ?>" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                     </div>
                     <div class="card-body">
@@ -269,7 +292,11 @@
                             </div>
                         <?php else: ?>
                             <div class="alert alert-info">
-                                Belum ada transaksi.
+                                <?php if ($keyword): ?>
+                                    Tidak ada transaksi yang mengandung item dengan kata kunci "<?= htmlspecialchars($keyword); ?>".
+                                <?php else: ?>
+                                    Belum ada transaksi.
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>

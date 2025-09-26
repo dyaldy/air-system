@@ -430,6 +430,34 @@ class Report_model extends CI_Model
     }
 
     /**
+     * Get transactions filtered by search term
+     */
+    public function get_transactions_with_search($search_term = null, $limit = null, $offset = 0)
+    {
+        $this->db->select('r.*, u.name as user_name, pb.project_name, pb.project_notes');
+        $this->db->from('as_report r');
+        $this->db->join('as_user u', 'r.nik = u.nik', 'left');
+        $this->db->join('as_project_batches pb', 'r.batch_id = pb.batch_id', 'left');
+
+        if ($search_term) {
+            $this->db->group_start();
+            $this->db->like('r.type_id', $search_term);
+            $this->db->or_like('r.category', $search_term);
+            $this->db->or_like('r.location_id', $search_term);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('r.datetime', 'DESC');
+
+        if ($limit) {
+            $this->db->limit($limit, $offset);
+        }
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
      * Get filter options for user transactions
      */
     public function get_user_transaction_filters($nik, $filter_type)
