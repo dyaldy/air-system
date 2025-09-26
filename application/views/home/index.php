@@ -9,7 +9,7 @@
 <?php endif; ?>
 
 <!-- Main Dashboard -->
-<div class="container-fluid" style="margin-top: 5rem;">
+<div class="container-fluid mb-5" style="margin-top: 5rem;">
     <!-- Welcome Header -->
     <div class="row mb-4">
         <div class="col-12">
@@ -88,13 +88,49 @@
             </div>
         </div>
     </div>
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="mb-0">Distribusi Komponen</h5>
+                    <p class="text-muted small mb-0">Perbandingan pneumatic dan fitting</p>
+                </div>
+                <div class="card-body p-4">
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="componentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="mb-0">Status Penyimpanan</h5>
+                    <p class="text-muted small mb-0">Tingkat penyimpanan komponen</p>
+                </div>
+                <div class="card-body p-4">
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="storageChart"></canvas>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">
+                            <?= $total_storage_items ?? 0; ?> dari <?= ($total_pneumatics + $total_fittings) ?? 0; ?> komponen tersimpan
+                            (<?= round((($total_storage_items ?? 0) / max(1, ($total_pneumatics + $total_fittings))) * 100, 1); ?>%)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h4 class="mb-0">Aksi Cepat</h4>
-                    <p class="text-muted mb-0">Akses cepat ke fitur utama sistem</p>
+                    <h5 class="mb-0">Menu Utama</h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
@@ -103,8 +139,7 @@
                                 <div class="card border-2 border-primary bg-primary bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
                                         <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                                        <h6 class="mb-0 text-dark">Kelola Pengguna</h6>
-                                        <small class="text-muted">Tambah, edit pengguna</small>
+                                        <h6 class="mb-0 text-dark">Pengguna</h6>
                                     </div>
                                 </div>
                             </a>
@@ -115,8 +150,7 @@
                                 <div class="card border-2 border-success bg-success bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
                                         <i class="fas fa-cog fa-2x text-success mb-2"></i>
-                                        <h6 class="mb-0 text-dark">Kelola Pneumatic</h6>
-                                        <small class="text-muted">Komponen pneumatic</small>
+                                        <h6 class="mb-0 text-dark">Pneumatic</h6>
                                     </div>
                                 </div>
                             </a>
@@ -127,8 +161,7 @@
                                 <div class="card border-2 border-warning bg-warning bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
                                         <i class="fas fa-puzzle-piece fa-2x text-warning mb-2"></i>
-                                        <h6 class="mb-0 text-dark">Kelola Fitting</h6>
-                                        <small class="text-muted">Komponen fitting</small>
+                                        <h6 class="mb-0 text-dark">Fitting</h6>
                                     </div>
                                 </div>
                             </a>
@@ -139,8 +172,7 @@
                                 <div class="card border-2 border-info bg-info bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
                                         <i class="fas fa-warehouse fa-2x text-info mb-2"></i>
-                                        <h6 class="mb-0 text-dark">Kelola Penyimpanan</h6>
-                                        <small class="text-muted">Inventaris barang</small>
+                                        <h6 class="mb-0 text-dark">Penyimpanan</h6>
                                     </div>
                                 </div>
                             </a>
@@ -151,146 +183,12 @@
         </div>
     </div>
 
-    <!-- System Overview -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h4 class="mb-0">Ringkasan Sistem</h4>
-                    <p class="text-muted mb-0">Informasi utama sistem Air System</p>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 rounded-3 bg-light">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-boxes fa-2x text-primary"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Total Komponen</h6>
-                                    <h4 class="mb-0 text-primary"><?= number_format(($total_pneumatics + $total_fittings) ?? 0); ?></h4>
-                                    <small class="text-muted">Pneumatic + Fitting</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 rounded-3 bg-light">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-chart-pie fa-2x text-success"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Tingkat Penyimpanan</h6>
-                                    <h4 class="mb-0 text-success"><?= round((($total_storage_items ?? 0) / max(1, ($total_pneumatics + $total_fittings))) * 100, 1); ?>%</h4>
-                                    <small class="text-muted">Barang tersimpan</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 rounded-3 bg-light">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-user-cog fa-2x text-info"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Komponen per Pengguna</h6>
-                                    <h4 class="mb-0 text-info"><?= $total_users > 0 ? round(($total_pneumatics + $total_fittings) / $total_users, 1) : 0; ?></h4>
-                                    <small class="text-muted">Rata-rata per user</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 rounded-3 bg-light">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Belum Tersimpan</h6>
-                                    <h4 class="mb-0 text-warning"><?= max(0, ($total_pneumatics + $total_fittings) - ($total_storage_items ?? 0)); ?></h4>
-                                    <small class="text-muted">Item belum disimpan</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h4 class="mb-0">Menu Utama</h4>
-                    <p class="text-muted mb-0">Navigasi cepat</p>
-                </div>
-                <div class="card-body p-4">
-                    <div class="list-group list-group-flush">
-                        <a href="<?= site_url('storage/reports'); ?>" class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-chart-bar text-primary me-3"></i>
-                                <div>
-                                    <h6 class="mb-0">Laporan Sistem</h6>
-                                    <small class="text-muted">Laporan penyimpanan</small>
-                                </div>
-                            </div>
-                        </a>
-
-                        <a href="<?= site_url('pneumatic_type'); ?>" class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-tags text-success me-3"></i>
-                                <div>
-                                    <h6 class="mb-0">Kelola Type Pneumatic</h6>
-                                    <small class="text-muted">Manajemen kategori</small>
-                                </div>
-                            </div>
-                        </a>
-
-                        <a href="<?= site_url('fitting_type'); ?>" class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-layer-group text-warning me-3"></i>
-                                <div>
-                                    <h6 class="mb-0">Kelola Type Fitting</h6>
-                                    <small class="text-muted">Manajemen kategori</small>
-                                </div>
-                            </div>
-                        </a>
-
-                        <div class="list-group-item border-0 rounded-3 bg-light">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-tools text-muted me-3"></i>
-                                <div>
-                                    <h6 class="mb-0 text-muted">Fitur Lainnya</h6>
-                                    <small class="text-muted">Dalam pengembangan</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Footer -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 bg-light">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8 text-center text-md-start">
-                            <h6 class="mb-1 text-dark">Air System - Storage Management Workshop Automation</h6>
-                            <p class="text-muted mb-0 small">Sistem manajemen komponen pneumatic dan fitting untuk Apparel One Indonesia | Version 2.0</p>
-                        </div>
-                        <div class="col-md-4 text-center text-md-end">
-                            <small class="text-muted">Operation Excellence 2025</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Custom CSS for improved design -->
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Custom CSS and Scripts -->
 <style>
     .card-hover {
         transition: all 0.3s ease;
@@ -298,28 +196,13 @@
     }
 
     .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    .card-hover:hover .card-body i {
-        transform: scale(1.1);
-        transition: transform 0.3s ease;
-    }
-
-    .list-group-item-action:hover {
-        background-color: #f8f9fa;
-        transform: translateX(5px);
-        transition: all 0.3s ease;
-    }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
     }
 </style>
 
-<!-- Real-time clock script -->
 <script>
+    // Real-time clock
     function updateClock() {
         const now = new Date();
         const timeString = now.toLocaleTimeString('id-ID', {
@@ -330,18 +213,112 @@
         });
         document.getElementById('current-time').textContent = timeString;
     }
-
-    // Update clock immediately and then every second
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Add smooth scroll for better UX
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
+    // Component Distribution Donut Chart
+    const componentCtx = document.getElementById('componentChart').getContext('2d');
+    const pneumaticCount = <?= $total_pneumatics ?? 0; ?>;
+    const fittingCount = <?= $total_fittings ?? 0; ?>;
+
+    new Chart(componentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pneumatic', 'Fitting'],
+            datasets: [{
+                data: [pneumaticCount, fittingCount],
+                backgroundColor: ['#28a745', '#ffc107'],
+                borderWidth: 2,
+                borderColor: '#fff',
+                cutout: '60%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = pneumaticCount + fittingCount;
+                            const percentage = total > 0 ? Math.round((context.parsed * 100) / total) : 0;
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Storage Progress Bar Chart
+    const storageCtx = document.getElementById('storageChart').getContext('2d');
+    const totalComponents = pneumaticCount + fittingCount;
+    const storedItems = <?= $total_storage_items ?? 0; ?>;
+    const unstored = Math.max(0, totalComponents - storedItems);
+
+    new Chart(storageCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Tersimpan', 'Belum Tersimpan'],
+            datasets: [{
+                label: 'Jumlah Item',
+                data: [storedItems, unstored],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderRadius: 6,
+                borderSkipped: false,
+                maxBarThickness: 60
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const percentage = totalComponents > 0 ? Math.round((context.parsed.y * 100) / totalComponents) : 0;
+                            return context.label + ': ' + context.parsed.y + ' item (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                        precision: 0,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
     });
 </script>
