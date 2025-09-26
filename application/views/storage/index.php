@@ -680,6 +680,11 @@
         // Update hidden field with actual type_id
         document.getElementById('takeTypeId').value = typeId;
 
+        // Clear form fields when switching branches
+        document.getElementById('takeLocationId').innerHTML = '<option value="">Pilih Lokasi</option>';
+        document.getElementById('takeQuantity').value = '';
+        document.getElementById('takeAvailableStock').textContent = '-';
+
         fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + typeId)
             .then(response => response.json())
             .then(data => {
@@ -705,10 +710,14 @@
 
                 // Handle batch selection for project items
                 const batchSelection = document.getElementById('takeBatchSelection');
+                const batchSelect = document.getElementById('takeBatchId');
                 if (isProject) {
                     batchSelection.style.display = 'block';
                 } else {
                     batchSelection.style.display = 'none';
+                    // Clear batch selection when switching to regular stock
+                    batchSelect.value = '';
+                    batchSelect.innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
                 }
             });
     }
@@ -796,6 +805,11 @@
         if (isProject && !batchId) {
             alert('Pilih batch project terlebih dahulu');
             return;
+        }
+
+        // If not a project item, remove batch_id from form data to avoid confusion
+        if (!isProject) {
+            formData.delete('batch_id');
         }
 
         // Find the submit button

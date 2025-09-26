@@ -495,7 +495,11 @@ class Storage extends CI_Controller
             }
 
             if ($result['success']) {
-                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $batch_id);
+                // Determine if it's a project transaction
+                $is_project = strpos($type_id, '_PROJECT') !== false;
+                // Only pass batch_id if it's actually a project item with a batch
+                $log_batch_id = ($batch_id && $is_project) ? $batch_id : null;
+                $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project, $log_batch_id);
             }
             $response = $result;
         } else {
