@@ -221,26 +221,26 @@
             }
         });
 
-    // Load subtypes function
-    function loadSubtypes() {
-        if (!currentType) return;
+        // Load subtypes function
+        function loadSubtypes() {
+            if (!currentType) return;
 
-        fetch('<?= site_url('fitting_type/getSubtypes') ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: 'type=' + encodeURIComponent(currentType)
-        })
-        .then(response => response.json())
-        .then(data => {
-            displaySubtypes(data);
-        })
-        .catch(error => {
-            console.error('Error loading subtypes:', error);
-        });
-    }        // Display subtypes in table
+            fetch('<?= site_url('fitting_type/getSubtypes') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'type=' + encodeURIComponent(currentType)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displaySubtypes(data);
+                })
+                .catch(error => {
+                    console.error('Error loading subtypes:', error);
+                });
+        } // Display subtypes in table
         function displaySubtypes(subtypes) {
             const tbody = document.getElementById('subtypesTableBody');
 
@@ -302,10 +302,10 @@
             `;
             });
             tbody.innerHTML = html;
-            
+
             // Initialize tooltips for the newly created elements
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         }
@@ -313,22 +313,22 @@
         // Save new subtype
         function saveSubtype(subtype, description) {
             fetch('<?= site_url('fitting_type/addSubtype') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: `parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Reset form
-                    document.getElementById('newSubtype').value = '';
-                    document.getElementById('newSubtypeDescription').value = '';
-                    document.getElementById('addSubtypeForm').style.display = 'none';
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Reset form
+                        document.getElementById('newSubtype').value = '';
+                        document.getElementById('newSubtypeDescription').value = '';
+                        document.getElementById('addSubtypeForm').style.display = 'none';
 
-                    // Reload subtypes
+                        // Reload subtypes
                         loadSubtypes();
 
                         // Show success message
@@ -406,20 +406,20 @@
             }
 
             fetch('<?= site_url('fitting_type/updateSubtype') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: `id=${id}&parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Reload subtypes to show updated data
-                    loadSubtypes();
-                    showMessage('success', data.message);
-                } else {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `id=${id}&parent_type=${encodeURIComponent(currentType)}&subtype=${encodeURIComponent(subtype)}&description=${encodeURIComponent(description)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Reload subtypes to show updated data
+                        loadSubtypes();
+                        showMessage('success', data.message);
+                    } else {
                         showMessage('error', data.message);
                     }
                 })
@@ -436,23 +436,23 @@
             }
 
             fetch('<?= site_url('fitting_type/deleteSubtype') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: `id=${id}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Reload subtypes
-                    loadSubtypes();
-                    showMessage('success', data.message);
-                } else {
-                    showMessage('error', data.message);
-                }
-            })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `id=${id}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Reload subtypes
+                        loadSubtypes();
+                        showMessage('success', data.message);
+                    } else {
+                        showMessage('error', data.message);
+                    }
+                })
                 .catch(error => {
                     console.error('Error deleting subtype:', error);
                     showMessage('error', 'Terjadi kesalahan saat menghapus subtype');
@@ -493,42 +493,180 @@
     document.addEventListener('DOMContentLoaded', function() {
         const typeInput = document.getElementById('type');
         if (typeInput) {
-            // Convert to uppercase and filter allowed characters on input
+            let warningTimeout;
+
+            // Block disallowed characters on keydown (before they appear)
+            typeInput.addEventListener('keydown', function(e) {
+                // Allow control keys (backspace, delete, arrow keys, etc.)
+                const allowedKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                    'Home', 'End', 'Tab', 'Escape', 'Enter'
+                ];
+
+                if (allowedKeys.includes(e.key)) {
+                    return; // Allow control keys
+                }
+
+                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                if (e.ctrlKey && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                    return; // Allow copy/paste/select all
+                }
+
+                // Check if the key is an allowed character (letters, numbers, underscore)
+                const char = e.key.toUpperCase();
+                if (!/^[A-Z0-9_]$/.test(char)) {
+                    e.preventDefault(); // Block the key
+                    showWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                    return;
+                }
+            });
+
+            // Convert to uppercase on input (for pasted content or other inputs)
             typeInput.addEventListener('input', function(e) {
                 let value = e.target.value.toUpperCase();
                 // Only allow letters, numbers, and underscores
-                value = value.replace(/[^A-Z0-9_]/g, '');
-                e.target.value = value;
+                const filteredValue = value.replace(/[^A-Z0-9_]/g, '');
+
+                if (value !== filteredValue) {
+                    showWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                }
+
+                e.target.value = filteredValue;
             });
 
-            // Validate format on blur
+            // Validate format on blur and hide warning
             typeInput.addEventListener('blur', function(e) {
                 const value = e.target.value;
+                hideWarning();
                 if (value && !value.match(/^[A-Z0-9_]+$/)) {
                     e.target.setCustomValidity('Type harus menggunakan huruf besar, angka, dan underscore saja');
                 } else {
                     e.target.setCustomValidity('');
                 }
             });
+
+            function showWarning(message) {
+                // Remove existing warning
+                hideWarning();
+
+                // Create warning element
+                const warning = document.createElement('div');
+                warning.className = 'text-danger';
+                warning.style.cssText = 'font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;';
+                warning.textContent = message;
+                warning.setAttribute('data-warning', 'character-warning');
+
+                // Insert after input
+                typeInput.parentNode.appendChild(warning);
+
+                // Add red border to input
+                typeInput.style.borderColor = '#dc3545';
+                typeInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+
+                // Auto-hide after 3 seconds
+                clearTimeout(warningTimeout);
+                warningTimeout = setTimeout(() => {
+                    hideWarning();
+                }, 3000);
+            }
+
+            function hideWarning() {
+                const warning = typeInput.parentNode.querySelector('[data-warning="character-warning"]');
+                if (warning) {
+                    warning.remove();
+                }
+                // Reset border color
+                typeInput.style.borderColor = '';
+                typeInput.style.boxShadow = '';
+            }
         }
 
         // Enforce uppercase and underscore format for subtype fields
         function enforceSubtypeFormat(input) {
+            let subtypeWarningTimeout;
+
+            // Block disallowed characters on keydown for subtypes
+            input.addEventListener('keydown', function(e) {
+                // Allow control keys (backspace, delete, arrow keys, etc.)
+                const allowedKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                    'Home', 'End', 'Tab', 'Escape', 'Enter'
+                ];
+
+                if (allowedKeys.includes(e.key)) {
+                    return; // Allow control keys
+                }
+
+                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                if (e.ctrlKey && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                    return; // Allow copy/paste/select all
+                }
+
+                // Check if the key is an allowed character (letters, numbers, underscore)
+                const char = e.key.toUpperCase();
+                if (!/^[A-Z0-9_]$/.test(char)) {
+                    e.preventDefault(); // Block the key
+                    showSubtypeWarning(input, 'Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                    return;
+                }
+            });
+
             input.addEventListener('input', function(e) {
                 let value = e.target.value.toUpperCase();
                 // Only allow letters, numbers, and underscores
-                value = value.replace(/[^A-Z0-9_]/g, '');
-                e.target.value = value;
+                const filteredValue = value.replace(/[^A-Z0-9_]/g, '');
+
+                if (value !== filteredValue) {
+                    showSubtypeWarning(input, 'Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                }
+
+                e.target.value = filteredValue;
             });
 
             input.addEventListener('blur', function(e) {
                 const value = e.target.value;
+                hideSubtypeWarning(input);
                 if (value && !value.match(/^[A-Z0-9_]+$/)) {
                     e.target.setCustomValidity('Subtype harus menggunakan huruf besar, angka, dan underscore saja');
                 } else {
                     e.target.setCustomValidity('');
                 }
             });
+
+            function showSubtypeWarning(input, message) {
+                // Remove existing warning
+                hideSubtypeWarning(input);
+
+                // Create warning element
+                const warning = document.createElement('div');
+                warning.className = 'text-danger';
+                warning.style.cssText = 'font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;';
+                warning.textContent = message;
+                warning.setAttribute('data-warning', 'subtype-character-warning');
+
+                // Insert after input
+                input.parentNode.appendChild(warning);
+
+                // Add red border to input
+                input.style.borderColor = '#dc3545';
+                input.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+
+                // Auto-hide after 3 seconds
+                clearTimeout(subtypeWarningTimeout);
+                subtypeWarningTimeout = setTimeout(() => {
+                    hideSubtypeWarning(input);
+                }, 3000);
+            }
+
+            function hideSubtypeWarning(input) {
+                const warning = input.parentNode.querySelector('[data-warning="subtype-character-warning"]');
+                if (warning) {
+                    warning.remove();
+                }
+                // Reset border color
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            }
         }
 
         // Apply format enforcement to new subtype input
@@ -538,17 +676,50 @@
         }
 
         // Apply format enforcement to existing subtype edit inputs (will be created dynamically)
+        document.addEventListener('keydown', function(e) {
+            if (e.target.classList.contains('subtype-edit')) {
+                // Allow control keys (backspace, delete, arrow keys, etc.)
+                const allowedKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                    'Home', 'End', 'Tab', 'Escape', 'Enter'
+                ];
+
+                if (allowedKeys.includes(e.key)) {
+                    return; // Allow control keys
+                }
+
+                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                if (e.ctrlKey && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                    return; // Allow copy/paste/select all
+                }
+
+                // Check if the key is an allowed character (letters, numbers, underscore)
+                const char = e.key.toUpperCase();
+                if (!/^[A-Z0-9_]$/.test(char)) {
+                    e.preventDefault(); // Block the key
+                    showDynamicSubtypeWarning(e.target, 'Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                    return;
+                }
+            }
+        });
+
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('subtype-edit')) {
                 let value = e.target.value.toUpperCase();
-                value = value.replace(/[^A-Z0-9_]/g, '');
-                e.target.value = value;
+                const filteredValue = value.replace(/[^A-Z0-9_]/g, '');
+
+                if (value !== filteredValue) {
+                    showDynamicSubtypeWarning(e.target, 'Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                }
+
+                e.target.value = filteredValue;
             }
         });
 
         document.addEventListener('blur', function(e) {
             if (e.target.classList.contains('subtype-edit')) {
                 const value = e.target.value;
+                hideDynamicSubtypeWarning(e.target);
                 if (value && !value.match(/^[A-Z0-9_]+$/)) {
                     e.target.setCustomValidity('Subtype harus menggunakan huruf besar, angka, dan underscore saja');
                 } else {
@@ -556,5 +727,48 @@
                 }
             }
         });
+
+        // Show dynamic subtype warning (for table edit inputs)
+        function showDynamicSubtypeWarning(input, message) {
+            // Remove existing warning
+            hideDynamicSubtypeWarning(input);
+
+            // Find the table cell that contains this input
+            const cell = input.closest('td');
+            if (!cell) return;
+
+            // Create warning element
+            const warning = document.createElement('div');
+            warning.className = 'text-danger';
+            warning.style.cssText = 'font-size: 0.75rem; margin-top: 0.25rem; font-weight: 500;';
+            warning.textContent = message;
+            warning.setAttribute('data-warning', 'dynamic-subtype-warning');
+
+            // Insert after input in the cell
+            cell.appendChild(warning);
+
+            // Add red border to input
+            input.style.borderColor = '#dc3545';
+            input.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                hideDynamicSubtypeWarning(input);
+            }, 3000);
+        }
+
+        // Hide dynamic subtype warning
+        function hideDynamicSubtypeWarning(input) {
+            const cell = input.closest('td');
+            if (cell) {
+                const warning = cell.querySelector('[data-warning="dynamic-subtype-warning"]');
+                if (warning) {
+                    warning.remove();
+                }
+            }
+            // Reset border color
+            input.style.borderColor = '';
+            input.style.boxShadow = '';
+        }
     });
 </script>

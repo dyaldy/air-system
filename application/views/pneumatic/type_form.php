@@ -22,73 +22,73 @@
         <?php endif; ?>
 
         <?= form_open_multipart($form_action, ['id' => 'typeForm']); ?>
-            <!-- Type Field -->
-            <div class="mb-3">
-                <label for="type" class="form-label">Type Pneumatic <span class="text-danger">*</span></label>
-                <input type="text"
-                    class="form-control <?= form_error('type') ? 'is-invalid' : ''; ?>"
-                    name="type"
-                    id="type"
-                    value="<?= set_value('type', $type['type'] ?? ''); ?>"
-                    placeholder="Masukkan nama type pneumatic (contoh: CYLINDER, VALVE, ACTUATOR)"
-                    maxlength="15"
-                    required>
-                <?php if (form_error('type')): ?>
-                    <div class="invalid-feedback">
-                        <?= form_error('type'); ?>
-                    </div>
-                <?php endif; ?>
-                <div class="form-text">Maksimal 15 karakter. Hanya boleh huruf besar, angka, dan underscore. Contoh: CYLINDER, NBC_NFPA, SQN</div>
-            </div>
-
-            <!-- Image Field -->
-            <div class="mb-3">
-                <label for="image" class="form-label">Gambar Type</label>
-                <input type="file"
-                    class="form-control"
-                    name="image"
-                    id="image"
-                    accept=".jpg,.jpeg,.png">
-                <div class="form-text">
-                    Format yang didukung: JPG, JPEG, PNG. Maksimal 2MB.
-                    <?php if (!empty($type['image'])): ?>
-                        <br>File saat ini: <?= htmlspecialchars($type['image'], ENT_QUOTES, 'UTF-8') ?>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Current Image Preview (for edit mode) -->
-            <?php if (!empty($type['image'])): ?>
-                <div class="mb-3">
-                    <label class="form-label">Gambar Saat Ini</label>
-                    <div class="current-image-preview">
-                        <img src="<?= base_url('assets/img/pneumatic_types/' . htmlspecialchars($type['image'], ENT_QUOTES, 'UTF-8')) ?>"
-                            alt="<?= htmlspecialchars($type['type'] ?? 'Type Image', ENT_QUOTES, 'UTF-8') ?>"
-                            class="img-thumbnail"
-                            style="max-width: 200px; max-height: 200px;">
-                    </div>
-                    <div class="form-text">Unggah gambar baru untuk mengganti gambar ini.</div>
-                </div>
-            <?php else: ?>
-                <!-- Placeholder Image Preview -->
-                <div class="mb-3">
-                    <label class="form-label">Preview Gambar</label>
-                    <div class="current-image-preview">
-                        <img src="<?= base_url('assets/img/placeholder-image.svg') ?>"
-                            alt="Placeholder Image"
-                            class="img-thumbnail"
-                            style="max-width: 200px; max-height: 200px;">
-                    </div>
-                    <div class="form-text">Gambar placeholder akan diganti saat Anda mengunggah gambar.</div>
+        <!-- Type Field -->
+        <div class="mb-3">
+            <label for="type" class="form-label">Type Pneumatic <span class="text-danger">*</span></label>
+            <input type="text"
+                class="form-control <?= form_error('type') ? 'is-invalid' : ''; ?>"
+                name="type"
+                id="type"
+                value="<?= set_value('type', $type['type'] ?? ''); ?>"
+                placeholder="Masukkan nama type pneumatic (contoh: CYLINDER, VALVE, ACTUATOR)"
+                maxlength="15"
+                required>
+            <?php if (form_error('type')): ?>
+                <div class="invalid-feedback">
+                    <?= form_error('type'); ?>
                 </div>
             <?php endif; ?>
+            <div class="form-text">Maksimal 15 karakter. Hanya boleh huruf besar, angka, dan underscore. Contoh: CYLINDER, NBC_NFPA, SQN</div>
+        </div>
 
-            <!-- Submit Button -->
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">
-                    <?= empty($type) ? 'Tambah Type' : 'Update Type' ?>
-                </button>
+        <!-- Image Field -->
+        <div class="mb-3">
+            <label for="image" class="form-label">Gambar Type</label>
+            <input type="file"
+                class="form-control"
+                name="image"
+                id="image"
+                accept=".jpg,.jpeg,.png">
+            <div class="form-text">
+                Format yang didukung: JPG, JPEG, PNG. Maksimal 2MB.
+                <?php if (!empty($type['image'])): ?>
+                    <br>File saat ini: <?= htmlspecialchars($type['image'], ENT_QUOTES, 'UTF-8') ?>
+                <?php endif; ?>
             </div>
+        </div>
+
+        <!-- Current Image Preview (for edit mode) -->
+        <?php if (!empty($type['image'])): ?>
+            <div class="mb-3">
+                <label class="form-label">Gambar Saat Ini</label>
+                <div class="current-image-preview">
+                    <img src="<?= base_url('assets/img/pneumatic_types/' . htmlspecialchars($type['image'], ENT_QUOTES, 'UTF-8')) ?>"
+                        alt="<?= htmlspecialchars($type['type'] ?? 'Type Image', ENT_QUOTES, 'UTF-8') ?>"
+                        class="img-thumbnail"
+                        style="max-width: 200px; max-height: 200px;">
+                </div>
+                <div class="form-text">Unggah gambar baru untuk mengganti gambar ini.</div>
+            </div>
+        <?php else: ?>
+            <!-- Placeholder Image Preview -->
+            <div class="mb-3">
+                <label class="form-label">Preview Gambar</label>
+                <div class="current-image-preview">
+                    <img src="<?= base_url('assets/img/placeholder-image.svg') ?>"
+                        alt="Placeholder Image"
+                        class="img-thumbnail"
+                        style="max-width: 200px; max-height: 200px;">
+                </div>
+                <div class="form-text">Gambar placeholder akan diganti saat Anda mengunggah gambar.</div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Submit Button -->
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+                <?= empty($type) ? 'Tambah Type' : 'Update Type' ?>
+            </button>
+        </div>
         <?= form_close(); ?>
     </div>
 </div>
@@ -128,23 +128,92 @@
     document.addEventListener('DOMContentLoaded', function() {
         const typeInput = document.getElementById('type');
         if (typeInput) {
-            // Convert to uppercase and filter allowed characters on input
+            let warningTimeout;
+
+            // Block disallowed characters on keydown (before they appear)
+            typeInput.addEventListener('keydown', function(e) {
+                // Allow control keys (backspace, delete, arrow keys, etc.)
+                const allowedKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                    'Home', 'End', 'Tab', 'Escape', 'Enter'
+                ];
+
+                if (allowedKeys.includes(e.key)) {
+                    return; // Allow control keys
+                }
+
+                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                if (e.ctrlKey && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+                    return; // Allow copy/paste/select all
+                }
+
+                // Check if the key is an allowed character (letters, numbers, underscore)
+                const char = e.key.toUpperCase();
+                if (!/^[A-Z0-9_]$/.test(char)) {
+                    e.preventDefault(); // Block the key
+                    showWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                    return;
+                }
+            });
+
+            // Convert to uppercase on input (for pasted content or other inputs)
             typeInput.addEventListener('input', function(e) {
                 let value = e.target.value.toUpperCase();
                 // Only allow letters, numbers, and underscores
-                value = value.replace(/[^A-Z0-9_]/g, '');
-                e.target.value = value;
+                const filteredValue = value.replace(/[^A-Z0-9_]/g, '');
+
+                if (value !== filteredValue) {
+                    showWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+                }
+
+                e.target.value = filteredValue;
             });
 
-            // Validate format on blur
+            // Validate format on blur and hide warning
             typeInput.addEventListener('blur', function(e) {
                 const value = e.target.value;
+                hideWarning();
                 if (value && !value.match(/^[A-Z0-9_]+$/)) {
                     e.target.setCustomValidity('Type harus menggunakan huruf besar, angka, dan underscore saja');
                 } else {
                     e.target.setCustomValidity('');
                 }
             });
+
+            function showWarning(message) {
+                // Remove existing warning
+                hideWarning();
+
+                // Create warning element
+                const warning = document.createElement('div');
+                warning.className = 'text-danger';
+                warning.style.cssText = 'font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;';
+                warning.textContent = message;
+                warning.setAttribute('data-warning', 'character-warning');
+
+                // Insert after input
+                typeInput.parentNode.appendChild(warning);
+
+                // Add red border to input
+                typeInput.style.borderColor = '#dc3545';
+                typeInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+
+                // Auto-hide after 3 seconds
+                clearTimeout(warningTimeout);
+                warningTimeout = setTimeout(() => {
+                    hideWarning();
+                }, 3000);
+            }
+
+            function hideWarning() {
+                const warning = typeInput.parentNode.querySelector('[data-warning="character-warning"]');
+                if (warning) {
+                    warning.remove();
+                }
+                // Reset border color
+                typeInput.style.borderColor = '';
+                typeInput.style.boxShadow = '';
+            }
         }
     });
 </script>
