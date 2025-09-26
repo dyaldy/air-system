@@ -190,6 +190,22 @@
                             </div>
                         </th>
 
+                        <!-- Min Stock Column -->
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Min Stock</span>
+                                <?php if ($sortKeyword[0] === 'min_stock') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('min_stock-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Min Stock (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Min Stock">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('min_stock-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Min Stock (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
+
                         <!-- Edit Column -->
                         <th scope="col" class="text-center pe-lg-5 pe-4">Edit</th>
                     </tr>
@@ -206,6 +222,7 @@
                             <td class="text-center"><?= !empty($fitting['D2']) ? $fitting['D2'] : '-'; ?></td>
                             <td class="text-center"><?= !empty($fitting['D3']) ? $fitting['D3'] : '-'; ?></td>
                             <td class="text-center"><?= !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '-'; ?></td>
+                            <td class="text-center"><?= $fitting['min_stock'] ? $fitting['min_stock'] : '-'; ?></td>
                             <td class="text-center pe-lg-5 pe-4">
                                 <a href="<?= site_url('fitting/edit/' . urlencode($fitting['fitting_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit fitting">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">

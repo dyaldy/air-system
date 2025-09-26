@@ -191,6 +191,18 @@
                 <?php endif; ?>
             </div>
 
+            <!-- Minimum Stock Input Section -->
+            <div class="mb-3">
+                <label for="min_stock" class="form-label">Minimum Stock (Opsional)</label>
+                <input type="number" class="form-control <?= form_error('min_stock') ? 'is-invalid' : ''; ?>" name="min_stock" id="min_stock" value="<?= set_value('min_stock', $fitting['min_stock']); ?>" min="0" placeholder="Masukkan minimum stock">
+                <?php if (form_error('min_stock')): ?>
+                    <div class="invalid-feedback">
+                        <?= form_error('min_stock'); ?>
+                    </div>
+                <?php endif; ?>
+                <small class="form-text text-muted">Kosongkan jika tidak ingin menggunakan minimum stock</small>
+            </div>
+
             <!-- Submit and Delete Buttons -->
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary flex-fill">Update Fitting</button>

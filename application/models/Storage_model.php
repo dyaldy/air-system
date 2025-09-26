@@ -362,4 +362,32 @@ class Storage_model extends CI_Model
 
         return $this->db->delete('as_storage');
     }
+
+    /**
+     * Get items that are below minimum stock level
+     */
+    public function get_low_stock_items()
+    {
+        $low_stock_items = [];
+
+        // Get pneumatic items below min stock
+        $this->db->select('s.location_id, s.category, s.type_id, s.amount, p.min_stock, p.brand, p.type, p.bore, p.stroke');
+        $this->db->from('as_storage s');
+        $this->db->join('as_pneumatic p', 's.type_id = p.pneumatic_id', 'inner');
+        $this->db->where('s.category', 'pneumatic');
+        $this->db->where('p.min_stock IS NOT NULL');
+        $this->db->where('s.amount < p.min_stock');
+        $pneumatic_low_stock = $this->db->get()->result_array();
+
+        // Get fitting items below min stock
+        $this->db->select('s.location_id, s.category, s.type_id, s.amount, f.min_stock, f.type as fitting_type, f.subtype');
+        $this->db->from('as_storage s');
+        $this->db->join('as_fitting f', 's.type_id = f.fitting_id', 'inner');
+        $this->db->where('s.category', 'fitting');
+        $this->db->where('f.min_stock IS NOT NULL');
+        $this->db->where('s.amount < f.min_stock');
+        $fitting_low_stock = $this->db->get()->result_array();
+
+        return array_merge($pneumatic_low_stock, $fitting_low_stock);
+    }
 }

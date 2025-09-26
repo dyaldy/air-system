@@ -76,6 +76,17 @@
                 </div>
             </div>
 
+            <!-- Minimum Stock Input Section -->
+            <div class="mb-3">
+                <label for="min_stock" class="form-label">Minimum Stock (Opsional)</label>
+                <div class="position-relative">
+                    <input id="min_stock" type="number" class="form-control rounded-pill pe-5 <?= form_error('min_stock') ? 'is-invalid' : '' ?>" name="min_stock" placeholder="10" value="<?= set_value('min_stock'); ?>" onkeyup="toggleClear('min_stock', 'clear-button-min_stock')" autocomplete="off" min="0">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-min_stock" onclick="clearInput('min_stock', 'clear-button-min_stock')" aria-hidden="true">
+                    <?= form_error('min_stock', "<div class='invalid-feedback'>", "</div>"); ?>
+                </div>
+                <small class="form-text text-muted">Kosongkan jika tidak ingin menggunakan minimum stock</small>
+            </div>
+
             <!-- Submit Button -->
             <div class="text-center">
                 <button type="submit" class="btn btn-primary rounded-pill">Tambah</button>
@@ -101,6 +112,10 @@
         {
             id: 'stroke',
             button: 'clear-button-stroke'
+        },
+        {
+            id: 'min_stock',
+            button: 'clear-button-min_stock'
         }
     ];
 </script>

@@ -97,6 +97,15 @@ class Fitting extends CI_Controller
                     'max_length' => '%s maksimal 20 karakter',
                 ],
             ],
+            'min_stock' => [
+                'field' => 'min_stock',
+                'label' => 'Minimum Stock',
+                'rules' => 'numeric|greater_than_equal_to[0]',
+                'errors' => [
+                    'numeric'            => '%s harus berupa angka',
+                    'greater_than_equal_to' => '%s harus lebih besar atau sama dengan 0',
+                ],
+            ],
         ],
     ];
 

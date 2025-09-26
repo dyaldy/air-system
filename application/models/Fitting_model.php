@@ -108,6 +108,7 @@ class Fitting_model extends CI_Model
         $D2 = $enableD2 ? (float)$this->input->post('D2', true) : null;
         $D3 = $enableD3 ? (float)$this->input->post('D3', true) : null;
         $R_DRAT = $enableRDrat ? strtoupper($this->input->post('R_DRAT', true)) : null;
+        $minStock = $this->input->post('min_stock') ? (int)$this->input->post('min_stock', true) : null;
 
         // Generate fitting_id with format including only non-null values
         $idParts = ['fit', strtolower(str_replace('_', '-', $type)), strtolower(str_replace('_', '-', $subtype))];
@@ -127,6 +128,7 @@ class Fitting_model extends CI_Model
             'D2' => $D2,
             'D3' => $D3,
             'R_DRAT' => $R_DRAT,
+            'min_stock' => $minStock,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
             'editor' => $this->session->userdata('user_data')['nik'],
@@ -169,6 +171,7 @@ class Fitting_model extends CI_Model
         $D2 = $enableD2 ? (float)$this->input->post('D2', true) : null;
         $D3 = $enableD3 ? (float)$this->input->post('D3', true) : null;
         $R_DRAT = $enableRDrat ? strtoupper($this->input->post('R_DRAT', true)) : null;
+        $minStock = $this->input->post('min_stock') ? (int)$this->input->post('min_stock', true) : null;
 
         // Generate new fitting_id with format including only non-null values
         $idParts = ['fit', strtolower(str_replace('_', '-', $type)), strtolower(str_replace('_', '-', $subtype))];
@@ -188,6 +191,7 @@ class Fitting_model extends CI_Model
             'D2' => $D2,
             'D3' => $D3,
             'R_DRAT' => $R_DRAT,
+            'min_stock' => $minStock,
             'updated_at' => date('Y-m-d H:i:s'),
             'editor' => $this->session->userdata('user_data')['nik'],
         ];

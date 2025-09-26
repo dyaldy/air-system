@@ -94,6 +94,7 @@ class Pneumatic_model extends CI_Model
         $type = strtoupper($this->input->post('type', true));
         $bore = (int)$this->input->post('bore', true);
         $stroke = (int)$this->input->post('stroke', true);
+        $minStock = $this->input->post('min_stock') ? (int)$this->input->post('min_stock', true) : null;
 
         // Generate pneumatic_id with format: pnm-{brand}-{type}-{bore}-{stroke}
         $pneumaticId = $this->generatePneumaticId($brand, $type, $bore, $stroke);
@@ -104,6 +105,7 @@ class Pneumatic_model extends CI_Model
             'type'         => $type,
             'bore'         => $bore,
             'stroke'       => $stroke,
+            'min_stock'    => $minStock,
             'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
             'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
             'editor'       => $this->session->userdata('user_data')['nik'],
@@ -136,6 +138,7 @@ class Pneumatic_model extends CI_Model
         $type = strtoupper($this->input->post('type', true));
         $bore = (int)$this->input->post('bore', true);
         $stroke = (int)$this->input->post('stroke', true);
+        $minStock = $this->input->post('min_stock') ? (int)$this->input->post('min_stock', true) : null;
 
         // Generate new pneumatic_id with format: pnm-{brand}-{type}-{bore}-{stroke}
         $newPneumaticId = $this->generatePneumaticId($brand, $type, $bore, $stroke);
@@ -146,6 +149,7 @@ class Pneumatic_model extends CI_Model
             'type'         => $type,
             'bore'         => $bore,
             'stroke'       => $stroke,
+            'min_stock'    => $minStock,
             'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
             'editor'       => $this->session->userdata('user_data')['nik'],
         ];
