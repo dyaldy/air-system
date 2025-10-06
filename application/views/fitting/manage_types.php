@@ -25,6 +25,19 @@
                             <div class="card-body text-center">
                                 <h5 class="card-title mb-2"><?= htmlspecialchars($t['type'], ENT_QUOTES, 'UTF-8') ?></h5>
 
+                                <!-- Subtype information -->
+                                <?php if ($t['has_subtypes']): ?>
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-layer-group"></i>
+                                        <?= $t['subtype_count'] ?> subtype<?= $t['subtype_count'] > 1 ? 's' : '' ?>
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-warning mb-2">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Belum ada subtype
+                                    </p>
+                                <?php endif; ?>
+
                                 <?php if ($t['is_in_use']): ?>
                                     <!-- Show usage count if type is in use -->
                                     <p class="text-muted mb-2">
@@ -42,7 +55,7 @@
                                         </button>
                                     </div>
                                 <?php else: ?>
-                                    <!-- Full edit and delete options for unused types -->
+                                    <!-- Show usage status for unused types -->
                                     <p class="text-muted mb-2">
                                         <i class="fas fa-check-circle text-success"></i>
                                         Tidak digunakan

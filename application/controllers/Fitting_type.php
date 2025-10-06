@@ -19,10 +19,15 @@ class Fitting_type extends CI_Controller
     {
         $types = $this->Fitting_type_model->getAllTypes();
 
-        // Add usage information to each type
+        // Add usage information and subtype count to each type
         foreach ($types as &$type) {
             $type['usage_count'] = $this->Fitting_type_model->getUsageCount($type['type']);
             $type['is_in_use'] = $type['usage_count'] > 0;
+
+            // Get subtype count for this type
+            $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($type['type']);
+            $type['subtype_count'] = count($subtypes);
+            $type['has_subtypes'] = $type['subtype_count'] > 0;
         }
 
         $data['title'] = 'Kelola Type Fitting';
