@@ -84,25 +84,28 @@ class Pneumatic extends CI_Controller
      *
      * @return void
      */
+    /**
+     * Constructor for Pneumatic controller.
+     *
+     * Initializes the controller by checking user authentication, loading required
+     * models and libraries, and resetting session data when switching controllers.
+     *
+     * @return void
+     */
     public function __construct()
     {
         parent::__construct();
 
-        // Check authentication
-        if (!$this->session->userdata('user_data')) {
-            redirect(base_url());
-        }
-
-        $this->load->model('Pneumatic_model');
-        $this->load->model('Pneumatic_type_model');
-        $this->load->library(['form_validation', 'pagination']);
         $this->load->helper('common');
 
-        // Reset session if controller changed
-        if ($this->session->userdata('controller') !== 'pneumatic') {
-            $this->session->set_userdata('controller', 'pneumatic');
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
+        // Check user authentication using common helper
+        check_user_authentication();
+
+        $this->load->model(['Pneumatic_model', 'Pneumatic_type_model']);
+        $this->load->library(['form_validation', 'pagination']);
+
+        // Reset session data when switching controllers
+        reset_controller_session('pneumatic');
     }
 
     /**
@@ -394,17 +397,9 @@ class Pneumatic extends CI_Controller
         $sheet->setCellValue('F1', 'Updated At');
         $sheet->setCellValue('G1', 'Editor');
 
-        // Style headers similar to ASRS
-        $headerStyle = [
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E9ECEF']
-            ]
-        ];
-        // Apply style to header row (A1:..)
+        // Apply header styling using common helper
         $highestColumn = $sheet->getHighestColumn();
-        $sheet->getStyle("A1:{$highestColumn}1")->applyFromArray($headerStyle);
+        apply_excel_header_style($sheet, "A1:{$highestColumn}1");
 
         // Add data
         $row = 2;
@@ -419,18 +414,16 @@ class Pneumatic extends CI_Controller
             $row++;
         }
 
-        // Auto-filter and auto-size columns (ASRS style)
+        // Auto-filter and auto-size columns using common helper
         $sheet->setAutoFilter('A1:G1');
-        foreach (range('A', 'G') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
+        auto_size_excel_columns($sheet, 'A', 'G');
 
         $filename = 'Data Pneumatic.xlsx';
         $this->outputExcelFile($spreadsheet, $filename);
     }
 
     /**
-     * Outputs Excel file to browser for download.
+     * Outputs Excel file to browser for download using common helper.
      *
      * @param Spreadsheet $spreadsheet The spreadsheet object
      * @param string $filename The filename for download
@@ -438,14 +431,7 @@ class Pneumatic extends CI_Controller
      */
     private function outputExcelFile(Spreadsheet $spreadsheet, string $filename): void
     {
-        $writer = new Xlsx($spreadsheet);
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-
-        $writer->save('php://output');
-        exit;
+        output_excel_file($spreadsheet, $filename);
     }
 
     /**

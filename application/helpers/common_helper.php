@@ -15,6 +15,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
  *                                               : generic search/filter/sort/reset handler
  * - get_rules(array $validationConfig, array $fields)
  *                                               : extract validation rules from a config map
+ * - setup_pagination(string $baseUrl, int $totalRows, int $itemsPerPage = 7)
+ *                                               : basic pagination setup using config/pagination.php
+ * - check_user_authentication(string $redirectPath = 'auth')
+ *                                               : check user session and redirect if not authenticated
+ * - Excel and utility helpers for common operations
  */
 
 if (!function_exists('render_view')) {
@@ -129,5 +134,231 @@ if (!function_exists('get_rules')) {
         }
 
         return $rules;
+    }
+}
+
+if (!function_exists('check_user_authentication')) {
+    /**
+     * Check if user is authenticated and redirect if not.
+     *
+     * This helper checks for user_data in session and redirects to auth
+     * if not found. Used consistently across controllers.
+     *
+     * @param string $redirectPath Optional redirect path (default: 'auth')
+     *
+     * @return void
+     */
+    function check_user_authentication(string $redirectPath = 'auth'): void
+    {
+        $ci = &get_instance();
+
+        if (!$ci->session->userdata('user_data')) {
+            redirect($redirectPath);
+        }
+    }
+}
+
+if (!function_exists('setup_pagination')) {
+    /**
+     * Setup basic pagination parameters, using config/pagination.php for styling.
+     *
+     * This helper only sets the essential pagination parameters and lets
+     * CodeIgniter use the existing pagination.php config file for styling.
+     *
+     * @param string $baseUrl       Base URL for pagination links
+     * @param int    $totalRows     Total number of records
+     * @param int    $itemsPerPage  Items per page (default: 7)
+     *
+     * @return array Basic pagination configuration array
+     */
+    function setup_pagination(string $baseUrl, int $totalRows, int $itemsPerPage = 7): array
+    {
+        return [
+            'base_url'         => $baseUrl,
+            'total_rows'       => $totalRows,
+            'per_page'         => $itemsPerPage,
+            'use_page_numbers' => true,
+        ];
+    }
+}
+
+if (!function_exists('reset_controller_session')) {
+    /**
+     * Reset session data when switching between controllers.
+     *
+     * This helper resets search, filter, and sort session data when
+     * switching controllers, maintaining clean state per controller.
+     *
+     * @param string $controllerName Current controller name
+     *
+     * @return void
+     */
+    function reset_controller_session(string $controllerName): void
+    {
+        $ci = &get_instance();
+
+        if ($ci->session->userdata('controller') !== $controllerName) {
+            $ci->session->set_userdata('controller', $controllerName);
+            $ci->session->unset_userdata(['keyword', 'sort', 'filter']);
+        }
+    }
+}
+
+if (!function_exists('output_excel_file')) {
+    /**
+     * Output Excel file to browser for download.
+     *
+     * Sets appropriate headers and outputs the Excel file for download.
+     * Commonly used across controllers for Excel export functionality.
+     *
+     * @param PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet The spreadsheet object
+     * @param string                               $filename     The filename for download
+     *
+     * @return void
+     */
+    function output_excel_file($spreadsheet, string $filename): void
+    {
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+}
+
+if (!function_exists('apply_excel_header_style')) {
+    /**
+     * Apply consistent header styling to Excel worksheet.
+     *
+     * Applies standard header formatting (bold font, background color)
+     * used across all Excel exports in the system.
+     *
+     * @param PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet      The worksheet object
+     * @param string                                       $cellRange  Cell range for headers (e.g., 'A1:D1')
+     *
+     * @return void
+     */
+    function apply_excel_header_style($sheet, string $cellRange): void
+    {
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E9ECEF']
+            ]
+        ];
+
+        $sheet->getStyle($cellRange)->applyFromArray($headerStyle);
+    }
+}
+
+if (!function_exists('auto_size_excel_columns')) {
+    /**
+     * Auto-size columns in Excel worksheet.
+     *
+     * Automatically adjusts column widths to fit content for the specified
+     * column range. Commonly used in Excel export functions.
+     *
+     * @param PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet      The worksheet object
+     * @param string                                       $startCol   Starting column (e.g., 'A')
+     * @param string                                       $endCol     Ending column (e.g., 'D')
+     *
+     * @return void
+     */
+    function auto_size_excel_columns($sheet, string $startCol, string $endCol): void
+    {
+        foreach (range($startCol, $endCol) as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+    }
+}
+
+if (!function_exists('validate_excel_file')) {
+    /**
+     * Validate uploaded Excel file.
+     *
+     * Checks if file exists, has valid extension and MIME type.
+     * Returns validation results with error messages.
+     *
+     * @param array  $file         $_FILES array for the uploaded file
+     * @param int    $maxSize      Maximum file size in KB (default: 2048)
+     * @param array  $allowedTypes Allowed file extensions (default: ['xlsx', 'xls'])
+     *
+     * @return array Validation result with 'valid' boolean and 'error' message
+     */
+    function validate_excel_file(array $file, int $maxSize = 2048, array $allowedTypes = ['xlsx', 'xls']): array
+    {
+        if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
+            return ['valid' => false, 'error' => 'No file uploaded'];
+        }
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return ['valid' => false, 'error' => 'File upload error: ' . $file['error']];
+        }
+
+        if ($file['size'] > ($maxSize * 1024)) {
+            return ['valid' => false, 'error' => 'File size exceeds maximum allowed size of ' . $maxSize . 'KB'];
+        }
+
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowedTypes)) {
+            return ['valid' => false, 'error' => 'Invalid file type. Only ' . implode(', ', $allowedTypes) . ' files are allowed'];
+        }
+
+        $validMimeTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+            'application/vnd.ms-excel' // .xls
+        ];
+
+        if (!in_array($file['type'], $validMimeTypes)) {
+            return ['valid' => false, 'error' => 'Invalid file format'];
+        }
+
+        return ['valid' => true, 'error' => null];
+    }
+}
+
+if (!function_exists('format_datetime_indonesian')) {
+    /**
+     * Format datetime to Indonesian format.
+     *
+     * Converts datetime string to Indonesian format (DD MMM YYYY HH:ii:ss).
+     * Commonly used in views and Excel exports.
+     *
+     * @param string $datetime DateTime string to format
+     *
+     * @return string Formatted datetime string
+     */
+    function format_datetime_indonesian(string $datetime): string
+    {
+        if (empty($datetime) || $datetime === '0000-00-00 00:00:00') {
+            return '-';
+        }
+
+        try {
+            return date('d M Y H:i:s', strtotime($datetime));
+        } catch (Exception $e) {
+            return $datetime; // Return original if formatting fails
+        }
+    }
+}
+
+if (!function_exists('get_current_user_nik')) {
+    /**
+     * Get current logged-in user's NIK from session.
+     *
+     * Helper to consistently retrieve user NIK from session data.
+     * Returns null if user is not logged in.
+     *
+     * @return string|null User NIK or null if not found
+     */
+    function get_current_user_nik(): ?string
+    {
+        $ci = &get_instance();
+        $userData = $ci->session->userdata('user_data');
+
+        return $userData['nik'] ?? null;
     }
 }

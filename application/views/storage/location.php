@@ -18,6 +18,9 @@
     </div>
 <?php endif; ?>
 
+<!-- Alert Container for JavaScript messages -->
+<div id="alert-container" class="mx-3"></div>
+
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title -->
@@ -565,7 +568,7 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert('Error: ' + data.message);
+                    AirSystemUtils.showErrorMessage(data.message);
                 }
             });
     }

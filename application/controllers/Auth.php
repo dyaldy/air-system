@@ -4,15 +4,33 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /**
  * Authentication controller for air-system.
  *
- * Minimal login page compatible with ASRS UI. Validates NIK against
- * entries in `user_model->getUserFilter('nik')` and sets `user_data` in session.
+ * Handles user authentication and login functionality. Validates NIK against
+ * user database entries and manages user session data. Compatible with ASRS UI patterns.
+ *
+ * @package AirSystem
+ * @subpackage Controllers
+ * @category Authentication
+ * @author Apparel One Indonesia
+ * @version 1.0.0
+ * @property CI_Session $session
+ * @property CI_Input $input
+ * @property CI_Form_validation $form_validation
+ * @property User_model $user_model
  */
 class Auth extends CI_Controller
 {
+    /**
+     * Constructor for Auth controller.
+     *
+     * Initializes the controller by loading required models and helpers.
+     *
+     * @return void
+     */
     public function __construct()
     {
         parent::__construct();
         $this->load->model('user_model');
+        $this->load->helper('common');
     }
 
     public function index(): void

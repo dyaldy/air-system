@@ -4,26 +4,50 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /**
  * Home controller for air-system.
  *
- * Handles the main dashboard/beranda page and system overview.
+ * Handles the main dashboard/beranda page and system overview. Displays
+ * system statistics, activity trends, and low stock alerts for administrators.
+ *
+ * @package AirSystem
+ * @subpackage Controllers
+ * @category Home
+ * @author Apparel One Indonesia
+ * @version 1.0.0
+ * @property CI_Session $session
+ * @property CI_Input $input
+ * @property User_model $user_model
+ * @property Pneumatic_model $Pneumatic_model
+ * @property Fitting_model $Fitting_model
+ * @property Storage_model $Storage_model
  */
 class Home extends CI_Controller
 {
+    /**
+     * Constructor for Home controller.
+     *
+     * Initializes the controller by checking user authentication and loading
+     * required models for dashboard data display.
+     *
+     * @return void
+     */
     public function __construct()
     {
         parent::__construct();
         $this->load->helper('common');
 
-        // Check if user is logged in, redirect to auth if not
-        if (!$this->session->userdata('user_data')) {
-            redirect('auth');
-        }
+        // Check user authentication using common helper
+        check_user_authentication('auth');
 
-        // Load models we might need for dashboard data
+        // Load models needed for dashboard data
         $this->load->model(['user_model', 'Pneumatic_model', 'Fitting_model', 'Storage_model']);
     }
 
     /**
-     * Display the main beranda/dashboard page
+     * Display the main beranda/dashboard page.
+     *
+     * Shows system overview including user counts, inventory statistics,
+     * storage utilization, recent activities, and activity trends.
+     *
+     * @return void
      */
     public function index(): void
     {

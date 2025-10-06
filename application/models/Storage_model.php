@@ -1,9 +1,31 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+/**
+ * Storage_model for air-system.
+ *
+ * This model handles all database operations for storage management including
+ * inventory tracking, storage/retrieval transactions, location management,
+ * and stock level monitoring. Supports both regular and project-based operations.
+ *
+ * @package AirSystem
+ * @subpackage Models
+ * @category Storage
+ * @author Apparel One Indonesia
+ * @version 1.0.0
+ * @property CI_DB_query_builder $db
+ * @property CI_Input $input
+ * @property CI_Session $session
+ */
 class Storage_model extends CI_Model
 {
-
+    /**
+     * Constructor for Storage_model.
+     *
+     * Initializes the model and loads the database.
+     *
+     * @return void
+     */
     public function __construct()
     {
         parent::__construct();
@@ -11,7 +33,18 @@ class Storage_model extends CI_Model
     }
 
     /**
-     * Take items (decrease amount)
+     * Take items from storage (decrease amount).
+     *
+     * Removes specified quantity of items from storage location. Validates
+     * sufficient stock is available before processing the transaction.
+     *
+     * @param string $location_id Location identifier (will be converted to uppercase)
+     * @param string $category    Item category ('pneumatic', 'fitting', etc.)
+     * @param string $type_id     Type identifier for the item
+     * @param int    $quantity    Quantity to remove from storage
+     * @param string $editor_nik  NIK of the user performing the operation
+     *
+     * @return array Result array with 'success' boolean and 'message' string
      */
     public function take_items($location_id, $category, $type_id, $quantity, $editor_nik)
     {
@@ -37,7 +70,19 @@ class Storage_model extends CI_Model
     }
 
     /**
-     * Take project items from storage with batch tracking
+     * Take project items from storage with batch tracking.
+     *
+     * Removes items from storage for project use with optional batch tracking.
+     * Uses the same validation logic as regular items but supports batch association.
+     *
+     * @param string      $location_id Location identifier (will be converted to uppercase)
+     * @param string      $category    Item category ('pneumatic', 'fitting', etc.)
+     * @param string      $type_id     Type identifier for the item
+     * @param int         $quantity    Quantity to remove from storage
+     * @param string      $editor_nik  NIK of the user performing the operation
+     * @param string|null $batch_id    Optional batch ID for project tracking
+     *
+     * @return array Result array with 'success' boolean and 'message' string
      */
     public function take_project_items($location_id, $category, $type_id, $quantity, $editor_nik, $batch_id = null)
     {
@@ -371,7 +416,7 @@ class Storage_model extends CI_Model
         $low_stock_items = [];
 
         // Get pneumatic items below min stock
-        $this->db->select('s.location_id, s.category, s.type_id, s.amount, p.min_stock, p.brand, p.type, p.bore, p.stroke');
+        $this->db->select('s.location_id, s.category, s.type_id, s.amount, p.min_stock, p.type, p.bore, p.stroke');
         $this->db->from('as_storage s');
         $this->db->join('as_pneumatic p', 's.type_id = p.pneumatic_id', 'inner');
         $this->db->where('s.category', 'pneumatic');

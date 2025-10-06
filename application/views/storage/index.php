@@ -18,6 +18,9 @@
     </div>
 <?php endif; ?>
 
+<!-- Alert Container for JavaScript messages -->
+<div id="alert-container" class="mx-3"></div>
+
 <!-- Main Content Card -->
 <div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 95%;">
     <!-- Card Header with Title -->
@@ -762,7 +765,7 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert('Error: ' + data.message);
+                    AirSystemUtils.showErrorMessage(data.message);
                 }
             });
     }
@@ -816,12 +819,12 @@
         const typeId = document.getElementById('takeTypeId').value;
 
         if (!locationId) {
-            alert('Pilih lokasi terlebih dahulu');
+            AirSystemUtils.showErrorMessage('Pilih lokasi terlebih dahulu');
             return;
         }
 
         if (!quantity || quantity <= 0) {
-            alert('Masukkan jumlah yang valid');
+            AirSystemUtils.showErrorMessage('Masukkan jumlah yang valid');
             return;
         }
 
@@ -1302,8 +1305,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Item berhasil dihapus');
-                        location.reload();
+                        AirSystemUtils.showSuccessMessage('Item berhasil dihapus');
+                        setTimeout(() => location.reload(), 1500);
                     } else {
                         alert('Error: ' + data.message);
                     }

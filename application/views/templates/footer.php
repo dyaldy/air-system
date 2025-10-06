@@ -6,7 +6,7 @@
         <span>Operation Excellence 2025</span>
     </footer>
 
-    <!-- Scripts: Bootstrap then app logic (ASRS canonical) -->
+    <!-- Scripts: Bootstrap then common utilities, then app logic (Air System + ASRS canonical) -->
     <script>
         // Global vars used by ASRS scripts; set reasonable defaults for air-system
         window.notificationDuration = window.notificationDuration || 3000;
@@ -15,6 +15,12 @@
     </script>
     <!-- Load local Bootstrap bundle for offline use -->
     <script src="<?= base_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
+
+    <!-- Load common utilities first (required by other scripts) -->
+    <script src="<?= base_url('assets/js/common.js') ?>"></script>
+    <script src="<?= base_url('assets/js/filter-manager.js') ?>"></script>
+
+    <!-- Load existing utilities -->
     <script src="<?= base_url('assets/js/tooltip.js') ?>"></script>
     <script src="<?= base_url('assets/js/popoverlogic.js') ?>"></script>
     <script src="<?= base_url('assets/js/notificationlogic.js') ?>"></script>

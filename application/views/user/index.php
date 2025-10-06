@@ -201,7 +201,7 @@
         uploadBtn.addEventListener('click', function(e) {
             if (fileInput.files.length === 0) {
                 e.preventDefault();
-                alert('Pilih file Excel terlebih dahulu!');
+                AirSystemUtils.showErrorMessage('Pilih file Excel terlebih dahulu!');
             }
         });
     })();

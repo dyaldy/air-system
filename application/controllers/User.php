@@ -8,6 +8,12 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
+ * User controller for air-system.
+ *
+ * Manage users: listing, search/filter/sort, CRUD operations, and Excel import/export.
+ * This controller handles all user management operations including data validation,
+ * pagination, filtering, and Excel import/export functionality.
+ *
  * @package AirSystem
  * @subpackage Controllers
  * @category User
@@ -55,9 +61,10 @@ class User extends CI_Controller
     ];
 
     /**
-     * Class constructor.
+     * Constructor for User controller.
      *
-     * Loads models, libraries and helpers. Verifies authentication.
+     * Initializes the controller by checking user authentication, loading required
+     * models and libraries, and resetting session data when switching controllers.
      *
      * @return void
      */
@@ -65,19 +72,16 @@ class User extends CI_Controller
     {
         parent::__construct();
 
-        // Check authentication
-        if (!$this->session->userdata('user_data')) {
-            redirect(base_url());
-        }
+        $this->load->helper('common');
+
+        // Check user authentication using common helper
+        check_user_authentication();
 
         $this->load->model('User_model');
         $this->load->library(['form_validation', 'pagination']);
 
-        // Reset session if controller changed
-        if ($this->session->userdata('controller') !== 'user') {
-            $this->session->set_userdata('controller', 'user');
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
+        // Reset session data when switching controllers
+        reset_controller_session('user');
     }
 
     /**

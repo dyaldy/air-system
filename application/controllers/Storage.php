@@ -6,9 +6,31 @@ require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+/**
+ * Storage controller for air-system.
+ *
+ * Manage storage operations: inventory tracking, storage/retrieval transactions,
+ * location management, and reporting. Handles both regular and project-based
+ * storage operations with proper auditing and batch tracking.
+ *
+ * @package AirSystem
+ * @subpackage Controllers
+ * @category Storage
+ * @author Apparel One Indonesia
+ * @version 1.0.0
+ * @property CI_Session $session
+ * @property CI_Input $input
+ * @property CI_URI $uri
+ * @property CI_Form_validation $form_validation
+ * @property CI_Pagination $pagination
+ * @property Storage_model $Storage_model
+ * @property Report_model $Report_model
+ * @property Pneumatic_model $Pneumatic_model
+ * @property Fitting_model $Fitting_model
+ * @property Project_batch_model $Project_batch_model
+ */
 class Storage extends CI_Controller
 {
-
     /**
      * Configuration array for all settings.
      *
@@ -23,28 +45,48 @@ class Storage extends CI_Controller
         ]
     ];
 
+    /**
+     * Constructor for Storage controller.
+     *
+     * Initializes the controller by checking user authentication, loading required
+     * models and libraries, and resetting session data when switching controllers.
+     *
+     * @return void
+     */
     public function __construct()
     {
         parent::__construct();
 
-        // Check if user is logged in - same as User controller
-        if (!$this->session->userdata('user_data')) {
-            redirect(base_url());
-        }
+        $this->load->helper('common');
+
+        // Check user authentication using common helper
+        check_user_authentication();
 
         // Load required models and libraries
-        $this->load->model(['Storage_model', 'Report_model', 'Pneumatic_model', 'Pneumatic_type_model', 'Fitting_model', 'Fitting_type_model', 'Project_batch_model']);
+        $this->load->model([
+            'Storage_model',
+            'Report_model',
+            'Pneumatic_model',
+            'Pneumatic_type_model',
+            'Fitting_model',
+            'Fitting_type_model',
+            'Project_batch_model'
+        ]);
         $this->load->library(['form_validation', 'session', 'pagination']);
-        $this->load->helper(['url', 'common']);
 
-        // Set session controller to storage
-        if ($this->session->userdata('controller') !== 'storage') {
-            $this->session->set_userdata('controller', 'storage');
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
+        // Reset session data when switching controllers
+        reset_controller_session('storage');
     }
 
-    public function index()
+    /**
+     * Display storage overview with search and filtering capabilities.
+     *
+     * Shows the main storage dashboard with inventory listings, search functionality,
+     * and pagination. Handles GET parameters for search and maintains session state.
+     *
+     * @return void
+     */
+    public function index(): void
     {
         // Handle search from GET parameters
         $keyword = $this->input->get('keyword');
@@ -58,9 +100,6 @@ class Storage extends CI_Controller
         if (!$this->input->get('keyword')) {
             $this->session->unset_userdata(['keyword', 'sort', 'filter']);
         }
-
-        // Handle session state (search, filter, sort, reset)
-        // handle_session_state('storage'); // Disabled since we handle GET directly
 
         $data['title'] = 'Storage Overview';
         $data['user_data'] = $this->session->userdata('user_data');
@@ -1217,9 +1256,9 @@ class Storage extends CI_Controller
                 if ($batch_id) {
                     // Add to storage
                     $type_id_for_db = ($category == 'Screw') ? (int)$type_id : $type_id;
-                    $add_result = $this->Storage_model->add_items($location_id, $category, $type_id_for_db, $quantity, 'system');
+                    $add_result = $this->Storage_model->store_items($location_id, $category, $type_id_for_db, $quantity, 'system');
 
-                    if ($add_result['success']) {
+                    if ($add_result) {
                         $this->db->trans_complete();
 
                         $response = array(
