@@ -105,45 +105,49 @@
             <!-- Subtypes List -->
             <div id="subtypesList">
                 <?php if (!empty($subtypes)): ?>
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                        <?php foreach ($subtypes as $subtype): ?>
-                            <div class="col" data-subtype-id="<?= $subtype['id'] ?>">
-                                <div class="card border-left-primary shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="card-title text-primary mb-1"><?= htmlspecialchars($subtype['subtype'], ENT_QUOTES, 'UTF-8') ?></h6>
-                                                <?php if (!empty($subtype['description'])): ?>
-                                                    <p class="card-text text-muted small mb-0"><?= htmlspecialchars($subtype['description'], ENT_QUOTES, 'UTF-8') ?></p>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-link btn-sm text-muted" type="button" data-bs-toggle="dropdown">
-                                                    <i class="fas fa-ellipsis-v"></i>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Subtype</th>
+                                    <th>Deskripsi</th>
+                                    <th width="100" class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($subtypes as $subtype): ?>
+                                    <tr data-subtype-id="<?= $subtype['id'] ?>">
+                                        <td>
+                                            <span class="fw-bold text-primary"><?= htmlspecialchars($subtype['subtype'], ENT_QUOTES, 'UTF-8') ?></span>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($subtype['description'])): ?>
+                                                <span class="text-muted"><?= htmlspecialchars($subtype['description'], ENT_QUOTES, 'UTF-8') ?></span>
+                                            <?php else: ?>
+                                                <span class="text-muted fst-italic">Tidak ada deskripsi</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary edit-subtype"
+                                                    data-id="<?= $subtype['id'] ?>"
+                                                    data-subtype="<?= htmlspecialchars($subtype['subtype'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-description="<?= htmlspecialchars($subtype['description'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                                    title="Edit Subtype">
+                                                    <i class="fas fa-edit"></i>
                                                 </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li>
-                                                        <a class="dropdown-item edit-subtype" href="#"
-                                                            data-id="<?= $subtype['id'] ?>"
-                                                            data-subtype="<?= htmlspecialchars($subtype['subtype'], ENT_QUOTES, 'UTF-8') ?>"
-                                                            data-description="<?= htmlspecialchars($subtype['description'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                                                            <i class="fas fa-edit"></i> Edit
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item text-danger delete-subtype" href="#"
-                                                            data-id="<?= $subtype['id'] ?>"
-                                                            data-subtype="<?= htmlspecialchars($subtype['subtype'], ENT_QUOTES, 'UTF-8') ?>">
-                                                            <i class="fas fa-trash"></i> Hapus
-                                                        </a>
-                                                    </li>
-                                                </ul>
+                                                <button type="button" class="btn btn-outline-danger delete-subtype"
+                                                    data-id="<?= $subtype['id'] ?>"
+                                                    data-subtype="<?= htmlspecialchars($subtype['subtype'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    title="Hapus Subtype">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 <?php else: ?>
                     <div class="alert alert-info text-center">
@@ -590,48 +594,57 @@
                         return;
                     }
 
-                    let html = '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">';
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Subtype</th>
+                                        <th>Deskripsi</th>
+                                        <th width="100" class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
 
                     subtypes.forEach(subtype => {
                         html += `
-                    <div class="col" data-subtype-id="${subtype.id}">
-                        <div class="card border-left-primary shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="card-title text-primary mb-1">${subtype.subtype}</h6>
-                                        ${subtype.description ? `<p class="card-text text-muted small mb-0">${subtype.description}</p>` : ''}
-                                    </div>
-                                    <div class="dropdown">
-                                        <button class="btn btn-link btn-sm text-muted" type="button" data-bs-toggle="dropdown">
-                                            <i class="fas fa-ellipsis-v"></i>
+                            <tr data-subtype-id="${subtype.id}">
+                                <td>
+                                    <span class="fw-bold text-primary">${subtype.subtype}</span>
+                                </td>
+                                <td>
+                                    ${subtype.description ? 
+                                        `<span class="text-muted">${subtype.description}</span>` : 
+                                        `<span class="text-muted fst-italic">Tidak ada deskripsi</span>`
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-primary edit-subtype" 
+                                                data-id="${subtype.id}"
+                                                data-subtype="${subtype.subtype}"
+                                                data-description="${subtype.description || ''}"
+                                                title="Edit Subtype">
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <a class="dropdown-item edit-subtype" href="#" 
-                                                   data-id="${subtype.id}"
-                                                   data-subtype="${subtype.subtype}"
-                                                   data-description="${subtype.description || ''}">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-danger delete-subtype" href="#" 
-                                                   data-id="${subtype.id}"
-                                                   data-subtype="${subtype.subtype}">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </a>
-                                            </li>
-                                        </ul>
+                                        <button type="button" class="btn btn-outline-danger delete-subtype" 
+                                                data-id="${subtype.id}"
+                                                data-subtype="${subtype.subtype}"
+                                                title="Hapus Subtype">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                                </td>
+                            </tr>
+                        `;
                     });
 
-                    html += '</div>';
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
                     container.innerHTML = html;
                 })
                 .catch(error => {
@@ -644,20 +657,25 @@
 </script>
 
 <style>
-    /* Subtype card styling */
-    .border-left-primary {
-        border-left: 0.375rem solid #0d6efd !important;
+    /* Subtype table styling */
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
     }
 
-    .card.border-left-primary {
-        border-left-width: 4px;
-        border-left-color: #0d6efd;
+    .table th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
     }
 
-    .card.border-left-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15) !important;
-        transition: all 0.2s ease-in-out;
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.775rem;
+    }
+
+    /* Table responsive improvements */
+    .table-responsive {
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
     }
 
     /* Modal styling improvements */
