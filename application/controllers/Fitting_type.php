@@ -146,9 +146,9 @@ class Fitting_type extends CI_Controller
      */
     public function addSubtype(): void
     {
-        if (!$this->input->is_ajax_request()) {
-            show_404();
-        }
+        // if (!$this->input->is_ajax_request()) {
+        //     show_404();
+        // }
 
         $parentType = $this->input->post('parent_type', true);
         $subtype = $this->input->post('subtype', true);
@@ -158,6 +158,14 @@ class Fitting_type extends CI_Controller
             $this->output
                 ->set_content_type('application/json')
                 ->set_output(json_encode(['status' => 'error', 'message' => 'Parent type dan subtype harus diisi']));
+            return;
+        }
+
+        // Check if parent type exists
+        if (!$this->Fitting_type_model->isTypeExists($parentType)) {
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Type fitting tidak ditemukan']));
             return;
         }
 
