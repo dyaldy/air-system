@@ -176,6 +176,50 @@
         return document.getElementById('type').value.trim().toUpperCase();
     }
 
+    // Warning functions for type input
+    let typeWarningTimeout;
+
+    function showTypeWarning(message) {
+        const typeInput = document.getElementById('type');
+        if (!typeInput) return;
+
+        // Remove existing warning
+        hideTypeWarning();
+
+        // Create warning element
+        const warning = document.createElement('div');
+        warning.className = 'text-danger';
+        warning.style.cssText = 'font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;';
+        warning.textContent = message;
+        warning.setAttribute('data-warning', 'type-character-warning');
+
+        // Insert after input
+        typeInput.parentNode.appendChild(warning);
+
+        // Add red border to input
+        typeInput.style.borderColor = '#dc3545';
+        typeInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+
+        // Auto-hide after 3 seconds
+        clearTimeout(typeWarningTimeout);
+        typeWarningTimeout = setTimeout(() => {
+            hideTypeWarning();
+        }, 3000);
+    }
+
+    function hideTypeWarning() {
+        const typeInput = document.getElementById('type');
+        if (!typeInput) return;
+
+        const warning = typeInput.parentNode.querySelector('[data-warning="type-character-warning"]');
+        if (warning) {
+            warning.remove();
+        }
+        // Reset border color
+        typeInput.style.borderColor = '';
+        typeInput.style.boxShadow = '';
+    }
+
     // Load subtypes when page loads (only if type exists)
     document.addEventListener('DOMContentLoaded', function() {
         if (currentType) {
@@ -186,9 +230,45 @@
         }
     });
 
+    // Block disallowed characters on keydown for type input
+    document.getElementById('type').addEventListener('keydown', function(e) {
+        // Allow control keys (backspace, delete, arrow keys, etc.)
+        const allowedKeys = [
+            'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Home', 'End', 'Tab', 'Escape', 'Enter'
+        ];
+
+        if (allowedKeys.includes(e.key)) {
+            return; // Allow control keys
+        }
+
+        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+        if (e.ctrlKey && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
+            return; // Allow copy/paste/select all
+        }
+
+        // Check if the key is an allowed character (letters, numbers, underscore)
+        const char = e.key.toUpperCase();
+        if (!/^[A-Z0-9_]$/.test(char)) {
+            e.preventDefault(); // Block the key
+            showTypeWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+            return;
+        }
+    });
+
     // Update currentType when type input changes
-    document.getElementById('type').addEventListener('input', function() {
-        const newType = getCurrentType();
+    document.getElementById('type').addEventListener('input', function(e) {
+        // Filter input to only allow uppercase letters, numbers, and underscores
+        let value = e.target.value.toUpperCase();
+        const filteredValue = value.replace(/[^A-Z0-9_]/g, '');
+
+        if (value !== filteredValue) {
+            showTypeWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
+        }
+
+        e.target.value = filteredValue;
+
+        const newType = filteredValue.trim();
         if (newType !== currentType) {
             currentType = newType;
             if (currentType) {
@@ -196,6 +276,17 @@
             } else {
                 displaySubtypes([]);
             }
+        }
+    });
+
+    // Hide warning on blur and validate
+    document.getElementById('type').addEventListener('blur', function(e) {
+        hideTypeWarning();
+        const value = e.target.value;
+        if (value && !value.match(/^[A-Z0-9_]+$/)) {
+            e.target.setCustomValidity('Type harus menggunakan huruf besar, angka, dan underscore saja');
+        } else {
+            e.target.setCustomValidity('');
         }
     });
 
@@ -513,101 +604,9 @@
             }
         }, 5000);
     }
-    });
 
-    // Enforce uppercase and underscore format for type field
+    // Enforce uppercase and underscore format for subtype fields
     document.addEventListener('DOMContentLoaded', function() {
-        const typeInput = document.getElementById('type');
-        if (typeInput) {
-            let warningTimeout;
-
-            // Block disallowed characters on keydown (before they appear)
-            typeInput.addEventListener('keydown', function(e) {
-                // Allow control keys (backspace, delete, arrow keys, etc.)
-                const allowedKeys = [
-                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-                    'Home', 'End', 'Tab', 'Escape', 'Enter'
-                ];
-
-                if (allowedKeys.includes(e.key)) {
-                    return; // Allow control keys
-                }
-
-                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
-                if (e.ctrlKey && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) {
-                    return; // Allow copy/paste/select all
-                }
-
-                // Check if the key is an allowed character (letters, numbers, underscore)
-                const char = e.key.toUpperCase();
-                if (!/^[A-Z0-9_]$/.test(char)) {
-                    e.preventDefault(); // Block the key
-                    showWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
-                    return;
-                }
-            });
-
-            // Convert to uppercase on input (for pasted content or other inputs)
-            typeInput.addEventListener('input', function(e) {
-                let value = e.target.value.toUpperCase();
-                // Only allow letters, numbers, and underscores
-                const filteredValue = value.replace(/[^A-Z0-9_]/g, '');
-
-                if (value !== filteredValue) {
-                    showWarning('Hanya huruf besar, angka, dan underscore (_) yang diizinkan!');
-                }
-
-                e.target.value = filteredValue;
-            });
-
-            // Validate format on blur and hide warning
-            typeInput.addEventListener('blur', function(e) {
-                const value = e.target.value;
-                hideWarning();
-                if (value && !value.match(/^[A-Z0-9_]+$/)) {
-                    e.target.setCustomValidity('Type harus menggunakan huruf besar, angka, dan underscore saja');
-                } else {
-                    e.target.setCustomValidity('');
-                }
-            });
-
-            function showWarning(message) {
-                // Remove existing warning
-                hideWarning();
-
-                // Create warning element
-                const warning = document.createElement('div');
-                warning.className = 'text-danger';
-                warning.style.cssText = 'font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;';
-                warning.textContent = message;
-                warning.setAttribute('data-warning', 'character-warning');
-
-                // Insert after input
-                typeInput.parentNode.appendChild(warning);
-
-                // Add red border to input
-                typeInput.style.borderColor = '#dc3545';
-                typeInput.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
-
-                // Auto-hide after 3 seconds
-                clearTimeout(warningTimeout);
-                warningTimeout = setTimeout(() => {
-                    hideWarning();
-                }, 3000);
-            }
-
-            function hideWarning() {
-                const warning = typeInput.parentNode.querySelector('[data-warning="character-warning"]');
-                if (warning) {
-                    warning.remove();
-                }
-                // Reset border color
-                typeInput.style.borderColor = '';
-                typeInput.style.boxShadow = '';
-            }
-        }
-
-        // Enforce uppercase and underscore format for subtype fields
         function enforceSubtypeFormat(input) {
             let subtypeWarningTimeout;
 

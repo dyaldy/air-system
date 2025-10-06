@@ -130,12 +130,12 @@ class Fitting_type extends CI_Controller
         }
 
         $subtypes = $this->Fitting_subtype_model->getSubtypesByParentType($type);
-        
+
         // Add usage information for each subtype
         foreach ($subtypes as &$subtype) {
             $subtype['is_in_use'] = $this->Fitting_subtype_model->isSubtypeInUse($type, $subtype['subtype']);
         }
-        
+
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode($subtypes));
