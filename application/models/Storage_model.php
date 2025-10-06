@@ -95,13 +95,21 @@ class Storage_model extends CI_Model
         if ($result['success'] && $batch_id) {
             // Load Project_batch_model and update batch quantity
             $this->load->model('Project_batch_model');
-            $batch_result = $this->Project_batch_model->take_from_batch($batch_id, $quantity);
+            $batch_result = $this->Project_batch_model->take_from_specific_batch($batch_id, $quantity);
 
             if (!$batch_result['success']) {
                 // If batch update fails, we should ideally rollback the storage update
                 // For now, we'll log the issue but still report success for storage
                 log_message('error', 'Failed to update batch ' . $batch_id . ' when taking items: ' . $batch_result['message']);
+
+                // Actually, let's return the batch error since batch management is critical
+                return [
+                    'success' => false,
+                    'message' => 'Failed to update batch: ' . $batch_result['message']
+                ];
             }
+
+            log_message('debug', 'Batch updated successfully: ' . json_encode($batch_result));
         }
 
         return $result;

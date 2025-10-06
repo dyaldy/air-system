@@ -515,6 +515,9 @@ class Storage extends CI_Controller
      */
     public function quick_action()
     {
+        // Add error logging for debugging
+        log_message('debug', 'Quick action called with POST data: ' . json_encode($_POST));
+
         $action = $this->input->post('action'); // 'store' or 'take'
         $location_id = strtoupper($this->input->post('location_id'));
         $category = $this->input->post('category');
@@ -522,23 +525,50 @@ class Storage extends CI_Controller
         $quantity = (int)$this->input->post('quantity');
         $note = $this->input->post('note');
         $batch_id = $this->input->post('batch_id'); // For project items
-        $editor_nik = $this->session->userdata('user_data')['nik'];
+
+        // Check if user session is valid
+        $user_data = $this->session->userdata('user_data');
+        if (!$user_data || !isset($user_data['nik'])) {
+            log_message('error', 'Invalid user session in quick_action');
+            $response = array('success' => false, 'message' => 'Session expired. Please login again.');
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            return;
+        }
+
+        $editor_nik = $user_data['nik'];
+
+        // Validate required fields
+        if (!$action || !$location_id || !$category || !$type_id || !$quantity) {
+            log_message('error', 'Missing required fields in quick_action');
+            $response = array('success' => false, 'message' => 'Missing required fields');
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            return;
+        }
 
         if ($action === 'store') {
             $result = $this->Storage_model->store_items($location_id, $category, $type_id, $quantity, $editor_nik);
             if ($result) {
                 $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
+                $this->session->set_flashdata('success', 'Barang berhasil disimpan!');
                 $response = array('success' => true, 'message' => 'Items stored successfully');
             } else {
                 $response = array('success' => false, 'message' => 'Failed to store items');
             }
         } elseif ($action === 'take') {
+            log_message('debug', 'Take action - batch_id: ' . $batch_id . ', type_id: ' . $type_id);
+
             // For project items, include batch_id in the take operation
             if ($batch_id && strpos($type_id, '_PROJECT') !== false) {
+                log_message('debug', 'Using take_project_items with batch_id: ' . $batch_id);
                 $result = $this->Storage_model->take_project_items($location_id, $category, $type_id, $quantity, $editor_nik, $batch_id);
             } else {
+                log_message('debug', 'Using regular take_items');
                 $result = $this->Storage_model->take_items($location_id, $category, $type_id, $quantity, $editor_nik);
             }
+
+            log_message('debug', 'Take result: ' . json_encode($result));
 
             if ($result['success']) {
                 // Determine if it's a project transaction
@@ -546,14 +576,19 @@ class Storage extends CI_Controller
                 // Only pass batch_id if it's actually a project item with a batch
                 $log_batch_id = ($batch_id && $is_project) ? $batch_id : null;
                 $this->Report_model->log_take_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project, $log_batch_id);
+                $this->session->set_flashdata('success', 'Barang berhasil diambil!');
             }
             $response = $result;
         } else {
             $response = array('success' => false, 'message' => 'Invalid action');
         }
 
+        // Ensure no extra output before JSON
+        ob_clean();
         header('Content-Type: application/json');
+        http_response_code(200); // Ensure 200 status code
         echo json_encode($response);
+        exit(); // Prevent any additional output
     }
 
     /**

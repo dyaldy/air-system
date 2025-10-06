@@ -438,6 +438,15 @@
                             <div id="actionAvailableStock" class="form-control-plaintext text-primary"></div>
                         </div>
 
+                        <!-- Batch Selection for Project Items -->
+                        <div class="mb-3" id="batchSelectionDiv" style="display: none;">
+                            <label for="actionBatchId" class="form-label">Pilih Batch Project <span class="text-danger">*</span></label>
+                            <select class="form-select" id="actionBatchId" name="batch_id">
+                                <option value="">Pilih batch yang akan diambil</option>
+                            </select>
+                            <div class="form-text">Pilih batch project spesifik untuk diambil</div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="actionQuantity" class="form-label">Jumlah:</label>
                             <input type="number" class="form-control" id="actionQuantity" name="quantity" min="1" required>
@@ -451,7 +460,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn" id="quickActionSubmit" onclick="submitQuickAction()">Aksi</button>
+                    <button type="button" class="btn" id="quickActionSubmit">Aksi</button>
                 </div>
             </div>
         </div>
@@ -526,6 +535,9 @@
 
 <script>
     function quickStoreItem(category, typeId) {
+        // Reset modal state
+        resetQuickActionModal();
+
         document.getElementById('actionType').value = 'store';
         document.getElementById('actionCategory').value = category;
         document.getElementById('actionTypeId').value = typeId;
@@ -535,11 +547,16 @@
         document.getElementById('quickActionSubmit').className = 'btn btn-success';
         document.getElementById('availableStockDiv').style.display = 'none';
 
+        // Batch selection is already hidden by resetQuickActionModal()
+
         var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
         modal.show();
     }
 
     function quickTakeItem(category, typeId, availableStock) {
+        // Reset modal state
+        resetQuickActionModal();
+
         document.getElementById('actionType').value = 'take';
         document.getElementById('actionCategory').value = category;
         document.getElementById('actionTypeId').value = typeId;
@@ -551,26 +568,177 @@
         document.getElementById('actionAvailableStock').textContent = availableStock + ' items';
         document.getElementById('actionQuantity').max = availableStock;
 
+        // Check if this is a project item
+        const isProjectItem = typeId.includes('_PROJECT');
+        const batchSelectionDiv = document.getElementById('batchSelectionDiv');
+        const batchSelect = document.getElementById('actionBatchId');
+
+        if (isProjectItem) {
+            // Show batch selection and load available batches
+            batchSelectionDiv.style.display = 'block';
+            batchSelect.required = true;
+
+            // Load batches for this project item
+            loadProjectBatches(category, typeId);
+        } else {
+            // Hide batch selection for regular items
+            batchSelectionDiv.style.display = 'none';
+            batchSelect.required = false;
+        }
+
         var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
         modal.show();
     }
 
+    function loadProjectBatches(category, typeId) {
+        const batchSelect = document.getElementById('actionBatchId');
+
+        // Show loading state
+        batchSelect.innerHTML = '<option value="">Memuat batch...</option>';
+        batchSelect.disabled = true;
+
+        // Fetch project batches for this location and item
+        fetch(`<?= site_url('storage/get_item_details'); ?>?location_id=<?= $location_id; ?>&category=${category}&type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                batchSelect.disabled = false;
+
+                if (data.success && data.project_batches && data.project_batches.length > 0) {
+                    // Clear loading state and populate with batches
+                    batchSelect.innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
+
+                    data.project_batches.forEach(batch => {
+                        const option = document.createElement('option');
+                        option.value = batch.batch_id;
+                        option.textContent = `${batch.project_name || 'Unnamed Project'} (Sisa: ${batch.remaining_quantity}) - ${batch.batch_id}`;
+                        option.dataset.remainingQuantity = batch.remaining_quantity;
+                        batchSelect.appendChild(option);
+                    });
+
+                    // Update quantity max based on batch selection
+                    batchSelect.addEventListener('change', function() {
+                        const selectedOption = this.selectedOptions[0];
+                        const quantityInput = document.getElementById('actionQuantity');
+
+                        if (selectedOption && selectedOption.dataset.remainingQuantity) {
+                            const maxQuantity = parseInt(selectedOption.dataset.remainingQuantity);
+                            quantityInput.max = maxQuantity;
+                            quantityInput.placeholder = `Maksimal: ${maxQuantity}`;
+
+                            // Update available stock display
+                            const availableStockDiv = document.getElementById('actionAvailableStock');
+                            availableStockDiv.textContent = maxQuantity + ' items (dari batch ini)';
+                        }
+                    });
+                } else {
+                    // No batches available
+                    batchSelect.innerHTML = '<option value="">Tidak ada batch tersedia</option>';
+                    document.getElementById('quickActionSubmit').disabled = true;
+                    AirSystemUtils.showErrorMessage('Tidak ada batch project tersedia untuk item ini');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading batches:', error);
+                batchSelect.disabled = false;
+                batchSelect.innerHTML = '<option value="">Error memuat batch</option>';
+                AirSystemUtils.showErrorMessage('Gagal memuat data batch');
+            });
+    }
+
     function submitQuickAction() {
         const form = document.getElementById('quickActionForm');
+        if (!form) {
+            alert('Error: Form not found');
+            return;
+        }
+
         const formData = new FormData(form);
+
+        // Basic validation
+        const actionType = document.getElementById('actionType').value;
+        const typeId = document.getElementById('actionTypeId').value;
+        const quantity = document.getElementById('actionQuantity').value;
+
+        if (!actionType || !typeId || !quantity || quantity <= 0) {
+            alert('Mohon lengkapi semua field yang diperlukan');
+            return;
+        }
+
+        const isProjectItem = typeId.includes('_PROJECT');
+
+        if (actionType === 'take' && isProjectItem) {
+            const batchId = document.getElementById('actionBatchId').value;
+            if (!batchId) {
+                alert('Pilih batch project terlebih dahulu');
+                return;
+            }
+        }
+
+        // Disable submit button to prevent double submission
+        const submitBtn = document.getElementById('quickActionSubmit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Memproses...';
 
         fetch('<?= site_url('storage/quick_action'); ?>', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
+                    // Close modal first
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickActionModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+
+                    // Reload page to show flash message
                     location.reload();
                 } else {
-                    AirSystemUtils.showErrorMessage(data.message);
+                    alert('Error: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Terjadi kesalahan saat memproses permintaan: ' + error.message);
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                if (actionType === 'take') {
+                    submitBtn.textContent = 'Ambil Barang';
+                } else {
+                    submitBtn.textContent = 'Simpan Barang';
                 }
             });
+    }
+
+    function resetQuickActionModal() {
+        // Reset form
+        document.getElementById('quickActionForm').reset();
+
+        // Reset batch selection
+        const batchSelectionDiv = document.getElementById('batchSelectionDiv');
+        const batchSelect = document.getElementById('actionBatchId');
+
+        batchSelectionDiv.style.display = 'none';
+        batchSelect.required = false;
+        batchSelect.innerHTML = '<option value="">Pilih batch yang akan diambil</option>';
+        batchSelect.disabled = false;
+
+        // Reset submit button
+        document.getElementById('quickActionSubmit').disabled = false;
+
+        // Reset quantity input
+        const quantityInput = document.getElementById('actionQuantity');
+        quantityInput.max = '';
+        quantityInput.placeholder = '';
     }
 
     function viewItemDetails(category, typeId) {
@@ -732,5 +900,14 @@
                 return false;
             });
         });
+
+        // Add event listener for quick action submit button
+        var quickActionSubmitBtn = document.getElementById('quickActionSubmit');
+        if (quickActionSubmitBtn) {
+            quickActionSubmitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                submitQuickAction();
+            });
+        }
     });
 </script>
