@@ -8,8 +8,8 @@
     <link rel="icon" type="image/png" href="<?= base_url('assets/img/favicon.png'); ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css'); ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css'); ?>">
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome Local -->
+    <link rel="stylesheet" href="<?= base_url('assets/fontawesome/all.min.css'); ?>">
 </head>
 
 <body style="background-color: #caeefb;">

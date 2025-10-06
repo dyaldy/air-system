@@ -319,8 +319,8 @@
         </div>
     </div>
 
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Local -->
+    <script src="<?= base_url('assets/js/chart.min.js'); ?>"></script>
 
     <!-- Custom CSS and Scripts -->
     <style>
