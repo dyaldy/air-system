@@ -174,7 +174,7 @@
                                                 <div>
                                                     <h6 class="mb-1 text-truncate">
                                                         <?php if ($item['category'] === 'pneumatic'): ?>
-                                                            <?= htmlspecialchars($item['brand'] . ' ' . $item['type'] . ' ' . $item['bore'] . 'x' . $item['stroke']); ?>
+                                                            <?= htmlspecialchars($item['type'] . ' ' . $item['bore'] . 'x' . $item['stroke']); ?>
                                                         <?php else: ?>
                                                             <?= htmlspecialchars($item['fitting_type'] . ' ' . ($item['subtype'] ?? '')); ?>
                                                         <?php endif; ?>

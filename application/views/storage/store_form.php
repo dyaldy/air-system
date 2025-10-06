@@ -185,7 +185,7 @@
                 pneumaticItems.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.pneumatic_id;
-                    option.textContent = `${item.pneumatic_id} (${item.brand} ${item.type} - ${item.bore}x${item.stroke})`;
+                    option.textContent = `${item.pneumatic_id} (${item.type} - ${item.bore}x${item.stroke})`;
                     if (option.value === '<?= set_value('type_id'); ?>') {
                         option.selected = true;
                     }
