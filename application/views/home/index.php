@@ -116,19 +116,6 @@
             <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
                 <div class="card-body text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-chart-pie fa-3x text-secondary"></i>
-                    </div>
-                    <h2 class="mb-1 text-secondary"><?= number_format($storage_utilization ?? 0, 1); ?>%</h2>
-                    <h6 class="mb-1 text-dark">Utilisasi Storage</h6>
-                    <small class="text-muted">Kapasitas terpakai</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
-                <div class="card-body text-center p-4">
-                    <div class="mb-3">
                         <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
                     </div>
                     <h2 class="mb-1 text-danger"><?= number_format(count($low_stock_items ?? [])); ?></h2>

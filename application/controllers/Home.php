@@ -72,25 +72,11 @@ class Home extends CI_Controller
             $data['total_fittings'] = 0;
         }
 
-        try {
-            $data['total_storage_items'] = $this->Storage_model->countStorage() ?? 0;
-        } catch (Exception $e) {
-            $data['total_storage_items'] = 0;
-        }
-
         // Get low stock alerts
         try {
             $data['low_stock_items'] = $this->Storage_model->get_low_stock_items();
         } catch (Exception $e) {
             $data['low_stock_items'] = [];
-        }
-
-        // Get storage utilization stats
-        try {
-            $total_capacity = 1000; // Assuming some total capacity, you can adjust this
-            $data['storage_utilization'] = $data['total_storage_items'] > 0 ? min(100, ($data['total_storage_items'] / $total_capacity) * 100) : 0;
-        } catch (Exception $e) {
-            $data['storage_utilization'] = 0;
         }
 
         // Get recent activities (last 5 from report table)
