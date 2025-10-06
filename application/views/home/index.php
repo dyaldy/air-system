@@ -39,8 +39,8 @@
         <div class="col-lg-6 mb-4">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="mb-0">Status Stok vs Minimum</h5>
-                    <p class="text-muted small mb-0">Perbandingan stok aktual dengan minimum yang diset</p>
+                    <h5 class="mb-0">Distribusi Penyimpanan</h5>
+                    <p class="text-muted small mb-0">Perbandingan jumlah item per kategori</p>
                 </div>
                 <div class="card-body p-4">
                     <div style="position: relative; height: 300px;">
@@ -73,6 +73,7 @@
 
     <!-- Quick Stats Cards -->
     <div class="row mb-4 g-3">
+        <!-- System Overview -->
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
                 <div class="card-body text-center p-4">
@@ -90,11 +91,11 @@
             <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
                 <div class="card-body text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-cog fa-3x text-success"></i>
+                        <i class="fas fa-boxes fa-3x text-info"></i>
                     </div>
-                    <h2 class="mb-1 text-success"><?= number_format($total_pneumatics ?? 0); ?></h2>
-                    <h6 class="mb-1 text-dark">Total Pneumatic</h6>
-                    <small class="text-muted">Komponen pneumatic</small>
+                    <h2 class="mb-1 text-info"><?= number_format($total_quantity_stored ?? 0); ?></h2>
+                    <h6 class="mb-1 text-dark">Total Quantity</h6>
+                    <small class="text-muted">Item tersimpan</small>
                 </div>
             </div>
         </div>
@@ -103,11 +104,11 @@
             <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
                 <div class="card-body text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-puzzle-piece fa-3x text-warning"></i>
+                        <i class="fas fa-chart-line fa-3x text-success"></i>
                     </div>
-                    <h2 class="mb-1 text-warning"><?= number_format($total_fittings ?? 0); ?></h2>
-                    <h6 class="mb-1 text-dark">Total Fitting</h6>
-                    <small class="text-muted">Komponen fitting</small>
+                    <h2 class="mb-1 text-success"><?= number_format($today_activities ?? 0); ?></h2>
+                    <h6 class="mb-1 text-dark">Aktivitas Hari Ini</h6>
+                    <small class="text-muted">Transaksi hari ini</small>
                 </div>
             </div>
         </div>
@@ -125,15 +126,42 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
+        <!-- Inventory Breakdown -->
+        <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
                 <div class="card-body text-center p-4">
                     <div class="mb-3">
-                        <i class="fas fa-warehouse fa-3x text-info"></i>
+                        <i class="fas fa-cog fa-3x text-success"></i>
                     </div>
-                    <h2 class="mb-1 text-info"><?= number_format($total_storage_items ?? 0); ?></h2>
-                    <h6 class="mb-1 text-dark">Item Penyimpanan</h6>
-                    <small class="text-muted">Total item tersimpan</small>
+                    <h2 class="mb-1 text-success"><?= number_format($total_pneumatics ?? 0); ?></h2>
+                    <h6 class="mb-1 text-dark">Total Pneumatic</h6>
+                    <small class="text-muted">Komponen pneumatic</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-puzzle-piece fa-3x text-warning"></i>
+                    </div>
+                    <h2 class="mb-1 text-warning"><?= number_format($total_fittings ?? 0); ?></h2>
+                    <h6 class="mb-1 text-dark">Total Fitting</h6>
+                    <small class="text-muted">Komponen fitting</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-warehouse fa-3x text-secondary"></i>
+                    </div>
+                    <h2 class="mb-1 text-secondary"><?= number_format($total_storage_items ?? 0); ?></h2>
+                    <h6 class="mb-1 text-dark">Lokasi Penyimpanan</h6>
+                    <small class="text-muted">Total lokasi aktif</small>
                 </div>
             </div>
         </div>
@@ -188,68 +216,73 @@
         </div>
     <?php endif; ?>
 
-    <!-- Recent Activities and Quick Actions -->
+    <!-- System Status & Quick Actions -->
     <div class="row mb-4">
-        <!-- Recent Activities -->
-        <div class="col-lg-6 mb-4">
+        <!-- System Status -->
+        <div class="col-lg-4 mb-4">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-2">
-                    <h5 class="mb-0">Aktivitas Terbaru</h5>
-                    <p class="text-muted small mb-0">5 aktivitas terakhir</p>
+                    <h5 class="mb-0">
+                        <i class="fas fa-heartbeat text-success me-2"></i>
+                        Status Sistem
+                    </h5>
+                    <p class="text-muted small mb-0">Informasi sistem terkini</p>
                 </div>
                 <div class="card-body p-4">
-                    <?php if (!empty($recent_activities)): ?>
-                        <div class="list-group list-group-flush">
-                            <?php foreach ($recent_activities as $activity): ?>
-                                <div class="list-group-item px-0 py-3 border-0">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-shrink-0 me-3">
-                                            <?php if ($activity['action'] === 'store'): ?>
-                                                <i class="fas fa-plus-circle text-success fa-lg"></i>
-                                            <?php else: ?>
-                                                <i class="fas fa-minus-circle text-danger fa-lg"></i>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <small class="text-muted">
-                                                        <?= htmlspecialchars($activity['user_name'] ?? 'Unknown'); ?>
-                                                    </small>
-                                                    <div class="fw-semibold small">
-                                                        <?php if ($activity['action'] === 'store'): ?>
-                                                            Menyimpan
-                                                        <?php else: ?>
-                                                            Mengambil
-                                                        <?php endif; ?>
-                                                        <?= $activity['amount']; ?> item
-                                                    </div>
-                                                </div>
-                                                <small class="text-muted">
-                                                    <?= date('d/m H:i', strtotime($activity['datetime'])); ?>
-                                                </small>
-                                            </div>
-                                            <small class="text-muted">
-                                                Lokasi: <?= htmlspecialchars($activity['location_id']); ?> |
-                                                Kategori: <?= htmlspecialchars($activity['category']); ?>
-                                            </small>
-                                        </div>
-                                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-server text-success fa-lg me-3"></i>
+                                <div>
+                                    <div class="fw-semibold">Database</div>
+                                    <small class="text-success">Terhubung</small>
                                 </div>
-                            <?php endforeach; ?>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-clock text-info fa-lg me-3"></i>
+                                <div>
+                                    <div class="fw-semibold">Waktu Sistem</div>
+                                    <small class="text-muted" id="system-time-status"></small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fab fa-php text-primary fa-lg me-3"></i>
+                                <div>
+                                    <div class="fw-semibold">PHP Version</div>
+                                    <small class="text-muted"><?= $php_version ?? 'Unknown'; ?></small>
+                                </div>
+                            </div>
                         </div>
-                    <?php else: ?>
-                        <div class="text-center text-muted py-4">
-                            <i class="fas fa-inbox fa-2x mb-2"></i>
-                            <p>Belum ada aktivitas</p>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-memory text-warning fa-lg me-3"></i>
+                                <div>
+                                    <div class="fw-semibold">Memory Usage</div>
+                                    <small class="text-muted"><?= $memory_usage ?? 0; ?> MB</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-globe text-secondary fa-lg me-3"></i>
+                                <div>
+                                    <div class="fw-semibold">Server</div>
+                                    <small class="text-muted">Apache/XAMPP</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users text-info fa-lg me-3"></i>
+                                <div>
+                                    <div class="fw-semibold">Active Users</div>
+                                    <small class="text-muted">1 online</small>
+                                </div>
+                            </div>
                         </div>
-                    <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-8 mb-4">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-transparent border-0 pt-4 pb-2">
                     <h5 class="mb-0">Menu Utama</h5>
@@ -257,7 +290,7 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
-                        <div class="col-md-6 col-sm-6">
+                        <div class="col-md-3 col-sm-6">
                             <a href="<?= site_url('user'); ?>" class="text-decoration-none">
                                 <div class="card border-2 border-primary bg-primary bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
@@ -268,7 +301,7 @@
                             </a>
                         </div>
 
-                        <div class="col-md-6 col-sm-6">
+                        <div class="col-md-3 col-sm-6">
                             <a href="<?= site_url('pneumatic/type'); ?>" class="text-decoration-none">
                                 <div class="card border-2 border-success bg-success bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
@@ -279,7 +312,7 @@
                             </a>
                         </div>
 
-                        <div class="col-md-6 col-sm-6">
+                        <div class="col-md-3 col-sm-6">
                             <a href="<?= site_url('fitting/type'); ?>" class="text-decoration-none">
                                 <div class="card border-2 border-warning bg-warning bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
@@ -290,7 +323,7 @@
                             </a>
                         </div>
 
-                        <div class="col-md-6 col-sm-6">
+                        <div class="col-md-3 col-sm-6">
                             <a href="<?= site_url('storage'); ?>" class="text-decoration-none">
                                 <div class="card border-2 border-info bg-info bg-opacity-10 h-100 card-hover">
                                     <div class="card-body text-center p-3">
@@ -300,6 +333,40 @@
                                 </div>
                             </a>
                         </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <a href="<?= site_url('report'); ?>" class="text-decoration-none">
+                                <div class="card border-2 border-secondary bg-secondary bg-opacity-10 h-100 card-hover">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-chart-bar fa-2x text-secondary mb-2"></i>
+                                        <h6 class="mb-0 text-dark">Laporan</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <a href="<?= site_url('storage/store'); ?>" class="text-decoration-none">
+                                <div class="card border-2 border-success bg-success bg-opacity-10 h-100 card-hover">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-plus-circle fa-2x text-success mb-2"></i>
+                                        <h6 class="mb-0 text-dark">Simpan</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-3 col-sm-6">
+                            <a href="<?= site_url('storage/take'); ?>" class="text-decoration-none">
+                                <div class="card border-2 border-danger bg-danger bg-opacity-10 h-100 card-hover">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-minus-circle fa-2x text-danger mb-2"></i>
+                                        <h6 class="mb-0 text-dark">Ambil</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -333,22 +400,32 @@
                 second: '2-digit'
             });
             document.getElementById('current-time').textContent = timeString;
+            document.getElementById('system-time-status').textContent = 'Sinkron - ' + timeString;
         }
         updateClock();
         setInterval(updateClock, 1000);
 
-        // Stock vs Minimum Chart
+        // Storage Distribution Chart
         const stockCtx = document.getElementById('stockChart').getContext('2d');
-        const lowStockCount = <?= count($low_stock_items ?? []); ?>;
-        const normalStockCount = <?= ($total_pneumatics + $total_fittings) ?? 0; ?> - lowStockCount;
+        const storageData = <?= json_encode($storage_by_category ?? []); ?>;
+
+        // Prepare data for chart
+        const labels = storageData.map(item => {
+            return item.category === 'pneumatic' ? 'Pneumatic' :
+                item.category === 'fitting' ? 'Fitting' : item.category;
+        });
+        const data = storageData.map(item => parseInt(item.total_amount));
+
+        // Add colors for each category
+        const colors = ['#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
 
         new Chart(stockCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Stok Normal', 'Stok Rendah'],
+                labels: labels,
                 datasets: [{
-                    data: [normalStockCount, lowStockCount],
-                    backgroundColor: ['#28a745', '#dc3545'],
+                    data: data,
+                    backgroundColor: colors.slice(0, labels.length),
                     borderWidth: 2,
                     borderColor: '#fff',
                     cutout: '60%'
@@ -371,9 +448,8 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const total = normalStockCount + lowStockCount;
+                                const total = data.reduce((sum, value) => sum + value, 0);
                                 const percentage = total > 0 ? Math.round((context.parsed * 100) / total) : 0;
-                                const status = context.label === 'Stok Normal' ? 'normal' : 'rendah';
                                 return context.label + ': ' + context.parsed + ' item (' + percentage + '%)';
                             }
                         }

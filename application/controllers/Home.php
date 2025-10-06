@@ -79,6 +79,45 @@ class Home extends CI_Controller
             $data['low_stock_items'] = [];
         }
 
+        // Get total quantity stored
+        try {
+            $this->db->select_sum('amount');
+            $query = $this->db->get('as_storage');
+            $result = $query->row_array();
+            $data['total_quantity_stored'] = $result['amount'] ?? 0;
+        } catch (Exception $e) {
+            $data['total_quantity_stored'] = 0;
+        }
+
+        // Get storage distribution by category
+        try {
+            $this->db->select('category, SUM(amount) as total_amount');
+            $this->db->group_by('category');
+            $this->db->having('SUM(amount) >', 0);
+            $query = $this->db->get('as_storage');
+            $data['storage_by_category'] = $query->result_array();
+        } catch (Exception $e) {
+            $data['storage_by_category'] = [];
+        }
+
+        // Get today's activity count
+        try {
+            $today = date('Y-m-d');
+            $this->db->select('COUNT(*) as today_activities');
+            $this->db->from('as_report');
+            $this->db->where('DATE(datetime)', $today);
+            $query = $this->db->get();
+            $result = $query->row_array();
+            $data['today_activities'] = $result['today_activities'] ?? 0;
+        } catch (Exception $e) {
+            $data['today_activities'] = 0;
+        }
+
+        // Get system information
+        $data['php_version'] = PHP_VERSION;
+        $data['server_software'] = $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown';
+        $data['memory_usage'] = round(memory_get_peak_usage(true) / 1024 / 1024, 1); // MB
+
         // Get recent activities (last 5 from report table)
         try {
             $this->db->select('r.*, u.name as user_name');
