@@ -38,15 +38,6 @@
                         </div>
 
                         <div class="mt-2 d-flex gap-2">
-                            <!-- Brand Filter -->
-                            <select class="form-select form-select-sm" id="brand-filter" aria-label="Filter Brand">
-                                <option value="">Semua Brand</option>
-                                <?php foreach (($brand_options ?? []) as $brand) : ?>
-                                    <?php $selected = (!empty($filterKeyword['brand']) && in_array($brand, (array)$filterKeyword['brand'])) ? 'selected' : ''; ?>
-                                    <option value="<?= $brand; ?>" <?= $selected; ?>><?= $brand; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-
                             <!-- Type Filter -->
                             <select class="form-select form-select-sm" id="type-filter" aria-label="Filter Type">
                                 <option value="">Semua Type</option>
@@ -90,22 +81,6 @@
                                     <?php endif ?>
                                 <?php else : ?>
                                     <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('pneumatic_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan ID (Ascending)">
-                                <?php endif ?>
-                            </div>
-                        </th>
-
-                        <!-- Brand Column -->
-                        <th scope="col" class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-1">
-                                <span>Brand</span>
-                                <?php if ($sortKeyword[0] === 'brand') : ?>
-                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
-                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('brand-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Brand (Descending)">
-                                    <?php else : ?>
-                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Brand">
-                                    <?php endif ?>
-                                <?php else : ?>
-                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('brand-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Brand (Ascending)">
                                 <?php endif ?>
                             </div>
                         </th>
@@ -184,7 +159,6 @@
                     <?php foreach ($pneumatics as $pneumatic) : ?>
                         <tr>
                             <th scope="row" class="text-center ps-lg-5 ps-4"><?= $pneumatic['pneumatic_id']; ?></th>
-                            <td class="text-center"><?= $pneumatic['brand']; ?></td>
                             <td class="text-center"><?= $pneumatic['type']; ?></td>
                             <td class="text-center"><?= $pneumatic['bore']; ?></td>
                             <td class="text-center"><?= $pneumatic['stroke']; ?></td>
@@ -254,11 +228,10 @@
                         <li>Download template <a href="<?= site_url('pneumatic/template'); ?>">disini</a>.</li>
                         <li>Ketentuan pengisian tabel:
                             <ol>
-                                <li>Pneumatic ID akan dibuat otomatis berdasarkan format: pnm-brand-type-bore-stroke.</li>
-                                <li>Brand maksimal 15 karakter, akan otomatis diformat menjadi huruf kecil.</li>
-                                <li>Type maksimal 5 karakter, akan otomatis diformat menjadi huruf kecil.</li>
+                                <li>Pneumatic ID akan dibuat otomatis berdasarkan format: pnm-type-bore-stroke.</li>
+                                <li>Type maksimal 15 karakter, akan otomatis diformat menjadi huruf kecil.</li>
                                 <li>Bore dan Stroke harus berupa angka positif.</li>
-                                <li>Kombinasi brand, type, bore, dan stroke harus unik.</li>
+                                <li>Kombinasi type, bore, dan stroke harus unik.</li>
                             </ol>
                         </li>
                     </ul>
@@ -281,11 +254,9 @@
 <script>
     (function() {
         function applyPneumaticFilters() {
-            const brand = document.getElementById('brand-filter')?.value || '';
             const type = document.getElementById('type-filter')?.value || '';
 
             const filterObj = {};
-            if (brand) filterObj.brand = [brand];
             if (type) filterObj.type = [type];
 
             // Build transient POST form
@@ -303,10 +274,8 @@
             form.submit();
         }
 
-        const brandEl = document.getElementById('brand-filter');
         const typeEl = document.getElementById('type-filter');
 
-        if (brandEl) brandEl.addEventListener('change', applyPneumaticFilters);
         if (typeEl) typeEl.addEventListener('change', applyPneumaticFilters);
     })();
 </script>

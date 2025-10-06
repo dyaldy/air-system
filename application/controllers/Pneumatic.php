@@ -36,15 +36,6 @@ class Pneumatic extends CI_Controller
             'items_per_page' => 7
         ],
         'validation' => [
-            'brand' => [
-                'field' => 'brand',
-                'label' => 'Brand',
-                'rules' => 'required|trim|max_length[15]',
-                'errors' => [
-                    'required'   => '%s harus diisi',
-                    'max_length' => '%s maksimal 15 karakter',
-                ],
-            ],
             'type' => [
                 'field' => 'type',
                 'label' => 'Type',
@@ -145,7 +136,6 @@ class Pneumatic extends CI_Controller
         ];
 
         // Provide distinct values for filter dropdowns (respect current search/filter state)
-        $brandOptions = $this->Pneumatic_model->getPneumaticFilter('brand', $sessionData['search'], $sessionData['filter']);
         $typeOptions = $this->Pneumatic_model->getPneumaticFilter('type', $sessionData['search'], $sessionData['filter']);
 
         $totalRows = $this->Pneumatic_model->countPneumatic($sessionData['search'], $sessionData['filter']);
@@ -176,7 +166,6 @@ class Pneumatic extends CI_Controller
             'sortKeyword'    => ($sessionData['sort'] && strpos($sessionData['sort'], '-') !== false) ? explode('-', $sessionData['sort'], 2) : ['', ''],
             'filterKeyword'  => $sessionData['filter'],
             'hasFilters'     => (!empty($sessionData['search']) || !empty($sessionData['filter']) || !empty($sessionData['sort'])),
-            'brand_options'  => $brandOptions,
             'type_options'   => $typeOptions,
         ];
 
@@ -354,10 +343,9 @@ class Pneumatic extends CI_Controller
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             // Use letter-style headers like ASRS
-            $sheet->setCellValue('A1', 'Brand');
-            $sheet->setCellValue('B1', 'Type');
-            $sheet->setCellValue('C1', 'Bore');
-            $sheet->setCellValue('D1', 'Stroke');
+            $sheet->setCellValue('A1', 'Type');
+            $sheet->setCellValue('B1', 'Bore');
+            $sheet->setCellValue('C1', 'Stroke');
 
             $filename = 'Template Data Pneumatic.xlsx';
             $this->outputExcelFile($spreadsheet, $filename);
@@ -399,13 +387,12 @@ class Pneumatic extends CI_Controller
 
         // Set headers (letter style like ASRS)
         $sheet->setCellValue('A1', 'Pneumatic ID');
-        $sheet->setCellValue('B1', 'Brand');
-        $sheet->setCellValue('C1', 'Type');
-        $sheet->setCellValue('D1', 'Bore');
-        $sheet->setCellValue('E1', 'Stroke');
-        $sheet->setCellValue('F1', 'Created At');
-        $sheet->setCellValue('G1', 'Updated At');
-        $sheet->setCellValue('H1', 'Editor');
+        $sheet->setCellValue('B1', 'Type');
+        $sheet->setCellValue('C1', 'Bore');
+        $sheet->setCellValue('D1', 'Stroke');
+        $sheet->setCellValue('E1', 'Created At');
+        $sheet->setCellValue('F1', 'Updated At');
+        $sheet->setCellValue('G1', 'Editor');
 
         // Style headers similar to ASRS
         $headerStyle = [
@@ -423,19 +410,18 @@ class Pneumatic extends CI_Controller
         $row = 2;
         foreach ($pneumatics as $pneumatic) {
             $sheet->setCellValue("A{$row}", $pneumatic['pneumatic_id']);
-            $sheet->setCellValue("B{$row}", $pneumatic['brand']);
-            $sheet->setCellValue("C{$row}", $pneumatic['type']);
-            $sheet->setCellValue("D{$row}", $pneumatic['bore']);
-            $sheet->setCellValue("E{$row}", $pneumatic['stroke']);
-            $sheet->setCellValue("F{$row}", $pneumatic['created_at']);
-            $sheet->setCellValue("G{$row}", $pneumatic['updated_at']);
-            $sheet->setCellValue("H{$row}", $pneumatic['editor']);
+            $sheet->setCellValue("B{$row}", $pneumatic['type']);
+            $sheet->setCellValue("C{$row}", $pneumatic['bore']);
+            $sheet->setCellValue("D{$row}", $pneumatic['stroke']);
+            $sheet->setCellValue("E{$row}", $pneumatic['created_at']);
+            $sheet->setCellValue("F{$row}", $pneumatic['updated_at']);
+            $sheet->setCellValue("G{$row}", $pneumatic['editor']);
             $row++;
         }
 
         // Auto-filter and auto-size columns (ASRS style)
-        $sheet->setAutoFilter('A1:H1');
-        foreach (range('A', 'H') as $column) {
+        $sheet->setAutoFilter('A1:G1');
+        foreach (range('A', 'G') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
@@ -488,17 +474,11 @@ class Pneumatic extends CI_Controller
                 continue;
             }
 
-            $brand = $row[0] ?? '';
-            $type = $row[1] ?? '';
-            $bore = $row[2] ?? '';
-            $stroke = $row[3] ?? '';
+            $type = $row[0] ?? '';
+            $bore = $row[1] ?? '';
+            $stroke = $row[2] ?? '';
 
             // Validate required fields
-            if (empty($brand)) {
-                $errorMessages[] = "Baris {$rowNumber}: Brand tidak boleh kosong";
-                continue;
-            }
-
             if (empty($type)) {
                 $errorMessages[] = "Baris {$rowNumber}: Type tidak boleh kosong";
                 continue;
@@ -515,13 +495,8 @@ class Pneumatic extends CI_Controller
             }
 
             // Validate data formats
-            if (strlen($brand) > 15) {
-                $errorMessages[] = "Baris {$rowNumber}: Brand maksimal 15 karakter: {$brand}";
-                continue;
-            }
-
-            if (strlen($type) > 5) {
-                $errorMessages[] = "Baris {$rowNumber}: Type maksimal 5 karakter: {$type}";
+            if (strlen($type) > 15) {
+                $errorMessages[] = "Baris {$rowNumber}: Type maksimal 15 karakter: {$type}";
                 continue;
             }
 
@@ -536,17 +511,16 @@ class Pneumatic extends CI_Controller
             }
 
             // Generate pneumatic ID
-            $pneumaticId = 'pnm-' . strtolower(trim($brand)) . '-' . strtolower(trim($type)) . '-' . $bore . '-' . $stroke;
+            $pneumaticId = 'pnm-' . strtolower(trim($type)) . '-' . $bore . '-' . $stroke;
 
             // Check if pneumatic combination already exists
             if ($this->Pneumatic_model->isPneumaticIdExists($pneumaticId)) {
-                $errorMessages[] = "Baris {$rowNumber}: Kombinasi pneumatic sudah terdaftar (Brand: {$brand}, Type: {$type}, Bore: {$bore}, Stroke: {$stroke})";
+                $errorMessages[] = "Baris {$rowNumber}: Kombinasi pneumatic sudah terdaftar (Type: {$type}, Bore: {$bore}, Stroke: {$stroke})";
                 continue;
             }
 
             $pneumaticData[] = [
                 'pneumatic_id' => $pneumaticId,
-                'brand'        => strtoupper(trim($brand)),
                 'type'         => strtoupper(trim($type)),
                 'bore'         => (int)$bore,
                 'stroke'       => (int)$stroke,
@@ -604,42 +578,31 @@ class Pneumatic extends CI_Controller
 
             foreach ($data as $rowIndex => $row) {
                 // Validate required fields
-                if (!$row['A'] && !$row['B'] && !$row['C'] && !$row['D']) {
+                if (!$row['A'] && !$row['B'] && !$row['C']) {
                     continue; // skip empty row
                 }
 
                 if (!$row['A']) {
-                    $skippedData[] = "Brand tidak boleh kosong";
-                    continue;
-                }
-
-                if (!$row['B']) {
                     $skippedData[] = "Type tidak boleh kosong";
                     continue;
                 }
 
-                if (!$row['C']) {
+                if (!$row['B']) {
                     $skippedData[] = "Bore tidak boleh kosong";
                     continue;
                 }
 
-                if (!$row['D']) {
+                if (!$row['C']) {
                     $skippedData[] = "Stroke tidak boleh kosong";
                     continue;
                 }
 
-                $brand = $row['A'] ?? '';
-                $type = $row['B'] ?? '';
-                $bore = $row['C'] ?? '';
-                $stroke = $row['D'] ?? '';
+                $type = $row['A'] ?? '';
+                $bore = $row['B'] ?? '';
+                $stroke = $row['C'] ?? '';
 
-                if (strlen($brand) > 15) {
-                    $skippedData[] = "Brand maksimal 15 karakter: {$brand}";
-                    continue;
-                }
-
-                if (strlen($type) > 5) {
-                    $skippedData[] = "Type maksimal 5 karakter: {$type}";
+                if (strlen($type) > 15) {
+                    $skippedData[] = "Type maksimal 15 karakter: {$type}";
                     continue;
                 }
 
@@ -653,16 +616,15 @@ class Pneumatic extends CI_Controller
                     continue;
                 }
 
-                $pneumaticId = 'pnm-' . strtolower(trim($brand)) . '-' . strtolower(trim($type)) . '-' . $bore . '-' . $stroke;
+                $pneumaticId = 'pnm-' . strtolower(trim($type)) . '-' . $bore . '-' . $stroke;
 
                 if ($this->Pneumatic_model->isPneumaticIdExists($pneumaticId)) {
-                    $skippedData[] = "Kombinasi pneumatic sudah terdaftar (Brand: {$brand}, Type: {$type}, Bore: {$bore}, Stroke: {$stroke})";
+                    $skippedData[] = "Kombinasi pneumatic sudah terdaftar (Type: {$type}, Bore: {$bore}, Stroke: {$stroke})";
                     continue;
                 }
 
                 $insertData[] = [
                     'pneumatic_id' => $pneumaticId,
-                    'brand'        => strtoupper(trim($brand)),
                     'type'         => strtoupper(trim($type)),
                     'bore'         => (int)$bore,
                     'stroke'       => (int)$stroke,
@@ -771,27 +733,26 @@ class Pneumatic extends CI_Controller
 
         // Add custom validation for unique pneumatic combination
         if (!$isEdit) {
-            $this->form_validation->set_rules('brand', 'Brand', 'callback_check_pneumatic_combination');
+            $this->form_validation->set_rules('type', 'Type', 'callback_check_pneumatic_combination');
         }
     }
 
     /**
      * Custom validation callback to check if pneumatic combination already exists.
      *
-     * @param string $brand The brand value
+     * @param string $type The type value
      * @return bool
      */
-    public function check_pneumatic_combination(string $brand): bool
+    public function check_pneumatic_combination(string $type): bool
     {
-        $type = $this->input->post('type', true);
         $bore = $this->input->post('bore', true);
         $stroke = $this->input->post('stroke', true);
 
-        if (!empty($brand) && !empty($type) && !empty($bore) && !empty($stroke)) {
-            $pneumaticId = 'pnm-' . strtolower($brand) . '-' . strtolower($type) . '-' . $bore . '-' . $stroke;
+        if (!empty($type) && !empty($bore) && !empty($stroke)) {
+            $pneumaticId = 'pnm-' . strtolower($type) . '-' . $bore . '-' . $stroke;
 
             if ($this->Pneumatic_model->isPneumaticIdExists($pneumaticId)) {
-                $this->form_validation->set_message('check_pneumatic_combination', 'Kombinasi pneumatic (Brand: {field}, Type: ' . $type . ', Bore: ' . $bore . ', Stroke: ' . $stroke . ') sudah terdaftar');
+                $this->form_validation->set_message('check_pneumatic_combination', 'Kombinasi pneumatic (Type: {field}, Bore: ' . $bore . ', Stroke: ' . $stroke . ') sudah terdaftar');
                 return false;
             }
         }

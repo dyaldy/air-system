@@ -19,17 +19,7 @@
             <div class="mb-2">
                 <label for="pneumatic_id" class="form-label">Pneumatic ID (Auto-generated)</label>
                 <input id="pneumatic_id" type="text" class="form-control rounded-pill" name="pneumatic_id" value="<?= $pneumatic['pneumatic_id'] ?>" readonly>
-                <small class="text-muted">ID akan diperbarui secara otomatis jika brand, type, bore, atau stroke diubah</small>
-            </div>
-
-            <!-- Brand Input Section -->
-            <div class="mb-2">
-                <label for="brand" class="form-label">Brand</label>
-                <div class="position-relative">
-                    <input id="brand" type="text" class="form-control rounded-pill pe-5 <?= form_error('brand') ? 'is-invalid' : '' ?>" name="brand" placeholder="SMC" value="<?= set_value('brand') ? set_value('brand') : $pneumatic['brand']; ?>" onkeyup="toggleClear('brand', 'clear-button-brand')" autocomplete="off">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-brand" onclick="clearInput('brand', 'clear-button-brand')" aria-hidden="true">
-                    <?= form_error('brand', "<div class='invalid-feedback'>", "</div>"); ?>
-                </div>
+                <small class="text-muted">ID akan diperbarui secara otomatis jika type, bore, atau stroke diubah</small>
             </div>
 
             <!-- Type Dropdown Section -->

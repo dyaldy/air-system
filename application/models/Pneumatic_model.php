@@ -90,18 +90,16 @@ class Pneumatic_model extends CI_Model
      */
     public function addPneumatic(): void
     {
-        $brand = strtoupper($this->input->post('brand', true));
         $type = strtoupper($this->input->post('type', true));
         $bore = (int)$this->input->post('bore', true);
         $stroke = (int)$this->input->post('stroke', true);
         $minStock = $this->input->post('min_stock') ? (int)$this->input->post('min_stock', true) : null;
 
-        // Generate pneumatic_id with format: pnm-{brand}-{type}-{bore}-{stroke}
-        $pneumaticId = $this->generatePneumaticId($brand, $type, $bore, $stroke);
+        // Generate pneumatic_id with format: pnm-{type}-{bore}-{stroke}
+        $pneumaticId = $this->generatePneumaticId($type, $bore, $stroke);
 
         $pneumaticData = [
             'pneumatic_id' => $pneumaticId,
-            'brand'        => $brand,
             'type'         => $type,
             'bore'         => $bore,
             'stroke'       => $stroke,
@@ -134,18 +132,16 @@ class Pneumatic_model extends CI_Model
      */
     public function editPneumatic(string $pneumaticId): void
     {
-        $brand = strtoupper($this->input->post('brand', true));
         $type = strtoupper($this->input->post('type', true));
         $bore = (int)$this->input->post('bore', true);
         $stroke = (int)$this->input->post('stroke', true);
         $minStock = $this->input->post('min_stock') ? (int)$this->input->post('min_stock', true) : null;
 
-        // Generate new pneumatic_id with format: pnm-{brand}-{type}-{bore}-{stroke}
-        $newPneumaticId = $this->generatePneumaticId($brand, $type, $bore, $stroke);
+        // Generate new pneumatic_id with format: pnm-{type}-{bore}-{stroke}
+        $newPneumaticId = $this->generatePneumaticId($type, $bore, $stroke);
 
         $pneumaticData = [
             'pneumatic_id' => $newPneumaticId,
-            'brand'        => $brand,
             'type'         => $type,
             'bore'         => $bore,
             'stroke'       => $stroke,
@@ -216,7 +212,6 @@ class Pneumatic_model extends CI_Model
         if ($searchKeyword && trim($searchKeyword) !== '') {
             $this->db->group_start()
                 ->like('pneumatic_id', trim($searchKeyword))
-                ->or_like('brand', trim($searchKeyword))
                 ->or_like('type', trim($searchKeyword))
                 ->or_like('bore', trim($searchKeyword))
                 ->or_like('stroke', trim($searchKeyword))
@@ -232,16 +227,15 @@ class Pneumatic_model extends CI_Model
     }
 
     /**
-     * Generates a pneumatic ID with format: pnm-{brand}-{type}-{bore}-{stroke}
+     * Generates a pneumatic ID with format: pnm-{type}-{bore}-{stroke}
      *
-     * @param string $brand The brand name
      * @param string $type The type
      * @param int $bore The bore size
      * @param int $stroke The stroke size
      * @return string The generated pneumatic ID
      */
-    private function generatePneumaticId(string $brand, string $type, int $bore, int $stroke): string
+    private function generatePneumaticId(string $type, int $bore, int $stroke): string
     {
-        return 'pnm-' . strtolower($brand) . '-' . strtolower($type) . '-' . $bore . '-' . $stroke;
+        return 'pnm-' . strtolower($type) . '-' . $bore . '-' . $stroke;
     }
 }

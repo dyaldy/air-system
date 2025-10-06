@@ -18,17 +18,7 @@
             <!-- Note about auto-generated ID -->
             <div class="mb-3">
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Pneumatic ID akan dibuat otomatis berdasarkan format: pnm-brand-type-bore-stroke
-                </div>
-            </div>
-
-            <!-- Brand Input Section -->
-            <div class="mb-2">
-                <label for="brand" class="form-label">Brand</label>
-                <div class="position-relative">
-                    <input id="brand" type="text" class="form-control rounded-pill pe-5 <?= form_error('brand') ? 'is-invalid' : '' ?>" name="brand" placeholder="SMC" value="<?= set_value('brand'); ?>" onkeyup="toggleClear('brand', 'clear-button-brand')" autocomplete="off">
-                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-brand" onclick="clearInput('brand', 'clear-button-brand')" aria-hidden="true">
-                    <?= form_error('brand', "<div class='invalid-feedback'>", "</div>"); ?>
+                    <i class="fas fa-info-circle"></i> Pneumatic ID akan dibuat otomatis berdasarkan format: pnm-type-bore-stroke
                 </div>
             </div>
 
