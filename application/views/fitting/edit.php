@@ -206,7 +206,7 @@
             <!-- Submit and Delete Buttons -->
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary flex-fill">Update Fitting</button>
-                <a href="<?= site_url('fitting/delete/' . urlencode($fitting['fitting_id'])); ?>"
+                <a href="<?= site_url('fitting/delete/' . base64_encode($fitting['fitting_id'])); ?>"
                     class="btn btn-danger"
                     onclick="return confirm('Apakah Anda yakin ingin menghapus fitting ini?')">
                     Hapus

@@ -224,7 +224,7 @@
                             <td class="text-center"><?= !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '-'; ?></td>
                             <td class="text-center"><?= $fitting['min_stock'] ? $fitting['min_stock'] : '-'; ?></td>
                             <td class="text-center pe-lg-5 pe-4">
-                                <a href="<?= site_url('fitting/edit/' . urlencode($fitting['fitting_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit fitting">
+                                <a href="<?= site_url('fitting/edit/' . base64_encode($fitting['fitting_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit fitting">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
                                 </a>
                             </td>

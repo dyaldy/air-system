@@ -294,12 +294,16 @@ class Fitting extends CI_Controller
     /**
      * Display the edit fitting form and handle form submission.
      *
-     * @param string $fittingId The fitting ID to edit.
+     * @param string $fittingId The fitting ID to edit (base64 encoded).
      *
      * @return void
      */
     public function edit(string $fittingId): void
     {
+        // Decode the base64-encoded fitting ID to handle special characters like slashes
+        // Base64 encoding is used because Apache blocks URL-encoded slashes (%2F)
+        $fittingId = base64_decode($fittingId);
+
         $fitting = $this->Fitting_model->getById($fittingId);
 
         if (!$fitting) {
@@ -335,12 +339,16 @@ class Fitting extends CI_Controller
     /**
      * Handle fitting deletion.
      *
-     * @param string $fittingId The fitting ID to delete.
+     * @param string $fittingId The fitting ID to delete (base64 encoded).
      *
      * @return void
      */
     public function delete(string $fittingId): void
     {
+        // Decode the base64-encoded fitting ID to handle special characters like slashes
+        // Base64 encoding is used because Apache blocks URL-encoded slashes (%2F)
+        $fittingId = base64_decode($fittingId);
+
         $fitting = $this->Fitting_model->getById($fittingId);
 
         if (!$fitting) {
