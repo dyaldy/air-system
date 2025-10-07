@@ -43,8 +43,60 @@
                     <p class="text-muted small mb-0">Perbandingan jumlah item per kategori</p>
                 </div>
                 <div class="card-body p-4">
-                    <div style="position: relative; height: 300px;">
-                        <canvas id="stockChart"></canvas>
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="stockChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-5 d-flex flex-column justify-content-center">
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-3">Ringkasan</h6>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-boxes text-primary me-2"></i>
+                                    <div>
+                                        <div class="fw-semibold text-dark"><?= number_format($total_quantity_stored ?? 0); ?></div>
+                                        <small class="text-muted">Total Item</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-tags text-success me-2"></i>
+                                    <div>
+                                        <div class="fw-semibold text-dark"><?= count($storage_by_category ?? []); ?></div>
+                                        <small class="text-muted">Kategori</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h6 class="text-muted mb-3">Detail Kategori</h6>
+                                <div style="max-height: 200px; overflow-y: auto;">
+                                    <?php if (!empty($storage_by_category)): ?>
+                                        <?php foreach ($storage_by_category as $category): ?>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="badge me-2" style="background-color: 
+                                                        <?php
+                                                        $colors = ['#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
+                                                        $index = array_search($category['category'], array_column($storage_by_category, 'category'));
+                                                        echo $colors[$index % count($colors)];
+                                                        ?>; width: 12px; height: 12px; border-radius: 50%;">
+                                                    </div>
+                                                    <small class="text-dark">
+                                                        <?= $category['category'] === 'pneumatic' ? 'Pneumatic' : ($category['category'] === 'fitting' ? 'Fitting' : ucfirst($category['category'])); ?>
+                                                    </small>
+                                                </div>
+                                                <small class="fw-semibold text-dark">
+                                                    <?= number_format($category['total_amount']); ?>
+                                                </small>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <small class="text-muted">Tidak ada data penyimpanan</small>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
