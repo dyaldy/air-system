@@ -132,14 +132,14 @@ class Pneumatic_type extends CI_Controller
             $data = $this->upload->data();
 
             // Process image to remove background
-            $this->processImageBackground($data['full_path']);
+            $processedPath = $this->processImageBackground($data['full_path']);
 
             // remove previous file
             if ($existing) {
                 $prev = $config['upload_path'] . $existing;
                 if (is_file($prev)) @unlink($prev);
             }
-            return $data['file_name'];
+            return basename($processedPath ?: $data['full_path']);
         }
 
         // on failure keep existing if provided
@@ -150,14 +150,14 @@ class Pneumatic_type extends CI_Controller
      * Process uploaded image to remove white/light backgrounds
      * Skip processing if image already has transparency
      */
-    private function processImageBackground(string $imagePath): void
+    private function processImageBackground(string $imagePath): ?string
     {
         if (!extension_loaded('gd')) {
-            return; // GD extension not available
+            return $imagePath; // GD extension not available, return original
         }
 
         $imageInfo = getimagesize($imagePath);
-        if (!$imageInfo) return;
+        if (!$imageInfo) return $imagePath;
 
         // Create image resource based on type
         switch ($imageInfo[2]) {
@@ -169,22 +169,22 @@ class Pneumatic_type extends CI_Controller
                 // Check if PNG already has transparency
                 if ($this->hasTransparency($image)) {
                     imagedestroy($image);
-                    return; // Image already has transparency, skip processing
+                    return $imagePath; // Image already has transparency, return original
                 }
                 break;
             case IMAGETYPE_GIF:
                 $image = imagecreatefromgif($imagePath);
                 break;
             default:
-                return; // Unsupported format
+                return $imagePath; // Unsupported format, return original
         }
 
-        if (!$image) return;
+        if (!$image) return $imagePath;
 
         // Check if image needs background removal
         if (!$this->needsBackgroundRemoval($image)) {
             imagedestroy($image);
-            return; // Image doesn't need processing
+            return $imagePath; // Image doesn't need processing, return original
         }
 
         // Get image dimensions
@@ -247,6 +247,8 @@ class Pneumatic_type extends CI_Controller
         if ($pngPath !== $imagePath) {
             unlink($imagePath);
         }
+
+        return $pngPath;
     }
 
     /**

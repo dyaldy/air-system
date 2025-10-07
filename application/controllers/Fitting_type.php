@@ -304,21 +304,23 @@ class Fitting_type extends CI_Controller
             return null; // No file uploaded, return null (will not update image field)
         }
 
-        $config = [
-            'upload_path' => FCPATH . 'assets/img/fitting_types/',
-            'allowed_types' => 'jpg|jpeg|png',
-            'max_size' => 2048, // 2MB
-            'file_name' => time() . '-' . $_FILES['image']['name'],
-        ];
-
-        if (!is_dir($config['upload_path'])) {
-            mkdir($config['upload_path'], 0755, true);
-        }
+        $config['upload_path'] = FCPATH . 'assets/img/fitting_types/';
+        if (!is_dir($config['upload_path'])) mkdir($config['upload_path'], 0755, true);
+        $config['allowed_types'] = 'jpg|jpeg|png|gif';
+        $config['max_size'] = 2048; // 2MB
+        $fileName = time() . '-' . preg_replace('/[^a-z0-9\-\.]/i', '-', $_FILES['image']['name']);
+        $config['file_name'] = $fileName;
 
         $this->load->library('upload', $config);
 
         if ($this->upload->do_upload('image')) {
-            return $this->upload->data('file_name');
+            $data = $this->upload->data();
+
+            // Process image to remove background
+            $processedPath = $this->processImageBackground($data['full_path']);
+
+            // Return the processed filename (might be different if converted to PNG)
+            return basename($processedPath ?: $data['full_path']);
         } else {
             set_message(['danger', 'Upload gambar gagal: ' . $this->upload->display_errors()]);
             return null;
@@ -335,5 +337,179 @@ class Fitting_type extends CI_Controller
             return false;
         }
         return true;
+    }
+
+    /**
+     * Process uploaded image to remove white/light backgrounds
+     * Skip processing if image already has transparency
+     */
+    private function processImageBackground(string $imagePath): ?string
+    {
+        if (!extension_loaded('gd')) {
+            return $imagePath; // GD extension not available, return original
+        }
+
+        $imageInfo = getimagesize($imagePath);
+        if (!$imageInfo) return $imagePath;
+
+        // Create image resource based on type
+        switch ($imageInfo[2]) {
+            case IMAGETYPE_JPEG:
+                $image = imagecreatefromjpeg($imagePath);
+                break;
+            case IMAGETYPE_PNG:
+                $image = imagecreatefrompng($imagePath);
+                // Check if PNG already has transparency
+                if ($this->hasTransparency($image)) {
+                    imagedestroy($image);
+                    return $imagePath; // Image already has transparency, return original
+                }
+                break;
+            case IMAGETYPE_GIF:
+                $image = imagecreatefromgif($imagePath);
+                break;
+            default:
+                return $imagePath; // Unsupported format, return original
+        }
+
+        if (!$image) return $imagePath;
+
+        // Check if image needs background removal
+        if (!$this->needsBackgroundRemoval($image)) {
+            imagedestroy($image);
+            return $imagePath; // Image doesn't need processing, return original
+        }
+
+        // Get image dimensions
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        // Create a new true color image with transparency
+        $newImage = imagecreatetruecolor($width, $height);
+
+        // Enable alpha blending and save alpha channel
+        imagealphablending($newImage, false);
+        imagesavealpha($newImage, true);
+
+        // Fill with transparent background
+        $transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
+        imagefill($newImage, 0, 0, $transparent);
+
+        // Process each pixel
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                $rgb = imagecolorat($image, $x, $y);
+                $colors = imagecolorsforindex($image, $rgb);
+
+                // Calculate brightness (0-255)
+                $brightness = ($colors['red'] + $colors['green'] + $colors['blue']) / 3;
+
+                // Remove white/very light backgrounds (adjust threshold as needed)
+                if ($brightness > 240) {
+                    // Make this pixel transparent
+                    $newColor = imagecolorallocatealpha(
+                        $newImage,
+                        $colors['red'],
+                        $colors['green'],
+                        $colors['blue'],
+                        127
+                    );
+                } else {
+                    // Keep the original pixel
+                    $newColor = imagecolorallocate(
+                        $newImage,
+                        $colors['red'],
+                        $colors['green'],
+                        $colors['blue']
+                    );
+                }
+
+                imagesetpixel($newImage, $x, $y, $newColor);
+            }
+        }
+
+        // Save the processed image as PNG (to preserve transparency)
+        $pngPath = preg_replace('/\.[^.]+$/', '.png', $imagePath);
+        imagepng($newImage, $pngPath, 9); // Max compression
+
+        // Clean up memory
+        imagedestroy($image);
+        imagedestroy($newImage);
+
+        // Remove original if different from PNG
+        if ($pngPath !== $imagePath) {
+            unlink($imagePath);
+        }
+
+        return $pngPath;
+    }
+
+    /**
+     * Check if PNG image already has transparency
+     */
+    private function hasTransparency($image): bool
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        // Sample a few pixels to check for transparency
+        $samplePoints = [
+            [0, 0],
+            [$width - 1, 0],
+            [0, $height - 1],
+            [$width - 1, $height - 1], // corners
+            [$width / 2, $height / 2] // center
+        ];
+
+        foreach ($samplePoints as [$x, $y]) {
+            $rgb = imagecolorat($image, (int)$x, (int)$y);
+            $colors = imagecolorsforindex($image, $rgb);
+
+            // If any sample point has alpha channel transparency
+            if (isset($colors['alpha']) && $colors['alpha'] > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if image needs background removal by analyzing edge pixels
+     */
+    private function needsBackgroundRemoval($image): bool
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        $lightPixelCount = 0;
+        $totalSamples = 0;
+
+        // Sample edge pixels (where backgrounds usually are)
+        $edgePixels = [
+            // Top edge
+            ...array_map(fn($x) => [$x, 0], range(0, $width - 1, max(1, $width / 20))),
+            // Bottom edge
+            ...array_map(fn($x) => [$x, $height - 1], range(0, $width - 1, max(1, $width / 20))),
+            // Left edge
+            ...array_map(fn($y) => [0, $y], range(0, $height - 1, max(1, $height / 20))),
+            // Right edge
+            ...array_map(fn($y) => [$width - 1, $y], range(0, $height - 1, max(1, $height / 20)))
+        ];
+
+        foreach ($edgePixels as [$x, $y]) {
+            $rgb = imagecolorat($image, (int)$x, (int)$y);
+            $colors = imagecolorsforindex($image, $rgb);
+
+            $brightness = ($colors['red'] + $colors['green'] + $colors['blue']) / 3;
+
+            if ($brightness > 240) {
+                $lightPixelCount++;
+            }
+            $totalSamples++;
+        }
+
+        // If more than 60% of edge pixels are light, assume it needs background removal
+        return $totalSamples > 0 && ($lightPixelCount / $totalSamples) > 0.6;
     }
 }
