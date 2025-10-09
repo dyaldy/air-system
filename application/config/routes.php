@@ -60,3 +60,6 @@ $route['auth'] = 'auth';
 // Storage routes
 $route['storage'] = 'Storage';
 $route['storage/(:any)'] = 'Storage/$1';
+
+// Report route
+$route['report'] = 'storage/reports';
