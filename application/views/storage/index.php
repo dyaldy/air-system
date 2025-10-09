@@ -328,6 +328,17 @@
                             <div id="storeItemInfo" class="form-control-plaintext"></div>
                         </div>
 
+                        <!-- Type Image Display -->
+                        <div class="mb-3" id="storeTypeImageContainer" style="display: none;">
+                            <label class="form-label">Gambar Tipe</label>
+                            <div class="card" style="max-width: 250px; margin: 0 auto;">
+                                <img id="storeTypeImage" src="" alt="Type Image" class="card-img-top" style="object-fit: contain; max-height: 200px;" onerror="this.src='<?= base_url('assets/img/placeholder-image.svg'); ?>'">
+                                <div class="card-body py-2 text-center">
+                                    <small class="text-muted" id="storeTypeImageLabel"></small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="storeLocationId" class="form-label">ID Lokasi:</label>
                             <select class="form-select" id="storeLocationId" name="location_id" required>
@@ -374,6 +385,17 @@
                         <div class="mb-3">
                             <label class="form-label">Barang:</label>
                             <div id="takeItemInfo" class="form-control-plaintext"></div>
+                        </div>
+
+                        <!-- Type Image Display -->
+                        <div class="mb-3" id="takeTypeImageContainer" style="display: none;">
+                            <label class="form-label">Gambar Tipe</label>
+                            <div class="card" style="max-width: 250px; margin: 0 auto;">
+                                <img id="takeTypeImage" src="" alt="Type Image" class="card-img-top" style="object-fit: contain; max-height: 200px;" onerror="this.src='<?= base_url('assets/img/placeholder-image.svg'); ?>'">
+                                <div class="card-body py-2 text-center">
+                                    <small class="text-muted" id="takeTypeImageLabel"></small>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Branch Selection -->
@@ -641,6 +663,9 @@
         document.getElementById('storeTypeId').value = typeId;
         document.getElementById('storeItemInfo').textContent = category + ' - ' + typeId;
 
+        // Show type image
+        displayStoreTypeImage(category, typeId);
+
         var modal = new bootstrap.Modal(document.getElementById('quickStoreModal'));
         modal.show();
     }
@@ -667,6 +692,9 @@
 
         // Store base type_id for later use
         window.currentBaseTypeId = baseTypeId;
+
+        // Show type image
+        displayTakeTypeImage(category, baseTypeId);
 
         // Check if both regular and project versions exist
         Promise.all([
@@ -1340,6 +1368,82 @@
                     }
                 });
         }
+    }
+
+    function displayStoreTypeImage(category, typeId) {
+        const typeImageContainer = document.getElementById('storeTypeImageContainer');
+        const typeImage = document.getElementById('storeTypeImage');
+        const typeImageLabel = document.getElementById('storeTypeImageLabel');
+
+        // Fetch type image from server
+        fetch(`<?= site_url('storage/get_type_image'); ?>?category=${category}&type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.type_image) {
+                    let imageUrl = null;
+                    if (category === 'pneumatic') {
+                        imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + data.type_image;
+                    } else if (category === 'fitting') {
+                        imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + data.type_image;
+                    }
+
+                    if (imageUrl) {
+                        typeImage.src = imageUrl;
+                        typeImageLabel.textContent = typeId;
+                        typeImageContainer.style.display = 'block';
+                        return;
+                    }
+                }
+
+                // Show placeholder if no image
+                typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+                typeImageLabel.textContent = typeId + ' (No image available)';
+                typeImageContainer.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading type image:', error);
+                typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+                typeImageLabel.textContent = typeId + ' (No image available)';
+                typeImageContainer.style.display = 'block';
+            });
+    }
+
+    function displayTakeTypeImage(category, typeId) {
+        const typeImageContainer = document.getElementById('takeTypeImageContainer');
+        const typeImage = document.getElementById('takeTypeImage');
+        const typeImageLabel = document.getElementById('takeTypeImageLabel');
+
+        // Fetch type image from server
+        fetch(`<?= site_url('storage/get_type_image'); ?>?category=${category}&type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.type_image) {
+                    let imageUrl = null;
+                    if (category === 'pneumatic') {
+                        imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + data.type_image;
+                    } else if (category === 'fitting') {
+                        imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + data.type_image;
+                    }
+
+                    if (imageUrl) {
+                        typeImage.src = imageUrl;
+                        typeImageLabel.textContent = typeId;
+                        typeImageContainer.style.display = 'block';
+                        return;
+                    }
+                }
+
+                // Show placeholder if no image
+                typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+                typeImageLabel.textContent = typeId + ' (No image available)';
+                typeImageContainer.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading type image:', error);
+                typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+                typeImageLabel.textContent = typeId + ' (No image available)';
+                typeImageContainer.style.display = 'block';
+            });
     }
 
     // Initialize Bootstrap tooltips

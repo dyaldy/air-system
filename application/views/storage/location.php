@@ -433,6 +433,17 @@
                             <div id="actionItemInfo" class="form-control-plaintext"></div>
                         </div>
 
+                        <!-- Type Image Display -->
+                        <div class="mb-3" id="quickActionTypeImageContainer" style="display: none;">
+                            <label class="form-label">Gambar Tipe</label>
+                            <div class="card" style="max-width: 250px; margin: 0 auto;">
+                                <img id="quickActionTypeImage" src="" alt="Type Image" class="card-img-top" style="object-fit: contain; max-height: 200px;" onerror="this.src='<?= base_url('assets/img/placeholder-image.svg'); ?>'">
+                                <div class="card-body py-2 text-center">
+                                    <small class="text-muted" id="quickActionTypeImageLabel"></small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-3" id="availableStockDiv" style="display: none;">
                             <label class="form-label">Stok Tersedia:</label>
                             <div id="actionAvailableStock" class="form-control-plaintext text-primary"></div>
@@ -549,6 +560,9 @@
 
         // Batch selection is already hidden by resetQuickActionModal()
 
+        // Show type image
+        displayQuickActionTypeImage(category, typeId);
+
         var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
         modal.show();
     }
@@ -585,6 +599,9 @@
             batchSelectionDiv.style.display = 'none';
             batchSelect.required = false;
         }
+
+        // Show type image
+        displayQuickActionTypeImage(category, typeId);
 
         var modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
         modal.show();
@@ -878,6 +895,42 @@
         // Close the modal
         var modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
         modal.hide();
+    }
+
+    function displayQuickActionTypeImage(category, typeId) {
+        const typeImageContainer = document.getElementById('quickActionTypeImageContainer');
+        const typeImage = document.getElementById('quickActionTypeImage');
+        const typeImageLabel = document.getElementById('quickActionTypeImageLabel');
+
+        // Find the storage item to get type image
+        const storageData = <?= json_encode($storage_items ?? []); ?>;
+        const baseTypeId = typeId.replace('_PROJECT', '');
+
+        const item = storageData.find(item =>
+            item.category === category &&
+            (item.type_id === baseTypeId || item.type_id === typeId || item.type_id === baseTypeId + '_PROJECT')
+        );
+
+        if (item && item.type_image) {
+            let imageUrl = null;
+            if (category === 'pneumatic') {
+                imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + item.type_image;
+            } else if (category === 'fitting') {
+                imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + item.type_image;
+            }
+
+            if (imageUrl) {
+                typeImage.src = imageUrl;
+                typeImageLabel.textContent = baseTypeId;
+                typeImageContainer.style.display = 'block';
+                return;
+            }
+        }
+
+        // Show placeholder if no image
+        typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+        typeImageLabel.textContent = baseTypeId + ' (No image available)';
+        typeImageContainer.style.display = 'block';
     }
 
     // Initialize Bootstrap tooltips

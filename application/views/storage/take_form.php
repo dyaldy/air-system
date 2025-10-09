@@ -63,7 +63,7 @@
                 <div class="mb-3">
                     <label for="type_id" class="form-label">ID Tipe <span class="text-danger">*</span></label>
                     <select class="form-select <?= form_error('type_id') ? 'is-invalid' : ''; ?>"
-                        id="type_id" name="type_id" required onchange="updateLocationOptions()">
+                        id="type_id" name="type_id" required onchange="updateLocationOptions(); updateTypeImage();">
                         <option value="">Pilih ID Tipe</option>
                         <!-- Options will be populated based on category selection -->
                     </select>
@@ -71,6 +71,17 @@
                     <?php if (form_error('type_id')): ?>
                         <div class="invalid-feedback"><?= form_error('type_id'); ?></div>
                     <?php endif; ?>
+                </div>
+
+                <!-- Type Image Display -->
+                <div class="mb-3" id="typeImageContainer" style="display: none;">
+                    <label class="form-label">Gambar Tipe</label>
+                    <div class="card" style="max-width: 300px;">
+                        <img id="typeImage" src="" alt="Type Image" class="card-img-top" style="object-fit: contain; max-height: 250px;" onerror="this.src='<?= base_url('assets/img/placeholder-image.svg'); ?>'">
+                        <div class="card-body py-2 text-center">
+                            <small class="text-muted" id="typeImageLabel"></small>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Location ID -->
@@ -189,6 +200,9 @@
 
         // Clear available stock
         document.getElementById('availableStock').textContent = '-';
+
+        // Hide type image when category changes
+        document.getElementById('typeImageContainer').style.display = 'none';
 
         if (category) {
             // Filter items by category
@@ -540,5 +554,45 @@
         document.getElementById('batchSelectionField').style.display = 'none';
         document.getElementById('batch_id').required = false;
         window.availableBatches = null;
+    }
+
+    function updateTypeImage() {
+        const category = document.getElementById('category').value;
+        const typeId = document.getElementById('type_id').value;
+        const typeImageContainer = document.getElementById('typeImageContainer');
+        const typeImage = document.getElementById('typeImage');
+        const typeImageLabel = document.getElementById('typeImageLabel');
+
+        if (category && typeId) {
+            // Find the storage item to get type image
+            const item = storageItems.find(item =>
+                item.category === category &&
+                (item.type_id === typeId || item.type_id === typeId + '_PROJECT')
+            );
+
+            if (item && item.type_image) {
+                let imageUrl = null;
+                if (category === 'pneumatic') {
+                    imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + item.type_image;
+                } else if (category === 'fitting') {
+                    imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + item.type_image;
+                }
+
+                if (imageUrl) {
+                    typeImage.src = imageUrl;
+                    typeImageLabel.textContent = typeId;
+                    typeImageContainer.style.display = 'block';
+                } else {
+                    typeImageContainer.style.display = 'none';
+                }
+            } else {
+                // Show placeholder if no image
+                typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+                typeImageLabel.textContent = typeId + ' (No image available)';
+                typeImageContainer.style.display = 'block';
+            }
+        } else {
+            typeImageContainer.style.display = 'none';
+        }
     }
 </script>

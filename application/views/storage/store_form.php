@@ -75,7 +75,7 @@
                 <div class="mb-3">
                     <label for="type_id" class="form-label">ID Tipe <span class="text-danger">*</span></label>
                     <select class="form-select <?= form_error('type_id') ? 'is-invalid' : ''; ?>"
-                        id="type_id" name="type_id" required>
+                        id="type_id" name="type_id" required onchange="updateTypeImage()">
                         <option value="">Pilih ID Tipe</option>
                         <!-- Options will be populated based on category selection -->
                     </select>
@@ -83,6 +83,17 @@
                     <?php if (form_error('type_id')): ?>
                         <div class="invalid-feedback"><?= form_error('type_id'); ?></div>
                     <?php endif; ?>
+                </div>
+
+                <!-- Type Image Display -->
+                <div class="mb-3" id="typeImageContainer" style="display: none;">
+                    <label class="form-label">Gambar Tipe</label>
+                    <div class="card" style="max-width: 300px;">
+                        <img id="typeImage" src="" alt="Type Image" class="card-img-top" style="object-fit: contain; max-height: 250px;" onerror="this.src='<?= base_url('assets/img/placeholder-image.svg'); ?>'">
+                        <div class="card-body py-2 text-center">
+                            <small class="text-muted" id="typeImageLabel"></small>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Quantity -->
@@ -174,6 +185,9 @@
             // Clear existing options
             typeSelect.innerHTML = '<option value="">Pilih ID Tipe</option>';
 
+            // Hide type image when category changes
+            document.getElementById('typeImageContainer').style.display = 'none';
+
             // Remove any existing manual input field
             const existingManualInput = document.getElementById('manual_type_id');
             if (existingManualInput) {
@@ -258,6 +272,49 @@
             updateStockPreview();
         }
 
+        function updateTypeImage() {
+            const category = document.getElementById('category').value;
+            const typeId = document.getElementById('type_id').value;
+            const typeImageContainer = document.getElementById('typeImageContainer');
+            const typeImage = document.getElementById('typeImage');
+            const typeImageLabel = document.getElementById('typeImageLabel');
+
+            if (category && typeId && typeId !== 'manual') {
+                let imageUrl = null;
+                let typeName = typeId;
+
+                if (category === 'pneumatic') {
+                    const item = pneumaticItems.find(p => p.pneumatic_id === typeId);
+                    if (item && item.type_image) {
+                        imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + item.type_image;
+                        typeName = item.type || typeId;
+                    }
+                } else if (category === 'fitting') {
+                    const item = fittingItems.find(f => f.fitting_id === typeId);
+                    if (item && item.type_image) {
+                        imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + item.type_image;
+                        typeName = item.type || typeId;
+                    }
+                }
+
+                if (imageUrl) {
+                    typeImage.src = imageUrl;
+                    typeImageLabel.textContent = typeName;
+                    typeImageContainer.style.display = 'block';
+                } else {
+                    // Show placeholder if no image
+                    typeImage.src = '<?= base_url('assets/img/placeholder-image.svg'); ?>';
+                    typeImageLabel.textContent = typeName + ' (No image available)';
+                    typeImageContainer.style.display = 'block';
+                }
+            } else {
+                typeImageContainer.style.display = 'none';
+            }
+
+            // Also update stock preview
+            updateStockPreview();
+        }
+
         function updateStockPreview() {
             const category = document.getElementById('category').value;
             const typeId = document.getElementById('type_id').value;
@@ -319,7 +376,10 @@
         }
 
         // Event listeners
-        document.getElementById('type_id').addEventListener('change', updateStockPreview);
+        document.getElementById('type_id').addEventListener('change', function() {
+            updateTypeImage();
+            updateStockPreview();
+        });
 
         // Initialize with selected values if any
         document.addEventListener('DOMContentLoaded', function() {

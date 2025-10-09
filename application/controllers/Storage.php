@@ -150,7 +150,45 @@ class Storage extends CI_Controller
 
         $data['title'] = 'Storage Location: ' . $location_id;
         $data['location_id'] = $location_id;
-        $data['storage_items'] = $this->Storage_model->get_storage_by_location($location_id);
+
+        // Get storage items with type images
+        $storage_items = $this->Storage_model->get_storage_by_location($location_id);
+
+        // Add type images to each storage item
+        foreach ($storage_items as &$item) {
+            $type_image = null;
+            $base_type = str_replace('_PROJECT', '', $item['type_id']);
+
+            if ($item['category'] === 'pneumatic') {
+                // Get pneumatic type image
+                $this->db->select('pt.image');
+                $this->db->from('as_pneumatic p');
+                $this->db->join('as_pneumatic_types pt', 'p.type = pt.type', 'left');
+                $this->db->where('p.pneumatic_id', $base_type);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            } elseif ($item['category'] === 'fitting') {
+                // Get fitting type image
+                $this->db->select('ft.image');
+                $this->db->from('as_fitting f');
+                $this->db->join('as_fitting_types ft', 'f.type = ft.type', 'left');
+                $this->db->where('f.fitting_id', $base_type);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            }
+
+            $item['type_image'] = $type_image;
+        }
+
+        $data['storage_items'] = $storage_items;
         $data['location_transactions'] = $this->Report_model->get_transactions_by_location($location_id, 20);
         $data['project_batches'] = $this->Project_batch_model->get_batches_by_location($location_id);
 
@@ -165,8 +203,8 @@ class Storage extends CI_Controller
     public function store()
     {
         $data['title'] = 'Store Items';
-        $data['pneumatic_items'] = $this->Pneumatic_model->getAllPneumatics();
-        $data['fitting_items'] = $this->Fitting_model->getFitting(1000, 0); // Get all fittings for dropdown
+        $data['pneumatic_items'] = $this->get_pneumatics_with_images();
+        $data['fitting_items'] = $this->get_fittings_with_images();
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -266,7 +304,7 @@ class Storage extends CI_Controller
     public function take()
     {
         $data['title'] = 'Take Items';
-        $data['storage_items'] = $this->Storage_model->get_all_storage();
+        $data['storage_items'] = $this->get_storage_items_with_images();
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -391,6 +429,68 @@ class Storage extends CI_Controller
                 'stock_locations' => $stock_locations,
                 'total_stock' => $total_stock
             );
+        } else {
+            $response = array(
+                'success' => false,
+                'message' => 'Category and Type ID are required'
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Get type image for AJAX requests
+     */
+    public function get_type_image()
+    {
+        $category = $this->input->get('category');
+        $type_id = $this->input->get('type_id');
+
+        $response = array('success' => false);
+
+        if ($category && $type_id) {
+            $type_image = null;
+
+            // Remove _PROJECT suffix if present to get the base type_id
+            $base_type_id = str_replace('_PROJECT', '', $type_id);
+
+            if ($category === 'pneumatic') {
+                $this->db->select('pt.image');
+                $this->db->from('as_pneumatic p');
+                $this->db->join('as_pneumatic_types pt', 'p.type = pt.type', 'left');
+                $this->db->where('p.pneumatic_id', $base_type_id);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            } elseif ($category === 'fitting') {
+                $this->db->select('ft.image');
+                $this->db->from('as_fitting f');
+                $this->db->join('as_fitting_types ft', 'f.type = ft.type', 'left');
+                $this->db->where('f.fitting_id', $base_type_id);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            }
+
+            if ($type_image) {
+                $response = array(
+                    'success' => true,
+                    'type_image' => $type_image
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => 'No image found for this type'
+                );
+            }
         } else {
             $response = array(
                 'success' => false,
@@ -1384,5 +1484,82 @@ class Storage extends CI_Controller
 
         header('Content-Type: application/json');
         echo json_encode($response);
+    }
+
+    /**
+     * Get pneumatics with type images
+     * 
+     * @return array Array of pneumatic items with type images
+     */
+    private function get_pneumatics_with_images(): array
+    {
+        $this->db->select('p.*, pt.image as type_image');
+        $this->db->from('as_pneumatic p');
+        $this->db->join('as_pneumatic_types pt', 'p.type = pt.type', 'left');
+        $this->db->order_by('p.updated_at', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Get fittings with type images
+     * 
+     * @return array Array of fitting items with type images
+     */
+    private function get_fittings_with_images(): array
+    {
+        $this->db->select('f.*, ft.image as type_image');
+        $this->db->from('as_fitting f');
+        $this->db->join('as_fitting_types ft', 'f.type = ft.type', 'left');
+        $this->db->order_by('f.fitting_id', 'ASC');
+        $this->db->limit(1000);
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Get storage items with type images
+     * 
+     * @return array Array of storage items with type images
+     */
+    private function get_storage_items_with_images(): array
+    {
+        $storage_items = $this->Storage_model->get_all_storage();
+
+        // Add type images to each storage item
+        foreach ($storage_items as &$item) {
+            $type_image = null;
+            $base_type = str_replace('_PROJECT', '', $item['type_id']);
+
+            if ($item['category'] === 'pneumatic') {
+                // Get pneumatic type image
+                $this->db->select('pt.image');
+                $this->db->from('as_pneumatic p');
+                $this->db->join('as_pneumatic_types pt', 'p.type = pt.type', 'left');
+                $this->db->where('p.pneumatic_id', $base_type);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            } elseif ($item['category'] === 'fitting') {
+                // Get fitting type image
+                $this->db->select('ft.image');
+                $this->db->from('as_fitting f');
+                $this->db->join('as_fitting_types ft', 'f.type = ft.type', 'left');
+                $this->db->where('f.fitting_id', $base_type);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            }
+
+            $item['type_image'] = $type_image;
+        }
+
+        return $storage_items;
     }
 }
