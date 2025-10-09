@@ -8,7 +8,17 @@
             <h4 class="m-0">Tambah Fitting Air System</h4>
 
             <!-- Back Button-->
-            <a href="<?= site_url('fitting'); ?>" class="btn btn-secondary rounded-pill">Kembali</a>
+            <?php
+            // Determine back URL: use referer if available and from fitting pages, otherwise default to index
+            $backUrl = site_url('fitting');
+            if (
+                !empty($_SERVER['HTTP_REFERER']) &&
+                (strpos($_SERVER['HTTP_REFERER'], site_url('fitting')) !== false)
+            ) {
+                $backUrl = $_SERVER['HTTP_REFERER'];
+            }
+            ?>
+            <a href="<?= $backUrl; ?>" class="btn btn-secondary rounded-pill">Kembali</a>
         </div>
     </div>
 

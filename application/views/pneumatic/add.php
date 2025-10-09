@@ -8,7 +8,17 @@
             <h4 class="m-0">Tambah Pneumatic Air System</h4>
 
             <!-- Back Button-->
-            <a href="<?= site_url('pneumatic'); ?>" class="btn btn-secondary rounded-pill">Kembali</a>
+            <?php
+            // Determine back URL: use referer if available and from pneumatic pages, otherwise default to index
+            $backUrl = site_url('pneumatic');
+            if (
+                !empty($_SERVER['HTTP_REFERER']) &&
+                (strpos($_SERVER['HTTP_REFERER'], site_url('pneumatic')) !== false)
+            ) {
+                $backUrl = $_SERVER['HTTP_REFERER'];
+            }
+            ?>
+            <a href="<?= $backUrl; ?>" class="btn btn-secondary rounded-pill">Kembali</a>
         </div>
     </div>
 
