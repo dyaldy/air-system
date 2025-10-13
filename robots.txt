@@ -1,0 +1,22 @@
+# Air System - Robots.txt
+# This file controls search engine crawler access
+
+# Allow all robots to access the site
+User-agent: *
+Disallow: /application/
+Disallow: /system/
+Disallow: /vendor/
+Disallow: /uploads/private/
+Disallow: /.git/
+Disallow: /composer.json
+Disallow: /composer.lock
+
+# Allow access to assets and public resources
+Allow: /assets/
+Allow: /uploads/public/
+
+# Sitemap location (update with your actual sitemap URL when available)
+# Sitemap: https://yourdomain.com/sitemap.xml
+
+# Crawl-delay (optional - adjust if needed)
+# Crawl-delay: 10
