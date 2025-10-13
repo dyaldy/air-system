@@ -57,8 +57,6 @@ class Storage extends CI_Controller
     {
         parent::__construct();
 
-        $this->load->helper('common');
-
         // Check user authentication using common helper
         check_user_authentication();
 

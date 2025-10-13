@@ -6,11 +6,12 @@ class Pneumatic_type extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        if (!$this->session->userdata('user_data')) {
-            redirect(base_url());
-        }
+        $this->load->helper(['file', 'form']);
+
+        // Check user authentication using common helper
+        check_user_authentication();
+
         $this->load->model('Pneumatic_type_model');
-        $this->load->helper(['url', 'file', 'form']);
         $this->load->library('form_validation');
     }
 

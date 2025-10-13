@@ -120,22 +120,16 @@ class Fitting extends CI_Controller
     {
         parent::__construct();
 
-        // Check authentication
-        if (!$this->session->userdata('user_data')) {
-            redirect(base_url());
-        }
+        // Check user authentication using common helper
+        check_user_authentication();
 
         $this->load->model('Fitting_model');
         $this->load->model('Fitting_type_model');
         $this->load->model('Fitting_subtype_model');
         $this->load->library(['form_validation', 'pagination']);
-        $this->load->helper('common');
 
-        // Reset session if controller changed
-        if ($this->session->userdata('controller') !== 'fitting') {
-            $this->session->set_userdata('controller', 'fitting');
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
+        // Reset session data when switching controllers
+        reset_controller_session('fitting');
     }
 
     /**
@@ -177,12 +171,8 @@ class Fitting extends CI_Controller
         // Count total records
         $totalRows = $this->Fitting_model->countFitting($sessionData['search'], $sessionData['filter']);
 
-        // Pagination configuration
-        $config = [
-            'base_url'   => site_url('fitting/index'),
-            'total_rows' => $totalRows,
-            'per_page'   => self::CONFIG['pagination']['items_per_page'],
-        ];
+        // Setup pagination using common helper
+        $config = setup_pagination(site_url('fitting/index'), $totalRows, self::CONFIG['pagination']['items_per_page']);
         $this->pagination->initialize($config);
 
         $startData = (int) ($this->uri->segment(3) ?: 0);
@@ -396,7 +386,7 @@ class Fitting extends CI_Controller
             $sheet->setCellValue('E1', 'R(DRAT)');
 
             $filename = 'Template Data Fitting.xlsx';
-            $this->outputExcelFile($spreadsheet, $filename);
+            output_excel_file($spreadsheet, $filename);
         } catch (Exception $e) {
             log_message('error', 'Template download error: ' . $e->getMessage());
             show_error('Error generating template file: ' . $e->getMessage());
@@ -423,40 +413,8 @@ class Fitting extends CI_Controller
      */
     private function handleSessionState(): void
     {
-        if ($this->input->post('find')) {
-            $this->session->set_userdata('keyword', $this->input->post('keyword', true));
-        }
-
-        if ($this->input->post('sort-send')) {
-            // Accept sort in format 'field-ORDER' where ORDER is ASC or DESC
-            $sortRaw = $this->input->post('sort-send', true);
-            if (is_string($sortRaw) && preg_match('/^[a-z0-9_\-]+-(ASC|DESC)$/i', $sortRaw)) {
-                // Keep field name as-is, but uppercase the direction
-                [$field, $direction] = explode('-', $sortRaw, 2);
-                $this->session->set_userdata('sort', $field . '-' . strtoupper($direction));
-            } elseif ($sortRaw === '') {
-                $this->session->unset_userdata('sort');
-            }
-        }
-
-        if ($this->input->post('reset')) {
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
-
-        if ($this->input->post('filter')) {
-            $filterRaw = $this->input->post('filter', true);
-            // If JSON string submitted by JS, decode it to associative array
-            if (is_string($filterRaw) && ($json = json_decode($filterRaw, true)) !== null) {
-                $this->session->set_userdata('filter', $json);
-            } elseif (is_array($filterRaw)) {
-                $this->session->set_userdata('filter', $filterRaw);
-            }
-        }
-
-        if ($this->input->post('clear_all')) {
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-            redirect('fitting');
-        }
+        // Use the common helper for session state management
+        handle_session_state('fitting', []);
     }
 
     /**
@@ -481,16 +439,8 @@ class Fitting extends CI_Controller
         $sheet->setCellValue('H1', 'Updated At');
         $sheet->setCellValue('I1', 'Editor');
 
-        // Style headers
-        $headerStyle = [
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E9ECEF']
-            ]
-        ];
-        $highestColumn = $sheet->getHighestColumn();
-        $sheet->getStyle("A1:{$highestColumn}1")->applyFromArray($headerStyle);
+        // Style headers using common helper
+        apply_excel_header_style($sheet, 'A1:I1');
 
         // Add data
         $row = 2;
@@ -507,14 +457,12 @@ class Fitting extends CI_Controller
             $row++;
         }
 
-        // Auto-filter and auto-size columns
+        // Auto-filter and auto-size columns using common helper
         $sheet->setAutoFilter('A1:I1');
-        foreach (range('A', 'I') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
+        auto_size_excel_columns($sheet, 'A', 'I');
 
         $filename = 'Data Fitting ' . date('Y-m-d H:i:s') . '.xlsx';
-        $this->outputExcelFile($spreadsheet, $filename);
+        output_excel_file($spreadsheet, $filename);
     }
 
     /**
@@ -771,23 +719,7 @@ class Fitting extends CI_Controller
             ]));
     }
 
-    /**
-     * Output Excel file for download.
-     *
-     * @param Spreadsheet $spreadsheet
-     * @param string $filename
-     * @return void
-     */
-    private function outputExcelFile(Spreadsheet $spreadsheet, string $filename): void
-    {
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
-    }
 
     /**
      * Custom validation for subtype format (uppercase letters, numbers, and underscores only)

@@ -72,8 +72,6 @@ class User extends CI_Controller
     {
         parent::__construct();
 
-        $this->load->helper('common');
-
         // Check user authentication using common helper
         check_user_authentication();
 
@@ -101,12 +99,9 @@ class User extends CI_Controller
             'sort'   => $this->session->userdata('sort'),
         ];
 
-        // Setup pagination
-        $config = [
-            'base_url'   => site_url("user/index"),
-            'total_rows' => $this->User_model->countUser($sessionData['search'], $sessionData['filter']),
-            'per_page'   => self::CONFIG['pagination']['items_per_page'],
-        ];
+        // Setup pagination using common helper
+        $totalRows = $this->User_model->countUser($sessionData['search'], $sessionData['filter']);
+        $config = setup_pagination(site_url("user/index"), $totalRows, self::CONFIG['pagination']['items_per_page']);
         $this->pagination->initialize($config);
 
         $startData = (int) ($this->uri->segment(3) ?: 0);
@@ -140,17 +135,9 @@ class User extends CI_Controller
      */
     public function add(): void
     {
+        // Set validation rules using common helper
         $this->form_validation->set_rules(
-            self::CONFIG['validation']['nik']['field'],
-            self::CONFIG['validation']['nik']['label'],
-            self::CONFIG['validation']['nik']['rules'],
-            self::CONFIG['validation']['nik']['errors']
-        );
-        $this->form_validation->set_rules(
-            self::CONFIG['validation']['name']['field'],
-            self::CONFIG['validation']['name']['label'],
-            self::CONFIG['validation']['name']['rules'],
-            self::CONFIG['validation']['name']['errors']
+            get_rules(self::CONFIG['validation'], ['nik', 'name'])
         );
 
         if ($this->form_validation->run() === false) {
@@ -185,11 +172,9 @@ class User extends CI_Controller
             return;
         }
 
+        // Set validation rules using common helper
         $this->form_validation->set_rules(
-            self::CONFIG['validation']['name']['field'],
-            self::CONFIG['validation']['name']['label'],
-            self::CONFIG['validation']['name']['rules'],
-            self::CONFIG['validation']['name']['errors']
+            get_rules(self::CONFIG['validation'], ['name'])
         );
 
         if ($this->form_validation->run() === false) {
@@ -238,21 +223,8 @@ class User extends CI_Controller
      */
     private function handleSessionState(): void
     {
-        if ($this->input->post('find')) {
-            $this->session->set_userdata('keyword', $this->input->post('keyword', true));
-        }
-
-        if ($this->input->post('filter-submit')) {
-            $this->session->set_userdata('filter', []);
-        }
-
-        if ($this->input->post('sort-send')) {
-            $this->session->set_userdata('sort', $this->input->post('sort-send', true));
-        }
-
-        if ($this->input->post('reset')) {
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
+        // Use the common helper for session state management
+        handle_session_state('user', []);
     }
 
     /**
@@ -326,15 +298,8 @@ class User extends CI_Controller
         $sheet->setCellValue('C1', 'Dibuat');
         $sheet->setCellValue('D1', 'Diperbarui');
 
-        // Style headers
-        $headerStyle = [
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E9ECEF']
-            ]
-        ];
-        $sheet->getStyle('A1:D1')->applyFromArray($headerStyle);
+        // Style headers using common helper
+        apply_excel_header_style($sheet, 'A1:D1');
 
         // Add data
         $row = 2;
@@ -346,21 +311,12 @@ class User extends CI_Controller
             $row++;
         }
 
-        // Auto-size columns
-        foreach (range('A', 'D') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
+        // Auto-size columns using common helper
+        auto_size_excel_columns($sheet, 'A', 'D');
 
-        // Output file
+        // Output file using common helper
         $filename = 'data_pengguna_air_system_' . date('Y-m-d_H-i-s') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header("Content-Disposition: attachment; filename=\"{$filename}\"");
-        header('Cache-Control: max-age=0');
-
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
+        output_excel_file($spreadsheet, $filename);
     }
 
     /**
@@ -381,31 +337,15 @@ class User extends CI_Controller
         $sheet->setCellValue('A2', '123456789');
         $sheet->setCellValue('B2', 'John Doe');
 
-        // Style headers
-        $headerStyle = [
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E9ECEF']
-            ]
-        ];
-        $sheet->getStyle('A1:B1')->applyFromArray($headerStyle);
+        // Style headers using common helper
+        apply_excel_header_style($sheet, 'A1:B1');
 
-        // Auto-size columns
-        foreach (range('A', 'B') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
+        // Auto-size columns using common helper
+        auto_size_excel_columns($sheet, 'A', 'B');
 
-        // Output file
+        // Output file using common helper
         $filename = 'template_pengguna_air_system.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header("Content-Disposition: attachment; filename=\"{$filename}\"");
-        header('Cache-Control: max-age=0');
-
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
+        output_excel_file($spreadsheet, $filename);
     }
 
     /**
@@ -508,85 +448,5 @@ class User extends CI_Controller
             log_message('error', 'File upload error: ' . $e->getMessage());
             set_message(['danger', 'Terjadi kesalahan dalam membaca file Excel.']);
         }
-    }
-
-    /**
-     * Processes uploaded Excel file and imports users.
-     *
-     * @param string $filePath Path to uploaded Excel file
-     * @return array Result with success status and counts
-     */
-    private function processExcelFile(string $filePath): array
-    {
-        $spreadsheet = IOFactory::load($filePath);
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray();
-
-        $inserted = 0;
-        $errorMessages = [];
-        $userData = [];
-
-        // Skip header row, start from row 2
-        for ($i = 1; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            $rowNumber = $i + 1; // Add 1 to account for header row
-
-            // Skip empty rows
-            if (empty($row[0]) && empty($row[1])) {
-                continue;
-            }
-
-            $nik = $row[0] ?? '';
-            $name = $row[1] ?? '';
-
-            // Validate required fields
-            if (empty($nik)) {
-                $errorMessages[] = "Baris {$rowNumber}: NIK tidak boleh kosong";
-                continue;
-            }
-
-            if (empty($name)) {
-                $errorMessages[] = "Baris {$rowNumber}: Nama tidak boleh kosong";
-                continue;
-            }
-
-            // Validate NIK format
-            if (!is_numeric($nik)) {
-                $errorMessages[] = "Baris {$rowNumber}: NIK harus berupa angka: {$nik}";
-                continue;
-            }
-
-            if (strlen($nik) !== 9) {
-                $errorMessages[] = "Baris {$rowNumber}: NIK harus berjumlah 9 digit: {$nik}";
-                continue;
-            }
-
-            // Check if NIK already exists
-            if ($this->User_model->isNikExists($nik)) {
-                $errorMessages[] = "Baris {$rowNumber}: NIK sudah terdaftar: {$nik}";
-                continue;
-            }
-
-            $userData[] = [
-                'nik' => $nik,
-                'name' => ucwords(strtolower(trim($name))),
-                'created_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                'editor' => $this->session->userdata('user_data')['nik']
-            ];
-            $inserted++;
-        }
-
-        // Batch insert
-        if (!empty($userData)) {
-            $this->User_model->insertBatch($userData);
-        }
-
-        return [
-            'success' => count($errorMessages) === 0,
-            'inserted' => $inserted,
-            'errors' => count($errorMessages),
-            'errorMessages' => $errorMessages
-        ];
     }
 }

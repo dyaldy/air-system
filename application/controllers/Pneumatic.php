@@ -96,8 +96,6 @@ class Pneumatic extends CI_Controller
     {
         parent::__construct();
 
-        $this->load->helper('common');
-
         // Check user authentication using common helper
         check_user_authentication();
 
@@ -143,11 +141,8 @@ class Pneumatic extends CI_Controller
 
         $totalRows = $this->Pneumatic_model->countPneumatic($sessionData['search'], $sessionData['filter']);
 
-        $config = [
-            'base_url'   => site_url('pneumatic/index'),
-            'total_rows' => $totalRows,
-            'per_page'   => self::CONFIG['pagination']['items_per_page'],
-        ];
+        // Setup pagination using common helper
+        $config = setup_pagination(site_url('pneumatic/index'), $totalRows, self::CONFIG['pagination']['items_per_page']);
         $this->pagination->initialize($config);
 
         $startData = (int) ($this->uri->segment(3) ?: 0);
@@ -351,7 +346,7 @@ class Pneumatic extends CI_Controller
             $sheet->setCellValue('C1', 'Stroke');
 
             $filename = 'Template Data Pneumatic.xlsx';
-            $this->outputExcelFile($spreadsheet, $filename);
+            output_excel_file($spreadsheet, $filename);
         } catch (Exception $e) {
             log_message('error', 'Template download error: ' . $e->getMessage());
             show_error('Error generating template file: ' . $e->getMessage());
@@ -419,116 +414,12 @@ class Pneumatic extends CI_Controller
         auto_size_excel_columns($sheet, 'A', 'G');
 
         $filename = 'Data Pneumatic.xlsx';
-        $this->outputExcelFile($spreadsheet, $filename);
-    }
-
-    /**
-     * Outputs Excel file to browser for download using common helper.
-     *
-     * @param Spreadsheet $spreadsheet The spreadsheet object
-     * @param string $filename The filename for download
-     * @return void
-     */
-    private function outputExcelFile(Spreadsheet $spreadsheet, string $filename): void
-    {
         output_excel_file($spreadsheet, $filename);
     }
 
-    /**
-     * Processes uploaded Excel file and returns results.
-     *
-     * @param string $filePath Path to the uploaded file
-     * @return array Results containing success status, counts, and error messages
-     */
-    private function processExcelFile(string $filePath): array
-    {
-        $spreadsheet = IOFactory::load($filePath);
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray();
 
-        $inserted = 0;
-        $errorMessages = [];
-        $pneumaticData = [];
 
-        // Skip header row, start from row 2
-        for ($i = 1; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            $rowNumber = $i + 1; // Add 1 to account for header row
 
-            // Skip empty rows
-            if (empty($row[0]) && empty($row[1]) && empty($row[2]) && empty($row[3])) {
-                continue;
-            }
-
-            $type = $row[0] ?? '';
-            $bore = $row[1] ?? '';
-            $stroke = $row[2] ?? '';
-
-            // Validate required fields
-            if (empty($type)) {
-                $errorMessages[] = "Baris {$rowNumber}: Type tidak boleh kosong";
-                continue;
-            }
-
-            if (empty($bore)) {
-                $errorMessages[] = "Baris {$rowNumber}: Bore tidak boleh kosong";
-                continue;
-            }
-
-            if (empty($stroke)) {
-                $errorMessages[] = "Baris {$rowNumber}: Stroke tidak boleh kosong";
-                continue;
-            }
-
-            // Validate data formats
-            if (strlen($type) > 15) {
-                $errorMessages[] = "Baris {$rowNumber}: Type maksimal 15 karakter: {$type}";
-                continue;
-            }
-
-            if (!is_numeric($bore) || $bore <= 0) {
-                $errorMessages[] = "Baris {$rowNumber}: Bore harus berupa angka positif: {$bore}";
-                continue;
-            }
-
-            if (!is_numeric($stroke) || $stroke <= 0) {
-                $errorMessages[] = "Baris {$rowNumber}: Stroke harus berupa angka positif: {$stroke}";
-                continue;
-            }
-
-            // Generate pneumatic ID
-            $pneumaticId = 'pnm-' . strtolower(trim($type)) . '-' . $bore . '-' . $stroke;
-
-            // Check if pneumatic combination already exists
-            if ($this->Pneumatic_model->isPneumaticIdExists($pneumaticId)) {
-                $errorMessages[] = "Baris {$rowNumber}: Kombinasi pneumatic sudah terdaftar (Type: {$type}, Bore: {$bore}, Stroke: {$stroke})";
-                continue;
-            }
-
-            $pneumaticData[] = [
-                'pneumatic_id' => $pneumaticId,
-                'type'         => strtoupper(trim($type)),
-                'bore'         => (int)$bore,
-                'stroke'       => (int)$stroke,
-                'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                'editor'       => $this->session->userdata('user_data')['nik']
-            ];
-            $inserted++;
-        }
-
-        // Batch insert (after validating types) - insert only if there are no row-level DB risks
-        if (!empty($pneumaticData)) {
-            $this->Pneumatic_model->insertBatch($pneumaticData);
-        }
-
-        return [
-            'success' => count($errorMessages) === 0,
-            'inserted' => $inserted,
-            'errors' => count($errorMessages),
-            'errorMessages' => $errorMessages
-        ];
-    }
 
     /**
      * Handle file upload posted to index (ASRS-style).
@@ -674,35 +565,8 @@ class Pneumatic extends CI_Controller
      */
     private function handleSessionState(): void
     {
-        if ($this->input->post('find')) {
-            $this->session->set_userdata('keyword', $this->input->post('keyword', true));
-        }
-
-        if ($this->input->post('sort-send')) {
-            // Accept sort in format 'field-ORDER' where ORDER is ASC or DESC
-            $sortRaw = $this->input->post('sort-send', true);
-            if (is_string($sortRaw) && preg_match('/^[a-z0-9_\-]+-(ASC|DESC)$/i', $sortRaw)) {
-                // Keep field name as-is, but uppercase the direction
-                [$field, $direction] = explode('-', $sortRaw, 2);
-                $this->session->set_userdata('sort', $field . '-' . strtoupper($direction));
-            } elseif ($sortRaw === '') {
-                $this->session->unset_userdata('sort');
-            }
-        }
-
-        if ($this->input->post('reset')) {
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
-        }
-
-        if ($this->input->post('filter')) {
-            $filterRaw = $this->input->post('filter', true);
-            // If JSON string submitted by JS, decode it to associative array
-            if (is_string($filterRaw) && ($json = json_decode($filterRaw, true)) !== null) {
-                $this->session->set_userdata('filter', $json);
-            } elseif (is_array($filterRaw)) {
-                $this->session->set_userdata('filter', $filterRaw);
-            }
-        }
+        // Use the common helper for session state management
+        handle_session_state('pneumatic', []);
     }
 
     /**
