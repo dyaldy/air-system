@@ -1,11 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-require 'vendor/autoload.php';
-
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
 /**
  * Storage controller for air-system.
  *
@@ -703,44 +698,33 @@ class Storage extends CI_Controller
 
         $items = $this->Storage_model->get_storage_by_location($location_id);
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set headers
-        $sheet->setCellValue('A1', 'Category');
-        $sheet->setCellValue('B1', 'Type ID');
-        $sheet->setCellValue('C1', 'Amount');
-        $sheet->setCellValue('D1', 'Updated At');
-
-        // Style headers
-        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:D1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFCCCCCC');
-
-        // Add data
-        $row = 2;
-        foreach ($items as $item) {
-            $sheet->setCellValue('A' . $row, $item['category']);
-            $sheet->setCellValue('B' . $row, $item['type_id']);
-            $sheet->setCellValue('C' . $row, $item['amount']);
-            $sheet->setCellValue('D' . $row, $item['updated_at']);
-            $row++;
-        }
-
-        // Auto-size columns
-        foreach (range('A', 'D') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        // Set filename and download
-        $filename = 'storage_location_' . $location_id . '_' . date('Y-m-d') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // Set filename and headers for CSV download
+        $filename = 'storage_location_' . $location_id . '_' . date('Y-m-d') . '.csv';
+        
+        header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
+        // Open output stream
+        $output = fopen('php://output', 'w');
+
+        // Add UTF-8 BOM for Excel compatibility
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Write headers
+        fputcsv($output, ['Category', 'Type ID', 'Amount', 'Updated At']);
+
+        // Write data
+        foreach ($items as $item) {
+            fputcsv($output, [
+                $item['category'],
+                $item['type_id'],
+                $item['amount'],
+                $item['updated_at']
+            ]);
+        }
+
+        fclose($output);
         exit;
     }
 
@@ -755,46 +739,34 @@ class Storage extends CI_Controller
 
         $results = $this->Storage_model->search_storage($search_term, $location_id, $category);
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set headers
-        $sheet->setCellValue('A1', 'Location ID');
-        $sheet->setCellValue('B1', 'Category');
-        $sheet->setCellValue('C1', 'Type ID');
-        $sheet->setCellValue('D1', 'Amount');
-        $sheet->setCellValue('E1', 'Updated At');
-
-        // Style headers
-        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:E1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFCCCCCC');
-
-        // Add data
-        $row = 2;
-        foreach ($results as $item) {
-            $sheet->setCellValue('A' . $row, $item['location_id']);
-            $sheet->setCellValue('B' . $row, $item['category']);
-            $sheet->setCellValue('C' . $row, $item['type_id']);
-            $sheet->setCellValue('D' . $row, $item['amount']);
-            $sheet->setCellValue('E' . $row, $item['updated_at']);
-            $row++;
-        }
-
-        // Auto-size columns
-        foreach (range('A', 'E') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        // Set filename and download
-        $filename = 'storage_search_results_' . date('Y-m-d') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // Set filename and headers for CSV download
+        $filename = 'storage_search_results_' . date('Y-m-d') . '.csv';
+        
+        header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
+        // Open output stream
+        $output = fopen('php://output', 'w');
+
+        // Add UTF-8 BOM for Excel compatibility
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Write headers
+        fputcsv($output, ['Location ID', 'Category', 'Type ID', 'Amount', 'Updated At']);
+
+        // Write data
+        foreach ($results as $item) {
+            fputcsv($output, [
+                $item['location_id'],
+                $item['category'],
+                $item['type_id'],
+                $item['amount'],
+                $item['updated_at']
+            ]);
+        }
+
+        fclose($output);
         exit;
     }
 
@@ -812,54 +784,38 @@ class Storage extends CI_Controller
             $transactions = $this->Report_model->get_all_transactions(1000);
         }
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set headers
-        $sheet->setCellValue('A1', 'Storing ID');
-        $sheet->setCellValue('B1', 'Location ID');
-        $sheet->setCellValue('C1', 'DateTime');
-        $sheet->setCellValue('D1', 'Category');
-        $sheet->setCellValue('E1', 'Type ID');
-        $sheet->setCellValue('F1', 'Action');
-        $sheet->setCellValue('G1', 'Amount');
-        $sheet->setCellValue('H1', 'Note');
-        $sheet->setCellValue('I1', 'NIK');
-
-        // Style headers
-        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:I1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFCCCCCC');
-
-        // Add data
-        $row = 2;
-        foreach ($transactions as $transaction) {
-            $sheet->setCellValue('A' . $row, $transaction['storing_id']);
-            $sheet->setCellValue('B' . $row, $transaction['location_id']);
-            $sheet->setCellValue('C' . $row, $transaction['datetime']);
-            $sheet->setCellValue('D' . $row, $transaction['category']);
-            $sheet->setCellValue('E' . $row, $transaction['type_id']);
-            $sheet->setCellValue('F' . $row, $transaction['action']);
-            $sheet->setCellValue('G' . $row, isset($transaction['amount']) ? (int)$transaction['amount'] : 1);
-            $sheet->setCellValue('H' . $row, $transaction['note']);
-            $sheet->setCellValue('I' . $row, $transaction['nik']);
-            $row++;
-        }
-
-        // Auto-size columns
-        foreach (range('A', 'I') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        // Set filename and download
-        $filename = 'storage_transactions_' . date('Y-m-d') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // Set filename and headers for CSV download
+        $filename = 'storage_transactions_' . date('Y-m-d') . '.csv';
+        
+        header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
+        // Open output stream
+        $output = fopen('php://output', 'w');
+
+        // Add UTF-8 BOM for Excel compatibility
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Write headers
+        fputcsv($output, ['Storing ID', 'Location ID', 'DateTime', 'Category', 'Type ID', 'Action', 'Amount', 'Note', 'NIK']);
+
+        // Write data
+        foreach ($transactions as $transaction) {
+            fputcsv($output, [
+                $transaction['storing_id'],
+                $transaction['location_id'],
+                $transaction['datetime'],
+                $transaction['category'],
+                $transaction['type_id'],
+                $transaction['action'],
+                isset($transaction['amount']) ? (int)$transaction['amount'] : 1,
+                $transaction['note'],
+                $transaction['nik']
+            ]);
+        }
+
+        fclose($output);
         exit;
     }
 
