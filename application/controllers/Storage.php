@@ -700,7 +700,7 @@ class Storage extends CI_Controller
 
         // Set filename and headers for CSV download
         $filename = 'storage_location_' . $location_id . '_' . date('Y-m-d') . '.csv';
-        
+
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
@@ -709,7 +709,7 @@ class Storage extends CI_Controller
         $output = fopen('php://output', 'w');
 
         // Add UTF-8 BOM for Excel compatibility
-        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         // Write headers
         fputcsv($output, ['Category', 'Type ID', 'Amount', 'Updated At']);
@@ -741,7 +741,7 @@ class Storage extends CI_Controller
 
         // Set filename and headers for CSV download
         $filename = 'storage_search_results_' . date('Y-m-d') . '.csv';
-        
+
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
@@ -750,7 +750,7 @@ class Storage extends CI_Controller
         $output = fopen('php://output', 'w');
 
         // Add UTF-8 BOM for Excel compatibility
-        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         // Write headers
         fputcsv($output, ['Location ID', 'Category', 'Type ID', 'Amount', 'Updated At']);
@@ -786,7 +786,7 @@ class Storage extends CI_Controller
 
         // Set filename and headers for CSV download
         $filename = 'storage_transactions_' . date('Y-m-d') . '.csv';
-        
+
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
@@ -795,7 +795,7 @@ class Storage extends CI_Controller
         $output = fopen('php://output', 'w');
 
         // Add UTF-8 BOM for Excel compatibility
-        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         // Write headers
         fputcsv($output, ['Storing ID', 'Location ID', 'DateTime', 'Category', 'Type ID', 'Action', 'Amount', 'Note', 'NIK']);
