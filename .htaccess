@@ -11,12 +11,12 @@ Options +FollowSymLinks
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # Set the base directory
-    RewriteBase /air-system/
+    # Set the base directory (use / for domain root, or /air-system/ for subfolder)
+    RewriteBase /
     
     # Remove index.php from URLs if present
     RewriteCond %{THE_REQUEST} ^GET.*index\.php [NC]
-    RewriteRule (.*?)index\.php/*(.*) /air-system/$1$2 [R=301,NE,L]
+    RewriteRule (.*?)index\.php/*(.*) /$1$2 [R=301,NE,L]
     
     # Redirect trailing slashes if not a folder
     RewriteCond %{REQUEST_FILENAME} !-d
