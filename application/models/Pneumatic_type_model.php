@@ -7,7 +7,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  */
 class Pneumatic_type_model extends CI_Model
 {
-    private string $table = 'as_pneumatic_types';
+    private $table = 'as_pneumatic_types';
 
     public function getAllTypes(): array
     {

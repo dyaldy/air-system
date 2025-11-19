@@ -7,7 +7,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  */
 class Fitting_subtype_model extends CI_Model
 {
-    private string $table = 'as_fitting_subtypes';
+    private $table = 'as_fitting_subtypes';
 
     /**
      * Get all subtypes for all parent types

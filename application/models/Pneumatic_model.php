@@ -24,7 +24,7 @@ class Pneumatic_model extends CI_Model
      *
      * @var string
      */
-    private string $pneumaticTable = 'as_pneumatic';
+    private $pneumaticTable = 'as_pneumatic';
 
     /**
      * Retrieves a list of pneumatics based on search, filter, and sort criteria.

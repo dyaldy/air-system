@@ -24,7 +24,7 @@ class User_model extends CI_Model
      *
      * @var string
      */
-    private string $userTable = 'as_user';
+    private $userTable = 'as_user';
 
     /**
      * Retrieves a list of users based on search, filter, and sort criteria.

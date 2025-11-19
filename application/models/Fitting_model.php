@@ -24,7 +24,7 @@ class Fitting_model extends CI_Model
      *
      * @var string
      */
-    private string $fittingTable = 'as_fitting';
+    private $fittingTable = 'as_fitting';
 
     /**
      * Retrieves a list of fittings based on search, filter, and sort criteria.
