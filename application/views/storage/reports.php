@@ -96,8 +96,11 @@
                             <a href="<?= site_url('storage/reports'); ?>" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Hapus Filter
                             </a>
-                            <button type="button" class="btn btn-success" onclick="exportToExcel()">
-                                <i class="fas fa-download"></i> Ekspor Excel
+                            <button type="button" class="btn btn-success" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv"></i> Ekspor CSV
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf"></i> Ekspor PDF
                             </button>
                         </div>
                         <?= form_close(); ?>
@@ -332,13 +335,33 @@
     }
 </style>
 <script>
-    function exportToExcel() {
+    function exportToCSV() {
         // Get current filter parameters
         const startDate = document.querySelector('input[name="start_date"]')?.value || '';
         const endDate = document.querySelector('input[name="end_date"]')?.value || '';
 
         // Build URL with parameters
         let url = '<?= site_url("storage/export_transactions_excel"); ?>';
+        let params = [];
+
+        if (startDate) params.push('start_date=' + encodeURIComponent(startDate));
+        if (endDate) params.push('end_date=' + encodeURIComponent(endDate));
+
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+
+        // Open in new window to trigger download
+        window.open(url, '_blank');
+    }
+
+    function exportToPDF() {
+        // Get current filter parameters
+        const startDate = document.querySelector('input[name="start_date"]')?.value || '';
+        const endDate = document.querySelector('input[name="end_date"]')?.value || '';
+
+        // Build URL with parameters
+        let url = '<?= site_url("storage/export_transactions_pdf"); ?>';
         let params = [];
 
         if (startDate) params.push('start_date=' + encodeURIComponent(startDate));

@@ -1,6 +1,8 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+require_once FCPATH . 'vendor/autoload.php';
+
 /**
  * Storage controller for air-system.
  *
@@ -816,6 +818,157 @@ class Storage extends CI_Controller
         }
 
         fclose($output);
+        exit;
+    }
+
+    /**
+     * Export location storage to PDF
+     */
+    public function export_location_pdf($location_id = null)
+    {
+        if (!$location_id) {
+            show_404();
+            return;
+        }
+
+        $location_id = strtoupper($location_id);
+        $items = $this->Storage_model->get_storage_by_location($location_id);
+
+        // Generate simple HTML for PDF
+        $html = $this->generate_location_pdf_html($location_id, $items);
+
+        // Set filename and headers for PDF download
+        $filename = 'storage_location_' . $location_id . '_' . date('Y-m-d') . '.pdf';
+
+        $this->output_pdf($html, $filename);
+    }
+
+    /**
+     * Export transactions to PDF
+     */
+    public function export_transactions_pdf()
+    {
+        $start_date = $this->input->get('start_date');
+        $end_date = $this->input->get('end_date');
+
+        if ($start_date && $end_date) {
+            $transactions = $this->Report_model->get_transactions_by_date($start_date, $end_date, 1000);
+        } else {
+            $transactions = $this->Report_model->get_all_transactions(1000);
+        }
+
+        // Generate simple HTML for PDF
+        $html = $this->generate_transactions_pdf_html($transactions, $start_date, $end_date);
+
+        // Set filename and headers for PDF download
+        $filename = 'storage_transactions_' . date('Y-m-d') . '.pdf';
+
+        $this->output_pdf($html, $filename);
+    }
+
+    /**
+     * Generate HTML for location PDF
+     */
+    private function generate_location_pdf_html($location_id, $items)
+    {
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
+        $html .= '<style>body{font-family:Arial,sans-serif;font-size:12px;}';
+        $html .= 'table{width:100%;border-collapse:collapse;margin-top:20px;}';
+        $html .= 'th,td{border:1px solid #ddd;padding:8px;text-align:left;}';
+        $html .= 'th{background-color:#f2f2f2;font-weight:bold;}';
+        $html .= 'h2{color:#333;}</style></head><body>';
+        $html .= '<h2>Storage Location Report: ' . htmlspecialchars($location_id) . '</h2>';
+        $html .= '<p>Generated: ' . date('Y-m-d H:i:s') . '</p>';
+        $html .= '<table><thead><tr>';
+        $html .= '<th>Category</th><th>Type ID</th><th>Amount</th><th>Updated At</th>';
+        $html .= '</tr></thead><tbody>';
+
+        foreach ($items as $item) {
+            $html .= '<tr>';
+            $html .= '<td>' . htmlspecialchars($item['category']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($item['type_id']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($item['amount']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($item['updated_at']) . '</td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table></body></html>';
+        return $html;
+    }
+
+    /**
+     * Generate HTML for transactions PDF
+     */
+    private function generate_transactions_pdf_html($transactions, $start_date, $end_date)
+    {
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
+        $html .= '<style>body{font-family:Arial,sans-serif;font-size:10px;}';
+        $html .= 'table{width:100%;border-collapse:collapse;margin-top:20px;}';
+        $html .= 'th,td{border:1px solid #ddd;padding:6px;text-align:left;}';
+        $html .= 'th{background-color:#f2f2f2;font-weight:bold;}';
+        $html .= 'h2{color:#333;}</style></head><body>';
+        $html .= '<h2>Storage Transactions Report</h2>';
+
+        if ($start_date && $end_date) {
+            $html .= '<p>Period: ' . htmlspecialchars($start_date) . ' to ' . htmlspecialchars($end_date) . '</p>';
+        }
+
+        $html .= '<p>Generated: ' . date('Y-m-d H:i:s') . '</p>';
+        $html .= '<table><thead><tr>';
+        $html .= '<th>Storing ID</th><th>Location</th><th>DateTime</th><th>Category</th>';
+        $html .= '<th>Type ID</th><th>Action</th><th>Amount</th><th>Note</th><th>NIK</th>';
+        $html .= '</tr></thead><tbody>';
+
+        foreach ($transactions as $transaction) {
+            $html .= '<tr>';
+            $html .= '<td>' . htmlspecialchars($transaction['storing_id']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['location_id']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['datetime']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['category']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['type_id']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['action']) . '</td>';
+            $html .= '<td>' . htmlspecialchars(isset($transaction['amount']) ? (int)$transaction['amount'] : 1) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['note']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($transaction['nik']) . '</td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table></body></html>';
+        return $html;
+    }
+
+    /**
+     * Output PDF using TCPDF library
+     */
+    private function output_pdf($html, $filename)
+    {
+        // Create new PDF document
+        $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Air System');
+        $pdf->SetAuthor('Air System');
+        $pdf->SetTitle($filename);
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(TRUE, 15);
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Set font
+        $pdf->SetFont('helvetica', '', 10);
+
+        // Output the HTML content
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        // Close and output PDF document
+        $pdf->Output($filename, 'D'); // 'D' = force download
         exit;
     }
 

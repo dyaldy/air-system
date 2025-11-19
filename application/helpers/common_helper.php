@@ -204,121 +204,13 @@ if (!function_exists('reset_controller_session')) {
     }
 }
 
-if (!function_exists('output_excel_file')) {
-    /**
-     * Output Excel file to browser for download.
-     *
-     * Sets appropriate headers and outputs the Excel file for download.
-     * Commonly used across controllers for Excel export functionality.
-     *
-     * @param PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet The spreadsheet object
-     * @param string                               $filename     The filename for download
-     *
-     * @return void
-     */
-    function output_excel_file($spreadsheet, string $filename): void
-    {
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
 
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
-    }
-}
 
-if (!function_exists('apply_excel_header_style')) {
-    /**
-     * Apply consistent header styling to Excel worksheet.
-     *
-     * Applies standard header formatting (bold font, background color)
-     * used across all Excel exports in the system.
-     *
-     * @param PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet      The worksheet object
-     * @param string                                       $cellRange  Cell range for headers (e.g., 'A1:D1')
-     *
-     * @return void
-     */
-    function apply_excel_header_style($sheet, string $cellRange): void
-    {
-        $headerStyle = [
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E9ECEF']
-            ]
-        ];
 
-        $sheet->getStyle($cellRange)->applyFromArray($headerStyle);
-    }
-}
 
-if (!function_exists('auto_size_excel_columns')) {
-    /**
-     * Auto-size columns in Excel worksheet.
-     *
-     * Automatically adjusts column widths to fit content for the specified
-     * column range. Commonly used in Excel export functions.
-     *
-     * @param PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet      The worksheet object
-     * @param string                                       $startCol   Starting column (e.g., 'A')
-     * @param string                                       $endCol     Ending column (e.g., 'D')
-     *
-     * @return void
-     */
-    function auto_size_excel_columns($sheet, string $startCol, string $endCol): void
-    {
-        foreach (range($startCol, $endCol) as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-    }
-}
 
-if (!function_exists('validate_excel_file')) {
-    /**
-     * Validate uploaded Excel file.
-     *
-     * Checks if file exists, has valid extension and MIME type.
-     * Returns validation results with error messages.
-     *
-     * @param array  $file         $_FILES array for the uploaded file
-     * @param int    $maxSize      Maximum file size in KB (default: 2048)
-     * @param array  $allowedTypes Allowed file extensions (default: ['xlsx', 'xls'])
-     *
-     * @return array Validation result with 'valid' boolean and 'error' message
-     */
-    function validate_excel_file(array $file, int $maxSize = 2048, array $allowedTypes = ['xlsx', 'xls']): array
-    {
-        if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
-            return ['valid' => false, 'error' => 'No file uploaded'];
-        }
 
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            return ['valid' => false, 'error' => 'File upload error: ' . $file['error']];
-        }
 
-        if ($file['size'] > ($maxSize * 1024)) {
-            return ['valid' => false, 'error' => 'File size exceeds maximum allowed size of ' . $maxSize . 'KB'];
-        }
-
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, $allowedTypes)) {
-            return ['valid' => false, 'error' => 'Invalid file type. Only ' . implode(', ', $allowedTypes) . ' files are allowed'];
-        }
-
-        $validMimeTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-            'application/vnd.ms-excel' // .xls
-        ];
-
-        if (!in_array($file['type'], $validMimeTypes)) {
-            return ['valid' => false, 'error' => 'Invalid file format'];
-        }
-
-        return ['valid' => true, 'error' => null];
-    }
-}
 
 if (!function_exists('format_datetime_indonesian')) {
     /**

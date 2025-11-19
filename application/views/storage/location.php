@@ -131,8 +131,11 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Barang di Penyimpanan</h5>
                         <div class="btn-group">
-                            <a href="<?= site_url('storage/export_location_excel/' . $location_id); ?>" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-download"></i> Ekspor Excel
+                            <a href="<?= site_url('storage/export_location_excel/' . $location_id); ?>" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-file-csv"></i> Ekspor CSV
+                            </a>
+                            <a href="<?= site_url('storage/export_location_pdf/' . $location_id); ?>" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-file-pdf"></i> Ekspor PDF
                             </a>
                         </div>
                     </div>
