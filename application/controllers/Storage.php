@@ -205,7 +205,7 @@ class Storage extends CI_Controller
         // Set validation rules
         $this->form_validation->set_rules('location_id', 'Location ID', 'required|max_length[3]');
         $this->form_validation->set_rules('category', 'Category', 'required|max_length[15]');
-        $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[30]');
+        $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[50]');
         $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('note', 'Note', 'max_length[255]');
 
@@ -305,7 +305,7 @@ class Storage extends CI_Controller
         // Set validation rules
         $this->form_validation->set_rules('location_id', 'Location ID', 'required|callback_validate_location_id');
         $this->form_validation->set_rules('category', 'Category', 'required|max_length[15]');
-        $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[30]');
+        $this->form_validation->set_rules('type_id', 'Type ID', 'required|max_length[50]');
         $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('note', 'Note', 'max_length[255]');
         $this->form_validation->set_rules('batch_id', 'Batch ID', 'callback_validate_batch_id');
