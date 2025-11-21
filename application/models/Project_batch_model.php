@@ -221,6 +221,7 @@ class Project_batch_model extends CI_Model
         $this->db->join('as_user u', 'pb.created_by = u.nik', 'left');
         $this->db->where('pb.category', $category);
         $this->db->where('pb.type_id', $type_id);
+        $this->db->where('pb.remaining_quantity >', 0);
         $this->db->order_by('pb.created_at', 'DESC');
 
         return $this->db->get()->result_array();

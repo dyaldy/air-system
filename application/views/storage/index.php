@@ -339,6 +339,58 @@
                             </div>
                         </div>
 
+                        <!-- Branch Selection -->
+                        <div class="mb-3" id="storeBranchSelection">
+                            <label class="form-label">Tipe Penyimpanan:</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="branch_type" id="storeRegularBranch" value="regular" checked>
+                                <label class="btn btn-outline-primary" for="storeRegularBranch">
+                                    <i class="fas fa-cube"></i> Stok Regular
+                                </label>
+                                <input type="radio" class="btn-check" name="branch_type" id="storeProjectBranch" value="project">
+                                <label class="btn btn-outline-warning" for="storeProjectBranch">
+                                    <i class="fas fa-project-diagram"></i> Stok Project
+                                </label>
+                            </div>
+                            <div class="form-text">Pilih simpan sebagai stok regular atau project</div>
+                        </div>
+
+                        <!-- Project Options (shown only when Project is selected) -->
+                        <div class="mb-3" id="storeProjectOptions" style="display: none;">
+                            <label class="form-label">Opsi Project:</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="project_option" id="storeNewBatch" value="new" checked>
+                                <label class="btn btn-outline-success" for="storeNewBatch">
+                                    <i class="fas fa-plus"></i> Buat Batch Baru
+                                </label>
+                                <input type="radio" class="btn-check" name="project_option" id="storeExistingBatch" value="existing">
+                                <label class="btn btn-outline-info" for="storeExistingBatch">
+                                    <i class="fas fa-layer-group"></i> Tambah ke Batch Ada
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- New Batch Fields -->
+                        <div id="storeNewBatchFields" style="display: none;">
+                            <div class="mb-3">
+                                <label for="storeProjectName" class="form-label">Nama Project:</label>
+                                <input type="text" class="form-control" id="storeProjectName" name="project_name" placeholder="Nama project untuk batch ini">
+                            </div>
+                            <div class="mb-3">
+                                <label for="storeProjectNotes" class="form-label">Catatan Project:</label>
+                                <textarea class="form-control" id="storeProjectNotes" name="project_notes" rows="2" placeholder="Deskripsi atau catatan tambahan..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Existing Batch Selection -->
+                        <div class="mb-3" id="storeExistingBatchField" style="display: none;">
+                            <label for="storeBatchId" class="form-label">Pilih Batch:</label>
+                            <select class="form-select" id="storeBatchId" name="batch_id">
+                                <option value="">Pilih batch yang ada</option>
+                            </select>
+                            <div class="form-text">Tambahkan ke batch project yang sudah ada</div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="storeLocationId" class="form-label">ID Lokasi:</label>
                             <select class="form-select" id="storeLocationId" name="location_id" required>
@@ -659,15 +711,176 @@
 </div>
 <script>
     function quickStore(category, typeId) {
+        const baseTypeId = typeId.replace('_PROJECT', '');
+
         document.getElementById('storeCategory').value = category;
-        document.getElementById('storeTypeId').value = typeId;
-        document.getElementById('storeItemInfo').textContent = category + ' - ' + typeId;
+        document.getElementById('storeTypeId').value = baseTypeId;
+        document.getElementById('storeItemInfo').textContent = category + ' - ' + baseTypeId;
+
+        // Reset form
+        document.getElementById('storeRegularBranch').checked = true;
+        document.getElementById('storeProjectBranch').checked = false;
+        document.getElementById('storeProjectOptions').style.display = 'none';
+        document.getElementById('storeNewBatchFields').style.display = 'none';
+        document.getElementById('storeExistingBatchField').style.display = 'none';
+        document.getElementById('storeNewBatch').checked = true;
+        document.getElementById('storeProjectName').value = '';
+        document.getElementById('storeProjectNotes').value = '';
+        document.getElementById('storeLocationId').value = '';
+        document.getElementById('storeQuantity').value = '';
+        document.getElementById('storeNote').value = '';
+        document.getElementById('storeBatchId').innerHTML = '<option value="">Pilih batch yang ada</option>';
+
+        // Store base type_id for later use
+        window.currentStoreBaseTypeId = baseTypeId;
 
         // Show type image
-        displayStoreTypeImage(category, typeId);
+        displayStoreTypeImage(category, baseTypeId);
+
+        // Setup event listeners for branch selection
+        setupStoreBranchListeners();
 
         var modal = new bootstrap.Modal(document.getElementById('quickStoreModal'));
         modal.show();
+    }
+
+    function setupStoreBranchListeners() {
+        const regularBranch = document.getElementById('storeRegularBranch');
+        const projectBranch = document.getElementById('storeProjectBranch');
+        const newBatch = document.getElementById('storeNewBatch');
+        const existingBatch = document.getElementById('storeExistingBatch');
+
+        // Remove old listeners
+        regularBranch.replaceWith(regularBranch.cloneNode(true));
+        projectBranch.replaceWith(projectBranch.cloneNode(true));
+
+        // Re-get elements after cloning
+        const regularBranchNew = document.getElementById('storeRegularBranch');
+        const projectBranchNew = document.getElementById('storeProjectBranch');
+        const newBatchNew = document.getElementById('storeNewBatch');
+        const existingBatchNew = document.getElementById('storeExistingBatch');
+
+        regularBranchNew.addEventListener('change', function() {
+            if (this.checked) {
+                const baseTypeId = window.currentStoreBaseTypeId || document.getElementById('storeTypeId').value;
+                document.getElementById('storeTypeId').value = baseTypeId;
+                document.getElementById('storeProjectOptions').style.display = 'none';
+                document.getElementById('storeNewBatchFields').style.display = 'none';
+                document.getElementById('storeExistingBatchField').style.display = 'none';
+
+                // Enable location selection for regular items
+                document.getElementById('storeLocationId').disabled = false;
+                const locationLabel = document.querySelector('label[for="storeLocationId"]');
+                if (locationLabel) {
+                    locationLabel.textContent = 'ID Lokasi:';
+                }
+            }
+        });
+
+        projectBranchNew.addEventListener('change', function() {
+            if (this.checked) {
+                const baseTypeId = window.currentStoreBaseTypeId || document.getElementById('storeTypeId').value;
+                document.getElementById('storeTypeId').value = baseTypeId + '_PROJECT';
+                document.getElementById('storeProjectOptions').style.display = 'block';
+
+                // Show appropriate fields based on project option
+                if (document.getElementById('storeNewBatch').checked) {
+                    document.getElementById('storeNewBatchFields').style.display = 'block';
+                    document.getElementById('storeExistingBatchField').style.display = 'none';
+                } else {
+                    document.getElementById('storeNewBatchFields').style.display = 'none';
+                    document.getElementById('storeExistingBatchField').style.display = 'block';
+                    loadExistingBatches();
+                }
+            }
+        });
+
+        newBatchNew.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('storeNewBatchFields').style.display = 'block';
+                document.getElementById('storeExistingBatchField').style.display = 'none';
+                // Enable location selection for new batch
+                document.getElementById('storeLocationId').disabled = false;
+                document.getElementById('storeLocationId').value = '';
+            }
+        });
+
+        existingBatchNew.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('storeNewBatchFields').style.display = 'none';
+                document.getElementById('storeExistingBatchField').style.display = 'block';
+                loadExistingBatches();
+            }
+        });
+
+        // Add batch selection listener
+        const batchSelectElement = document.getElementById('storeBatchId');
+        batchSelectElement.addEventListener('change', function() {
+            handleBatchSelection(this.value);
+        });
+    }
+
+    function loadExistingBatches() {
+        const category = document.getElementById('storeCategory').value;
+        const baseTypeId = window.currentStoreBaseTypeId || document.getElementById('storeTypeId').value.replace('_PROJECT', '');
+
+        fetch('<?= site_url('storage/get_batches'); ?>?category=' + category + '&type_id=' + baseTypeId + '_PROJECT')
+            .then(response => response.json())
+            .then(data => {
+                const batchSelect = document.getElementById('storeBatchId');
+                batchSelect.innerHTML = '<option value="">Pilih batch yang ada</option>';
+
+                // Store batch data for later use
+                window.batchDataMap = {};
+
+                if (data.success && data.batches && data.batches.length > 0) {
+                    data.batches.forEach(batch => {
+                        const option = document.createElement('option');
+                        option.value = batch.batch_id;
+                        option.textContent = batch.project_name + ' - ' + batch.location_id + ' (Qty: ' + batch.remaining_quantity + ')';
+                        batchSelect.appendChild(option);
+
+                        // Store batch data
+                        window.batchDataMap[batch.batch_id] = {
+                            location_id: batch.location_id,
+                            project_name: batch.project_name,
+                            remaining_quantity: batch.remaining_quantity
+                        };
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading batches:', error);
+            });
+    }
+
+    function handleBatchSelection(batchId) {
+        const locationSelect = document.getElementById('storeLocationId');
+
+        if (batchId && window.batchDataMap && window.batchDataMap[batchId]) {
+            const batchData = window.batchDataMap[batchId];
+
+            // Set location to the batch's location
+            locationSelect.value = batchData.location_id;
+
+            // Disable location selection - must use batch's location
+            locationSelect.disabled = true;
+
+            // Show info message
+            const locationLabel = document.querySelector('label[for="storeLocationId"]');
+            if (locationLabel) {
+                locationLabel.innerHTML = 'ID Lokasi: <small class="text-muted">(Lokasi batch yang dipilih)</small>';
+            }
+        } else {
+            // Enable location selection if no batch selected
+            locationSelect.disabled = false;
+            locationSelect.value = '';
+
+            const locationLabel = document.querySelector('label[for="storeLocationId"]');
+            if (locationLabel) {
+                locationLabel.textContent = 'ID Lokasi:';
+            }
+        }
     }
 
     function quickTake(category, typeId) {
@@ -763,8 +976,52 @@
     }
 
     function submitQuickStore() {
+        const isProject = document.getElementById('storeProjectBranch').checked;
+        const isNewBatch = document.getElementById('storeNewBatch').checked;
+        const locationSelect = document.getElementById('storeLocationId');
+        const locationId = locationSelect.value;
+        const projectName = document.getElementById('storeProjectName').value;
+        const quantity = document.getElementById('storeQuantity').value;
+
+        // Validation
+        if (!locationId) {
+            AirSystemUtils.showErrorMessage('Pilih lokasi terlebih dahulu');
+            return;
+        }
+
+        if (!quantity || quantity < 1) {
+            AirSystemUtils.showErrorMessage('Masukkan jumlah yang valid');
+            return;
+        }
+
+        // If project with new batch, validate project name
+        if (isProject && isNewBatch && !projectName.trim()) {
+            AirSystemUtils.showErrorMessage('Masukkan nama project untuk batch baru');
+            return;
+        }
+
+        // If project with existing batch, validate batch selection
+        if (isProject && !isNewBatch) {
+            const batchId = document.getElementById('storeBatchId').value;
+            if (!batchId) {
+                AirSystemUtils.showErrorMessage('Pilih batch yang ada atau buat batch baru');
+                return;
+            }
+        }
+
+        // Temporarily enable location field if disabled to include it in form data
+        const wasDisabled = locationSelect.disabled;
+        if (wasDisabled) {
+            locationSelect.disabled = false;
+        }
+
         const form = document.getElementById('quickStoreForm');
         const formData = new FormData(form);
+
+        // Re-disable if it was disabled
+        if (wasDisabled) {
+            locationSelect.disabled = true;
+        }
 
         fetch('<?= site_url('storage/quick_action'); ?>', {
                 method: 'POST',
@@ -777,6 +1034,10 @@
                 } else {
                     AirSystemUtils.showErrorMessage(data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                AirSystemUtils.showErrorMessage('Terjadi kesalahan saat menyimpan barang');
             });
     }
 

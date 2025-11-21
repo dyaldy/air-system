@@ -708,9 +708,50 @@ class Storage extends CI_Controller
         }
 
         if ($action === 'store') {
+            $is_project = strpos($type_id, '_PROJECT') !== false;
+            $project_option = $this->input->post('project_option'); // 'new' or 'existing'
+            $project_name = $this->input->post('project_name');
+            $project_notes = $this->input->post('project_notes');
+
+            // Store the items first
             $result = $this->Storage_model->store_items($location_id, $category, $type_id, $quantity, $editor_nik);
+
             if ($result) {
-                $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity);
+                // Handle project batch if it's a project item
+                if ($is_project) {
+                    $this->load->model('Project_batch_model');
+
+                    if ($project_option === 'new' && $project_name) {
+                        // Create new batch
+                        $new_batch_id = $this->Project_batch_model->create_batch(
+                            $location_id,
+                            $category,
+                            $type_id,
+                            $project_name,
+                            $project_notes,
+                            $quantity,
+                            $editor_nik
+                        );
+
+                        if ($new_batch_id) {
+                            $batch_id = $new_batch_id;
+                            log_message('debug', 'Created new batch: ' . $batch_id);
+                        } else {
+                            log_message('error', 'Failed to create batch');
+                        }
+                    } elseif ($project_option === 'existing' && $batch_id) {
+                        // Add to existing batch
+                        $batch_result = $this->Project_batch_model->add_back_to_batch($batch_id, $quantity);
+
+                        if (!$batch_result) {
+                            log_message('error', 'Failed to update batch: ' . $batch_id);
+                        }
+                    }
+                }
+
+                // Log transaction
+                $log_batch_id = ($is_project && isset($batch_id)) ? $batch_id : null;
+                $this->Report_model->log_store_transaction($location_id, $category, $type_id, $editor_nik, $note, $quantity, $is_project, $log_batch_id);
                 $this->session->set_flashdata('success', 'Barang berhasil disimpan!');
                 $response = array('success' => true, 'message' => 'Items stored successfully');
             } else {
@@ -1392,6 +1433,33 @@ class Storage extends CI_Controller
                 'success' => true,
                 'batches' => $batches,
                 'total_stock' => $total_stock
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    /**
+     * Get batches for dropdown selection
+     */
+    public function get_batches()
+    {
+        $category = $this->input->get('category');
+        $type_id = $this->input->get('type_id');
+
+        if (!$category || !$type_id) {
+            $response = array(
+                'success' => false,
+                'message' => 'Category and type_id are required'
+            );
+        } else {
+            // Get batches with remaining quantity > 0
+            $batches = $this->Project_batch_model->get_batches_by_item($category, $type_id);
+
+            $response = array(
+                'success' => true,
+                'batches' => $batches
             );
         }
 
