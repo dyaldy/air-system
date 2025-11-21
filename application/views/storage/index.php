@@ -1385,6 +1385,8 @@
                         imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + data.type_image;
                     } else if (category === 'fitting') {
                         imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + data.type_image;
+                    } else if (category === 'solenoid') {
+                        imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + data.type_image;
                     }
 
                     if (imageUrl) {
@@ -1423,6 +1425,8 @@
                         imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + data.type_image;
                     } else if (category === 'fitting') {
                         imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + data.type_image;
+                    } else if (category === 'solenoid') {
+                        imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + data.type_image;
                     }
 
                     if (imageUrl) {

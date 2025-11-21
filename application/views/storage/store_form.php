@@ -62,7 +62,7 @@
                         <option value="">Pilih Kategori</option>
                         <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
-                        <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid (under development)</option>
+                        <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid</option>
                         <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold (under development)</option>
                         <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
                     </select>
@@ -177,6 +177,8 @@
         const pneumaticItems = <?= json_encode($pneumatic_items ?? []); ?>;
         // Fitting items data from PHP
         const fittingItems = <?= json_encode($fitting_items ?? []); ?>;
+        // Solenoid items data from PHP
+        const solenoidItems = <?= json_encode($solenoid_items ?? []); ?>;
 
         function updateTypeOptions() {
             const category = document.getElementById('category').value;
@@ -226,7 +228,18 @@
                     }
                     typeSelect.appendChild(option);
                 });
-            } else if (category === 'solenoid' || category === 'manifold' || category === 'regulator') {
+            } else if (category === 'solenoid') {
+                // Populate with solenoid items
+                solenoidItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.solenoid_id;
+                    option.textContent = `${item.solenoid_id} (${item.type} - ${item.subtype})`;
+                    if (option.value === '<?= set_value('type_id'); ?>') {
+                        option.selected = true;
+                    }
+                    typeSelect.appendChild(option);
+                });
+            } else if (category === 'manifold' || category === 'regulator') {
                 // For categories under development, allow manual input
                 const option = document.createElement('option');
                 option.value = 'manual';
@@ -293,6 +306,12 @@
                     const item = fittingItems.find(f => f.fitting_id === typeId);
                     if (item && item.type_image) {
                         imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + item.type_image;
+                        typeName = item.type || typeId;
+                    }
+                } else if (category === 'solenoid') {
+                    const item = solenoidItems.find(s => s.solenoid_id === typeId);
+                    if (item && item.type_image) {
+                        imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + item.type_image;
                         typeName = item.type || typeId;
                     }
                 }

@@ -441,6 +441,15 @@ class Storage_model extends CI_Model
         $this->db->where('s.amount < f.min_stock');
         $fitting_low_stock = $this->db->get()->result_array();
 
-        return array_merge($pneumatic_low_stock, $fitting_low_stock);
+        // Get solenoid items below min stock
+        $this->db->select('s.location_id, s.category, s.type_id, s.amount, sol.min_stock, sol.type as solenoid_type, sol.subtype');
+        $this->db->from('as_storage s');
+        $this->db->join('as_solenoid sol', 's.type_id = sol.solenoid_id', 'inner');
+        $this->db->where('s.category', 'solenoid');
+        $this->db->where('sol.min_stock IS NOT NULL');
+        $this->db->where('s.amount < sol.min_stock');
+        $solenoid_low_stock = $this->db->get()->result_array();
+
+        return array_merge($pneumatic_low_stock, $fitting_low_stock, $solenoid_low_stock);
     }
 }

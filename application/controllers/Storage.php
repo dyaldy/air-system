@@ -24,6 +24,7 @@ require_once FCPATH . 'vendor/autoload.php';
  * @property Report_model $Report_model
  * @property Pneumatic_model $Pneumatic_model
  * @property Fitting_model $Fitting_model
+ * @property Solenoid_model $Solenoid_model
  * @property Project_batch_model $Project_batch_model
  */
 class Storage extends CI_Controller
@@ -65,6 +66,8 @@ class Storage extends CI_Controller
             'Pneumatic_type_model',
             'Fitting_model',
             'Fitting_type_model',
+            'Solenoid_model',
+            'Solenoid_type_model',
             'Project_batch_model'
         ]);
         $this->load->library(['form_validation', 'session', 'pagination']);
@@ -178,6 +181,18 @@ class Storage extends CI_Controller
                     $result = $query->row_array();
                     $type_image = $result['image'];
                 }
+            } elseif ($item['category'] === 'solenoid') {
+                // Get solenoid type image
+                $this->db->select('st.image');
+                $this->db->from('as_solenoid s');
+                $this->db->join('as_solenoid_types st', 's.type = st.type', 'left');
+                $this->db->where('s.solenoid_id', $base_type);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
             }
 
             $item['type_image'] = $type_image;
@@ -200,6 +215,7 @@ class Storage extends CI_Controller
         $data['title'] = 'Store Items';
         $data['pneumatic_items'] = $this->get_pneumatics_with_images();
         $data['fitting_items'] = $this->get_fittings_with_images();
+        $data['solenoid_items'] = $this->get_solenoids_with_images();
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -246,6 +262,16 @@ class Storage extends CI_Controller
             $fitting = $this->Fitting_model->getById($type_id);
             if (!$fitting) {
                 $this->session->set_flashdata('error', 'Fitting item not found!');
+                redirect('storage/store');
+                return;
+            }
+        }
+
+        // Validate if solenoid exists (for solenoid category)
+        if ($category === 'solenoid') {
+            $solenoid = $this->Solenoid_model->getById($type_id);
+            if (!$solenoid) {
+                $this->session->set_flashdata('error', 'Solenoid item not found!');
                 redirect('storage/store');
                 return;
             }
@@ -467,6 +493,17 @@ class Storage extends CI_Controller
                 $this->db->from('as_fitting f');
                 $this->db->join('as_fitting_types ft', 'f.type = ft.type', 'left');
                 $this->db->where('f.fitting_id', $base_type_id);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            } elseif ($category === 'solenoid') {
+                $this->db->select('st.image');
+                $this->db->from('as_solenoid s');
+                $this->db->join('as_solenoid_types st', 's.type = st.type', 'left');
+                $this->db->where('s.solenoid_id', $base_type_id);
                 $this->db->limit(1);
                 $query = $this->db->get();
                 if ($query->num_rows() > 0) {
@@ -1625,6 +1662,21 @@ class Storage extends CI_Controller
     }
 
     /**
+     * Get solenoids with type images
+     * 
+     * @return array Array of solenoid items with type images
+     */
+    private function get_solenoids_with_images(): array
+    {
+        $this->db->select('s.*, st.image as type_image');
+        $this->db->from('as_solenoid s');
+        $this->db->join('as_solenoid_types st', 's.type = st.type', 'left');
+        $this->db->order_by('s.updated_at', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
      * Get storage items with type images
      * 
      * @return array Array of storage items with type images
@@ -1656,6 +1708,18 @@ class Storage extends CI_Controller
                 $this->db->from('as_fitting f');
                 $this->db->join('as_fitting_types ft', 'f.type = ft.type', 'left');
                 $this->db->where('f.fitting_id', $base_type);
+                $this->db->limit(1);
+                $query = $this->db->get();
+                if ($query->num_rows() > 0) {
+                    $result = $query->row_array();
+                    $type_image = $result['image'];
+                }
+            } elseif ($item['category'] === 'solenoid') {
+                // Get solenoid type image
+                $this->db->select('st.image');
+                $this->db->from('as_solenoid s');
+                $this->db->join('as_solenoid_types st', 's.type = st.type', 'left');
+                $this->db->where('s.solenoid_id', $base_type);
                 $this->db->limit(1);
                 $query = $this->db->get();
                 if ($query->num_rows() > 0) {
