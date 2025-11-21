@@ -3,14 +3,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require 'vendor/autoload.php';
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use TCPDF;
 
 /**
  * Pneumatic controller for air-system.
  *
- * Manage pneumatics: listing, search/filter/sort, CRUD operations, and Excel import/export following ASRS conventions.
+ * Manage pneumatics: listing, search/filter/sort, CRUD operations, and CSV import/export with PDF download following ASRS conventions.
  *
  * @package AirSystem
  * @subpackage Controllers
@@ -113,7 +111,7 @@ class Pneumatic extends CI_Controller
      */
     public function index(): void
     {
-        // Handle Excel uploads using the ASRS-style helper
+        // Handle CSV uploads using the ASRS-style helper
         $this->handleFileUpload();
 
         // If a type is provided via GET (from the type selection page), set it as a session filter
@@ -314,7 +312,7 @@ class Pneumatic extends CI_Controller
     }
 
     /**
-     * Downloads pneumatic data as Excel file.
+     * Downloads pneumatic data as CSV file.
      *
      * @return void
      */
@@ -322,31 +320,54 @@ class Pneumatic extends CI_Controller
     {
         try {
             $pneumatics = $this->Pneumatic_model->getAllPneumatics();
-            $this->generateExcelFile($pneumatics);
+            $this->generateCSVFile($pneumatics);
         } catch (Exception $e) {
-            log_message('error', 'Excel download error: ' . $e->getMessage());
+            log_message('error', 'CSV download error: ' . $e->getMessage());
             set_message(['danger', 'Error downloading file: ' . $e->getMessage()]);
             redirect('pneumatic');
         }
     }
 
     /**
-     * Downloads Excel template for pneumatic upload.
+     * Downloads pneumatic data as PDF file.
+     *
+     * @return void
+     */
+    public function downloadPDF(): void
+    {
+        try {
+            $pneumatics = $this->Pneumatic_model->getAllPneumatics();
+            $this->generatePDFFile($pneumatics);
+        } catch (Exception $e) {
+            log_message('error', 'PDF download error: ' . $e->getMessage());
+            set_message(['danger', 'Error downloading file: ' . $e->getMessage()]);
+            redirect('pneumatic');
+        }
+    }
+
+    /**
+     * Downloads CSV template for pneumatic upload.
      *
      * @return void
      */
     public function template(): void
     {
         try {
-            $spreadsheet = new Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-            // Use letter-style headers like ASRS
-            $sheet->setCellValue('A1', 'Type');
-            $sheet->setCellValue('B1', 'Bore');
-            $sheet->setCellValue('C1', 'Stroke');
+            $filename = 'Template Data Pneumatic.csv';
 
-            $filename = 'Template Data Pneumatic.xlsx';
-            output_excel_file($spreadsheet, $filename);
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+            $output = fopen('php://output', 'w');
+
+            // Add BOM for UTF-8
+            fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Write header row
+            fputcsv($output, ['Type', 'Bore', 'Stroke']);
+
+            fclose($output);
+            exit;
         } catch (Exception $e) {
             log_message('error', 'Template download error: ' . $e->getMessage());
             show_error('Error generating template file: ' . $e->getMessage());
@@ -354,7 +375,7 @@ class Pneumatic extends CI_Controller
     }
 
     /**
-     * Handles Excel file upload and pneumatic import.
+     * Handles CSV file upload and pneumatic import.
      *
      * @return void
      */
@@ -373,48 +394,107 @@ class Pneumatic extends CI_Controller
     ## Private Helper Methods
 
     /**
-     * Generates Excel file for download.
+     * Generates CSV file for download.
      *
      * @param array $pneumatics Array of pneumatic data
      * @return void
      */
-    private function generateExcelFile(array $pneumatics): void
+    private function generateCSVFile(array $pneumatics): void
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $filename = 'Data Pneumatic ' . date('Y-m-d H-i-s') . '.csv';
 
-        // Set headers (letter style like ASRS)
-        $sheet->setCellValue('A1', 'Pneumatic ID');
-        $sheet->setCellValue('B1', 'Type');
-        $sheet->setCellValue('C1', 'Bore');
-        $sheet->setCellValue('D1', 'Stroke');
-        $sheet->setCellValue('E1', 'Created At');
-        $sheet->setCellValue('F1', 'Updated At');
-        $sheet->setCellValue('G1', 'Editor');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-        // Apply header styling using common helper
-        $highestColumn = $sheet->getHighestColumn();
-        apply_excel_header_style($sheet, "A1:{$highestColumn}1");
+        $output = fopen('php://output', 'w');
 
-        // Add data
-        $row = 2;
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Write header row
+        fputcsv($output, ['Pneumatic ID', 'Type', 'Bore', 'Stroke', 'Created At', 'Updated At', 'Editor']);
+
+        // Write data rows
         foreach ($pneumatics as $pneumatic) {
-            $sheet->setCellValue("A{$row}", $pneumatic['pneumatic_id']);
-            $sheet->setCellValue("B{$row}", $pneumatic['type']);
-            $sheet->setCellValue("C{$row}", $pneumatic['bore']);
-            $sheet->setCellValue("D{$row}", $pneumatic['stroke']);
-            $sheet->setCellValue("E{$row}", $pneumatic['created_at']);
-            $sheet->setCellValue("F{$row}", $pneumatic['updated_at']);
-            $sheet->setCellValue("G{$row}", $pneumatic['editor']);
-            $row++;
+            fputcsv($output, [
+                $pneumatic['pneumatic_id'],
+                $pneumatic['type'],
+                $pneumatic['bore'],
+                $pneumatic['stroke'],
+                $pneumatic['created_at'],
+                $pneumatic['updated_at'],
+                $pneumatic['editor']
+            ]);
         }
 
-        // Auto-filter and auto-size columns using common helper
-        $sheet->setAutoFilter('A1:G1');
-        auto_size_excel_columns($sheet, 'A', 'G');
+        fclose($output);
+        exit;
+    }
 
-        $filename = 'Data Pneumatic.xlsx';
-        output_excel_file($spreadsheet, $filename);
+    /**
+     * Generates PDF file for download.
+     *
+     * @param array $pneumatics Array of pneumatic data
+     * @return void
+     */
+    private function generatePDFFile(array $pneumatics): void
+    {
+        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Air System');
+        $pdf->SetAuthor('Air System');
+        $pdf->SetTitle('Data Pneumatic');
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins
+        $pdf->SetMargins(10, 10, 10);
+        $pdf->SetAutoPageBreak(true, 10);
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Set font
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Data Pneumatic', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Table header
+        $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetFillColor(66, 139, 202);
+        $pdf->SetTextColor(255, 255, 255);
+
+        $pdf->Cell(50, 7, 'Pneumatic ID', 1, 0, 'C', 1);
+        $pdf->Cell(30, 7, 'Type', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'Bore', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'Stroke', 1, 0, 'C', 1);
+        $pdf->Cell(40, 7, 'Created At', 1, 0, 'C', 1);
+        $pdf->Cell(40, 7, 'Updated At', 1, 0, 'C', 1);
+        $pdf->Cell(30, 7, 'Editor', 1, 1, 'C', 1);
+
+        // Table data
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(0, 0, 0);
+        $fill = false;
+
+        foreach ($pneumatics as $pneumatic) {
+            $pdf->SetFillColor(245, 245, 245);
+            $pdf->Cell(50, 6, $pneumatic['pneumatic_id'], 1, 0, 'L', $fill);
+            $pdf->Cell(30, 6, $pneumatic['type'], 1, 0, 'L', $fill);
+            $pdf->Cell(20, 6, $pneumatic['bore'], 1, 0, 'C', $fill);
+            $pdf->Cell(20, 6, $pneumatic['stroke'], 1, 0, 'C', $fill);
+            $pdf->Cell(40, 6, $pneumatic['created_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(40, 6, $pneumatic['updated_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(30, 6, $pneumatic['editor'], 1, 1, 'C', $fill);
+            $fill = !$fill;
+        }
+
+        $filename = 'Data Pneumatic ' . date('Y-m-d H-i-s') . '.pdf';
+        $pdf->Output($filename, 'D');
+        exit;
     }
 
 
@@ -445,9 +525,27 @@ class Pneumatic extends CI_Controller
         $file = $_FILES['file']['tmp_name'];
 
         try {
-            $spreadsheet = @IOFactory::load($file);
-            $sheet = $spreadsheet->getActiveSheet();
-            $data = $sheet->toArray(null, true, true, true);
+            // Read CSV file
+            $handle = fopen($file, 'r');
+            if ($handle === false) {
+                throw new Exception('Unable to open CSV file');
+            }
+
+            // Skip BOM if present
+            $bom = fread($handle, 3);
+            if ($bom !== chr(0xEF) . chr(0xBB) . chr(0xBF)) {
+                rewind($handle);
+            }
+
+            $data = [];
+            while (($row = fgetcsv($handle)) !== false) {
+                $data[] = $row;
+            }
+            fclose($handle);
+
+            if (empty($data)) {
+                throw new Exception('CSV file is empty');
+            }
             array_shift($data); // remove header row
 
             $skippedData = [];
@@ -455,28 +553,28 @@ class Pneumatic extends CI_Controller
 
             foreach ($data as $rowIndex => $row) {
                 // Validate required fields
-                if (!$row['A'] && !$row['B'] && !$row['C']) {
+                if (count($row) < 3 || (!$row[0] && !$row[1] && !$row[2])) {
                     continue; // skip empty row
                 }
 
-                if (!$row['A']) {
+                if (empty($row[0])) {
                     $skippedData[] = "Type tidak boleh kosong";
                     continue;
                 }
 
-                if (!$row['B']) {
+                if (empty($row[1])) {
                     $skippedData[] = "Bore tidak boleh kosong";
                     continue;
                 }
 
-                if (!$row['C']) {
+                if (empty($row[2])) {
                     $skippedData[] = "Stroke tidak boleh kosong";
                     continue;
                 }
 
-                $type = $row['A'] ?? '';
-                $bore = $row['B'] ?? '';
-                $stroke = $row['C'] ?? '';
+                $type = $row[0] ?? '';
+                $bore = $row[1] ?? '';
+                $stroke = $row[2] ?? '';
 
                 if (strlen($type) > 15) {
                     $skippedData[] = "Type maksimal 15 karakter: {$type}";
@@ -553,7 +651,7 @@ class Pneumatic extends CI_Controller
             redirect('pneumatic');
         } catch (Exception $e) {
             log_message('error', 'File upload error: ' . $e->getMessage());
-            set_message(['danger', 'Terjadi kesalahan dalam membaca file Excel.']);
+            set_message(['danger', 'Terjadi kesalahan dalam membaca file CSV.']);
         }
     }
 

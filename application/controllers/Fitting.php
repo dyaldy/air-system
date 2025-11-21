@@ -3,14 +3,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require 'vendor/autoload.php';
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use TCPDF;
 
 /**
  * Fitting controller for air-system.
  *
- * Manage fittings: listing, search/filter/sort, CRUD operations, and Excel import/export following pneumatic conventions.
+ * Manage fittings: listing, search/filter/sort, CRUD operations, and CSV import/export with PDF download following pneumatic conventions.
  *
  * @package AirSystem
  * @subpackage Controllers
@@ -37,7 +35,7 @@ class Fitting extends CI_Controller
         ],
         'upload' => [
             'max_size' => 2048, // KB
-            'allowed_types' => 'xlsx|xls'
+            'allowed_types' => 'csv'
         ],
         'validation_rules' => [
             'type' => [
@@ -139,7 +137,7 @@ class Fitting extends CI_Controller
      */
     public function index(): void
     {
-        // Handle Excel uploads
+        // Handle CSV uploads
         $this->handleFileUpload();
 
         // If a type is provided via GET (from the type selection page), set it as a session filter
@@ -352,7 +350,7 @@ class Fitting extends CI_Controller
     }
 
     /**
-     * Downloads fitting data as Excel file.
+     * Downloads fitting data as CSV file.
      *
      * @return void
      */
@@ -360,33 +358,54 @@ class Fitting extends CI_Controller
     {
         try {
             $fittings = $this->Fitting_model->getAllFittings();
-            $this->generateExcelFile($fittings);
+            $this->generateCSVFile($fittings);
         } catch (Exception $e) {
-            log_message('error', 'Excel download error: ' . $e->getMessage());
+            log_message('error', 'CSV download error: ' . $e->getMessage());
             set_message(['danger', 'Error downloading file: ' . $e->getMessage()]);
             redirect('fitting');
         }
     }
 
     /**
-     * Downloads Excel template for fitting upload.
+     * Downloads fitting data as PDF file.
+     *
+     * @return void
+     */
+    public function downloadPDF(): void
+    {
+        try {
+            $fittings = $this->Fitting_model->getAllFittings();
+            $this->generatePDFFile($fittings);
+        } catch (Exception $e) {
+            log_message('error', 'PDF download error: ' . $e->getMessage());
+            set_message(['danger', 'Error downloading file: ' . $e->getMessage()]);
+            redirect('fitting');
+        }
+    }
+
+    /**
+     * Downloads CSV template for fitting upload.
      *
      * @return void
      */
     public function template(): void
     {
         try {
-            $spreadsheet = new Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-            // Use letter-style headers
-            $sheet->setCellValue('A1', 'Type');
-            $sheet->setCellValue('B1', 'D1');
-            $sheet->setCellValue('C1', 'D2');
-            $sheet->setCellValue('D1', 'D3');
-            $sheet->setCellValue('E1', 'R(DRAT)');
+            $filename = 'Template Data Fitting.csv';
 
-            $filename = 'Template Data Fitting.xlsx';
-            output_excel_file($spreadsheet, $filename);
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+            $output = fopen('php://output', 'w');
+
+            // Add BOM for UTF-8
+            fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Write header row
+            fputcsv($output, ['Type', 'D1', 'D2', 'D3', 'R(DRAT)']);
+
+            fclose($output);
+            exit;
         } catch (Exception $e) {
             log_message('error', 'Template download error: ' . $e->getMessage());
             show_error('Error generating template file: ' . $e->getMessage());
@@ -418,51 +437,113 @@ class Fitting extends CI_Controller
     }
 
     /**
-     * Generates Excel file for download.
+     * Generates CSV file for download.
      *
      * @param array $fittings Array of fitting data
      * @return void
      */
-    private function generateExcelFile(array $fittings): void
+    private function generateCSVFile(array $fittings): void
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $filename = 'Data Fitting ' . date('Y-m-d H-i-s') . '.csv';
 
-        // Set headers
-        $sheet->setCellValue('A1', 'Fitting ID');
-        $sheet->setCellValue('B1', 'Type');
-        $sheet->setCellValue('C1', 'D1');
-        $sheet->setCellValue('D1', 'D2');
-        $sheet->setCellValue('E1', 'D3');
-        $sheet->setCellValue('F1', 'R(DRAT)');
-        $sheet->setCellValue('G1', 'Created At');
-        $sheet->setCellValue('H1', 'Updated At');
-        $sheet->setCellValue('I1', 'Editor');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-        // Style headers using common helper
-        apply_excel_header_style($sheet, 'A1:I1');
+        $output = fopen('php://output', 'w');
 
-        // Add data
-        $row = 2;
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Write header row
+        fputcsv($output, ['Fitting ID', 'Type', 'D1', 'D2', 'D3', 'R(DRAT)', 'Created At', 'Updated At', 'Editor']);
+
+        // Write data rows
         foreach ($fittings as $fitting) {
-            $sheet->setCellValue("A{$row}", $fitting['fitting_id']);
-            $sheet->setCellValue("B{$row}", $fitting['type']);
-            $sheet->setCellValue("C{$row}", !empty($fitting['D1']) ? $fitting['D1'] : '');
-            $sheet->setCellValue("D{$row}", !empty($fitting['D2']) ? $fitting['D2'] : '');
-            $sheet->setCellValue("E{$row}", !empty($fitting['D3']) ? $fitting['D3'] : '');
-            $sheet->setCellValue("F{$row}", !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '');
-            $sheet->setCellValue("G{$row}", $fitting['created_at']);
-            $sheet->setCellValue("H{$row}", $fitting['updated_at']);
-            $sheet->setCellValue("I{$row}", $fitting['editor']);
-            $row++;
+            fputcsv($output, [
+                $fitting['fitting_id'],
+                $fitting['type'],
+                !empty($fitting['D1']) ? $fitting['D1'] : '',
+                !empty($fitting['D2']) ? $fitting['D2'] : '',
+                !empty($fitting['D3']) ? $fitting['D3'] : '',
+                !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '',
+                $fitting['created_at'],
+                $fitting['updated_at'],
+                $fitting['editor']
+            ]);
         }
 
-        // Auto-filter and auto-size columns using common helper
-        $sheet->setAutoFilter('A1:I1');
-        auto_size_excel_columns($sheet, 'A', 'I');
+        fclose($output);
+        exit;
+    }
 
-        $filename = 'Data Fitting ' . date('Y-m-d H:i:s') . '.xlsx';
-        output_excel_file($spreadsheet, $filename);
+    /**
+     * Generates PDF file for download.
+     *
+     * @param array $fittings Array of fitting data
+     * @return void
+     */
+    private function generatePDFFile(array $fittings): void
+    {
+        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Air System');
+        $pdf->SetAuthor('Air System');
+        $pdf->SetTitle('Data Fitting');
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins
+        $pdf->SetMargins(10, 10, 10);
+        $pdf->SetAutoPageBreak(true, 10);
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Set font
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Data Fitting', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Table header
+        $pdf->SetFont('helvetica', 'B', 8);
+        $pdf->SetFillColor(66, 139, 202);
+        $pdf->SetTextColor(255, 255, 255);
+
+        $pdf->Cell(50, 7, 'Fitting ID', 1, 0, 'C', 1);
+        $pdf->Cell(30, 7, 'Type', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'D1', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'D2', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'D3', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'R(DRAT)', 1, 0, 'C', 1);
+        $pdf->Cell(35, 7, 'Created At', 1, 0, 'C', 1);
+        $pdf->Cell(35, 7, 'Updated At', 1, 0, 'C', 1);
+        $pdf->Cell(20, 7, 'Editor', 1, 1, 'C', 1);
+
+        // Table data
+        $pdf->SetFont('helvetica', '', 7);
+        $pdf->SetTextColor(0, 0, 0);
+        $fill = false;
+
+        foreach ($fittings as $fitting) {
+            $pdf->SetFillColor(245, 245, 245);
+            $pdf->Cell(50, 6, $fitting['fitting_id'], 1, 0, 'L', $fill);
+            $pdf->Cell(30, 6, $fitting['type'], 1, 0, 'L', $fill);
+            $pdf->Cell(20, 6, !empty($fitting['D1']) ? $fitting['D1'] : '', 1, 0, 'C', $fill);
+            $pdf->Cell(20, 6, !empty($fitting['D2']) ? $fitting['D2'] : '', 1, 0, 'C', $fill);
+            $pdf->Cell(20, 6, !empty($fitting['D3']) ? $fitting['D3'] : '', 1, 0, 'C', $fill);
+            $pdf->Cell(20, 6, !empty($fitting['R_DRAT']) ? $fitting['R_DRAT'] : '', 1, 0, 'C', $fill);
+            $pdf->Cell(35, 6, $fitting['created_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(35, 6, $fitting['updated_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(20, 6, $fitting['editor'], 1, 1, 'C', $fill);
+            $fill = !$fill;
+        }
+
+        $filename = 'Data Fitting ' . date('Y-m-d H-i-s') . '.pdf';
+        $pdf->Output($filename, 'D');
+        exit;
     }
 
     /**
@@ -570,7 +651,7 @@ class Fitting extends CI_Controller
     }
 
     /**
-     * Process Excel file upload and import data.
+     * Process CSV file upload and import data.
      *
      * @return void
      * @throws Exception
@@ -582,35 +663,56 @@ class Fitting extends CI_Controller
         }
 
         $inputFileName = $_FILES['file']['tmp_name'];
-        $spreadsheet = IOFactory::load($inputFileName);
-        $worksheet = $spreadsheet->getActiveSheet();
-        $highestRow = $worksheet->getHighestRow();
+
+        // Read CSV file
+        $handle = fopen($inputFileName, 'r');
+        if ($handle === false) {
+            throw new Exception('Unable to open CSV file');
+        }
+
+        // Skip BOM if present
+        $bom = fread($handle, 3);
+        if ($bom !== chr(0xEF) . chr(0xBB) . chr(0xBF)) {
+            rewind($handle);
+        }
+
+        // Skip header row
+        fgetcsv($handle);
 
         $batchData = [];
         $errors = [];
         $processedCount = 0;
+        $rowNum = 2; // Start from 2 (after header)
 
-        for ($row = 2; $row <= $highestRow; $row++) {
-            $type = trim($worksheet->getCell('A' . $row)->getValue());
-            $D1 = $worksheet->getCell('B' . $row)->getValue();
-            $D2 = $worksheet->getCell('C' . $row)->getValue();
-            $D3 = $worksheet->getCell('D' . $row)->getValue();
-            $R_DRAT = trim($worksheet->getCell('E' . $row)->getValue());
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) < 5) {
+                $rowNum++;
+                continue; // Skip incomplete rows
+            }
+
+            $type = trim($row[0]);
+            $D1 = $row[1];
+            $D2 = $row[2];
+            $D3 = $row[3];
+            $R_DRAT = trim($row[4]);
 
             // Skip empty rows
             if (empty($type) && empty($D1) && empty($D2) && empty($D3) && empty($R_DRAT)) {
+                $rowNum++;
                 continue;
             }
 
             // Validate required type field
             if (empty($type)) {
-                $errors[] = "Baris {$row}: Type harus diisi";
+                $errors[] = "Baris {$rowNum}: Type harus diisi";
+                $rowNum++;
                 continue;
             }
 
             // Check if at least one dimension field is provided
             if (empty($D1) && empty($D2) && empty($D3) && empty($R_DRAT)) {
-                $errors[] = "Baris {$row}: Minimal satu field dimensi (D1, D2, D3, atau R_DRAT) harus diisi";
+                $errors[] = "Baris {$rowNum}: Minimal satu field dimensi (D1, D2, D3, atau R_DRAT) harus diisi";
+                $rowNum++;
                 continue;
             }
 
@@ -621,7 +723,8 @@ class Fitting extends CI_Controller
 
             if (!empty($D1)) {
                 if (!is_numeric($D1) || (float)$D1 <= 0) {
-                    $errors[] = "Baris {$row}: D1 harus berupa angka positif";
+                    $errors[] = "Baris {$rowNum}: D1 harus berupa angka positif";
+                    $rowNum++;
                     continue;
                 }
                 $validatedD1 = (float)$D1;
@@ -629,7 +732,8 @@ class Fitting extends CI_Controller
 
             if (!empty($D2)) {
                 if (!is_numeric($D2) || (float)$D2 <= 0) {
-                    $errors[] = "Baris {$row}: D2 harus berupa angka positif";
+                    $errors[] = "Baris {$rowNum}: D2 harus berupa angka positif";
+                    $rowNum++;
                     continue;
                 }
                 $validatedD2 = (float)$D2;
@@ -637,7 +741,8 @@ class Fitting extends CI_Controller
 
             if (!empty($D3)) {
                 if (!is_numeric($D3) || (float)$D3 <= 0) {
-                    $errors[] = "Baris {$row}: D3 harus berupa angka positif";
+                    $errors[] = "Baris {$rowNum}: D3 harus berupa angka positif";
+                    $rowNum++;
                     continue;
                 }
                 $validatedD3 = (float)$D3;
@@ -657,7 +762,8 @@ class Fitting extends CI_Controller
 
             // Check for duplicate ID
             if ($this->Fitting_model->isFittingIdExists($fittingId)) {
-                $errors[] = "Baris {$row}: Fitting dengan ID '{$fittingId}' sudah ada";
+                $errors[] = "Baris {$rowNum}: Fitting dengan ID '{$fittingId}' sudah ada";
+                $rowNum++;
                 continue;
             }
 
@@ -673,7 +779,10 @@ class Fitting extends CI_Controller
                 'editor' => $this->session->userdata('user_data')['nik'],
             ];
             $processedCount++;
+            $rowNum++;
         }
+
+        fclose($handle);
 
         if (!empty($batchData)) {
             $this->Fitting_model->insertBatch($batchData);

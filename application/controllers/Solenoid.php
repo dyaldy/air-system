@@ -3,14 +3,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require 'vendor/autoload.php';
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use TCPDF;
 
 /**
  * Solenoid controller for air-system.
  *
- * Manage solenoids: listing, search/filter/sort, CRUD operations, and Excel import/export following ASRS conventions.
+ * Manage solenoids: listing, search/filter/sort, CRUD operations, and CSV import/export with PDF download following ASRS conventions.
  *
  * @package AirSystem
  * @subpackage Controllers
@@ -102,7 +100,7 @@ class Solenoid extends CI_Controller
      */
     public function index(): void
     {
-        // Handle Excel uploads using the ASRS-style helper
+        // Handle CSV uploads using the ASRS-style helper
         $this->handleFileUpload();
 
         // If a type is provided via GET (from the type selection page), set it as a session filter
@@ -303,7 +301,7 @@ class Solenoid extends CI_Controller
     }
 
     /**
-     * Downloads solenoid data as Excel file.
+     * Downloads solenoid data as CSV file.
      *
      * @return void
      */
@@ -311,30 +309,54 @@ class Solenoid extends CI_Controller
     {
         try {
             $solenoids = $this->Solenoid_model->getAllSolenoids();
-            $this->generateExcelFile($solenoids);
+            $this->generateCSVFile($solenoids);
         } catch (Exception $e) {
-            log_message('error', 'Excel download error: ' . $e->getMessage());
+            log_message('error', 'CSV download error: ' . $e->getMessage());
             set_message(['danger', 'Error downloading file: ' . $e->getMessage()]);
             redirect('solenoid');
         }
     }
 
     /**
-     * Downloads Excel template for solenoid upload.
+     * Downloads solenoid data as PDF file.
+     *
+     * @return void
+     */
+    public function downloadPDF(): void
+    {
+        try {
+            $solenoids = $this->Solenoid_model->getAllSolenoids();
+            $this->generatePDFFile($solenoids);
+        } catch (Exception $e) {
+            log_message('error', 'PDF download error: ' . $e->getMessage());
+            set_message(['danger', 'Error downloading file: ' . $e->getMessage()]);
+            redirect('solenoid');
+        }
+    }
+
+    /**
+     * Downloads CSV template for solenoid upload.
      *
      * @return void
      */
     public function template(): void
     {
         try {
-            $spreadsheet = new Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-            // Use letter-style headers like ASRS
-            $sheet->setCellValue('A1', 'Type');
-            $sheet->setCellValue('B1', 'Subtype');
+            $filename = 'Template Data Solenoid.csv';
 
-            $filename = 'Template Data Solenoid.xlsx';
-            output_excel_file($spreadsheet, $filename);
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+            $output = fopen('php://output', 'w');
+
+            // Add BOM for UTF-8
+            fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Write header row
+            fputcsv($output, ['Type', 'Subtype']);
+
+            fclose($output);
+            exit;
         } catch (Exception $e) {
             log_message('error', 'Template download error: ' . $e->getMessage());
             show_error('Error generating template file: ' . $e->getMessage());
@@ -342,7 +364,7 @@ class Solenoid extends CI_Controller
     }
 
     /**
-     * Handles Excel file upload and solenoid import.
+     * Handles CSV file upload and solenoid import.
      *
      * @return void
      */
@@ -361,48 +383,107 @@ class Solenoid extends CI_Controller
     ## Private Helper Methods
 
     /**
-     * Generates Excel file for download.
+     * Generates CSV file for download.
      *
      * @param array $solenoids Array of solenoid data
      * @return void
      */
-    private function generateExcelFile(array $solenoids): void
+    private function generateCSVFile(array $solenoids): void
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $filename = 'Data Solenoid ' . date('Y-m-d H-i-s') . '.csv';
 
-        // Set headers (letter style like ASRS)
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Type');
-        $sheet->setCellValue('C1', 'Subtype');
-        $sheet->setCellValue('D1', 'Min Stock');
-        $sheet->setCellValue('E1', 'Created At');
-        $sheet->setCellValue('F1', 'Updated At');
-        $sheet->setCellValue('G1', 'Editor');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-        // Apply header styling using common helper
-        $highestColumn = $sheet->getHighestColumn();
-        apply_excel_header_style($sheet, "A1:{$highestColumn}1");
+        $output = fopen('php://output', 'w');
 
-        // Add data
-        $row = 2;
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Write header row
+        fputcsv($output, ['Solenoid ID', 'Type', 'Subtype', 'Min Stock', 'Created At', 'Updated At', 'Editor']);
+
+        // Write data rows
         foreach ($solenoids as $solenoid) {
-            $sheet->setCellValue("A{$row}", $solenoid['id']);
-            $sheet->setCellValue("B{$row}", $solenoid['type']);
-            $sheet->setCellValue("C{$row}", $solenoid['subtype']);
-            $sheet->setCellValue("D{$row}", $solenoid['min_stock'] ?? '');
-            $sheet->setCellValue("E{$row}", $solenoid['created_at']);
-            $sheet->setCellValue("F{$row}", $solenoid['updated_at']);
-            $sheet->setCellValue("G{$row}", $solenoid['editor']);
-            $row++;
+            fputcsv($output, [
+                $solenoid['solenoid_id'],
+                $solenoid['type'],
+                $solenoid['subtype'],
+                $solenoid['min_stock'] ?? '',
+                $solenoid['created_at'],
+                $solenoid['updated_at'],
+                $solenoid['editor']
+            ]);
         }
 
-        // Auto-filter and auto-size columns using common helper
-        $sheet->setAutoFilter('A1:G1');
-        auto_size_excel_columns($sheet, 'A', 'G');
+        fclose($output);
+        exit;
+    }
 
-        $filename = 'Data Solenoid.xlsx';
-        output_excel_file($spreadsheet, $filename);
+    /**
+     * Generates PDF file for download.
+     *
+     * @param array $solenoids Array of solenoid data
+     * @return void
+     */
+    private function generatePDFFile(array $solenoids): void
+    {
+        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Air System');
+        $pdf->SetAuthor('Air System');
+        $pdf->SetTitle('Data Solenoid');
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins
+        $pdf->SetMargins(10, 10, 10);
+        $pdf->SetAutoPageBreak(true, 10);
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Set font
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Data Solenoid', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Table header
+        $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetFillColor(66, 139, 202);
+        $pdf->SetTextColor(255, 255, 255);
+
+        $pdf->Cell(50, 7, 'Solenoid ID', 1, 0, 'C', 1);
+        $pdf->Cell(40, 7, 'Type', 1, 0, 'C', 1);
+        $pdf->Cell(50, 7, 'Subtype', 1, 0, 'C', 1);
+        $pdf->Cell(25, 7, 'Min Stock', 1, 0, 'C', 1);
+        $pdf->Cell(35, 7, 'Created At', 1, 0, 'C', 1);
+        $pdf->Cell(35, 7, 'Updated At', 1, 0, 'C', 1);
+        $pdf->Cell(25, 7, 'Editor', 1, 1, 'C', 1);
+
+        // Table data
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(0, 0, 0);
+        $fill = false;
+
+        foreach ($solenoids as $solenoid) {
+            $pdf->SetFillColor(245, 245, 245);
+            $pdf->Cell(50, 6, $solenoid['solenoid_id'], 1, 0, 'L', $fill);
+            $pdf->Cell(40, 6, $solenoid['type'], 1, 0, 'L', $fill);
+            $pdf->Cell(50, 6, $solenoid['subtype'], 1, 0, 'L', $fill);
+            $pdf->Cell(25, 6, $solenoid['min_stock'] ?? '', 1, 0, 'C', $fill);
+            $pdf->Cell(35, 6, $solenoid['created_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(35, 6, $solenoid['updated_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(25, 6, $solenoid['editor'], 1, 1, 'C', $fill);
+            $fill = !$fill;
+        }
+
+        $filename = 'Data Solenoid ' . date('Y-m-d H-i-s') . '.pdf';
+        $pdf->Output($filename, 'D');
+        exit;
     }
 
     /**
@@ -429,9 +510,27 @@ class Solenoid extends CI_Controller
         $file = $_FILES['file']['tmp_name'];
 
         try {
-            $spreadsheet = @IOFactory::load($file);
-            $sheet = $spreadsheet->getActiveSheet();
-            $data = $sheet->toArray(null, true, true, true);
+            // Read CSV file
+            $handle = fopen($file, 'r');
+            if ($handle === false) {
+                throw new Exception('Unable to open CSV file');
+            }
+
+            // Skip BOM if present
+            $bom = fread($handle, 3);
+            if ($bom !== chr(0xEF) . chr(0xBB) . chr(0xBF)) {
+                rewind($handle);
+            }
+
+            $data = [];
+            while (($row = fgetcsv($handle)) !== false) {
+                $data[] = $row;
+            }
+            fclose($handle);
+
+            if (empty($data)) {
+                throw new Exception('CSV file is empty');
+            }
             array_shift($data); // remove header row
 
             $skippedData = [];
@@ -439,22 +538,22 @@ class Solenoid extends CI_Controller
 
             foreach ($data as $rowIndex => $row) {
                 // Validate required fields
-                if (!$row['A'] && !$row['B'] && !$row['C']) {
+                if (count($row) < 2 || (empty($row[0]) && empty($row[1]))) {
                     continue; // skip empty row
                 }
 
-                if (!$row['A']) {
+                if (empty($row[0])) {
                     $skippedData[] = "Type tidak boleh kosong";
                     continue;
                 }
 
-                if (!$row['B']) {
+                if (empty($row[1])) {
                     $skippedData[] = "Subtype tidak boleh kosong";
                     continue;
                 }
 
-                $type = $row['A'] ?? '';
-                $subtype = $row['B'] ?? '';
+                $type = $row[0] ?? '';
+                $subtype = $row[1] ?? '';
 
                 if (strlen($type) > 15) {
                     $skippedData[] = "Type maksimal 15 karakter: {$type}";
@@ -523,7 +622,7 @@ class Solenoid extends CI_Controller
             redirect('solenoid');
         } catch (Exception $e) {
             log_message('error', 'File upload error: ' . $e->getMessage());
-            set_message(['danger', 'Terjadi kesalahan dalam membaca file Excel.']);
+            set_message(['danger', 'Terjadi kesalahan dalam membaca file CSV.']);
         }
     }
 

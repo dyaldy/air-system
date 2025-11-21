@@ -72,12 +72,12 @@ window.AirSystemUtils = (function() {
     }
 
     /**
-     * Validate file input for Excel files
+     * Validate file input for CSV files
      * @param {HTMLInputElement} fileInput - The file input element
      * @param {number} maxSizeKB - Maximum file size in KB (default: 2048)
      * @returns {Object} Validation result with isValid boolean and message string
      */
-    function validateExcelFile(fileInput, maxSizeKB = 2048) {
+    function validateCSVFile(fileInput, maxSizeKB = 2048) {
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
             return { isValid: false, message: 'Harap pilih file sebelum mengupload!' };
         }
@@ -95,14 +95,16 @@ window.AirSystemUtils = (function() {
 
         // Check file type
         const allowedTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-            'application/vnd.ms-excel' // .xls
+            'text/csv', // .csv
+            'application/csv',
+            'text/comma-separated-values',
+            'application/vnd.ms-excel' // Some systems use this for CSV
         ];
 
-        if (!allowedTypes.includes(file.type)) {
+        if (!allowedTypes.includes(file.type) && !file.name.endsWith('.csv')) {
             return { 
                 isValid: false, 
-                message: 'Format file tidak valid! Hanya file .xlsx dan .xls yang diperbolehkan.' 
+                message: 'Format file tidak valid! Hanya file .csv yang diperbolehkan.' 
             };
         }
 
@@ -110,13 +112,59 @@ window.AirSystemUtils = (function() {
     }
 
     /**
-     * Handle Excel file upload with validation
+     * Validate file input for Excel files (kept for backward compatibility)
+     * @param {HTMLInputElement} fileInput - The file input element
+     * @param {number} maxSizeKB - Maximum file size in KB (default: 2048)
+     * @returns {Object} Validation result with isValid boolean and message string
+     * @deprecated Use validateCSVFile instead
+     */
+    function validateExcelFile(fileInput, maxSizeKB = 2048) {
+        return validateCSVFile(fileInput, maxSizeKB);
+    }
+
+    /**
+     * Handle CSV file upload with validation
      * @param {string} formId - ID of the upload form
      * @param {string} fileInputId - ID of the file input element
      * @param {Function} onSuccess - Callback function on successful validation
      * @param {Function} onError - Callback function on validation error
      */
+    function handleCSVUpload(formId, fileInputId, onSuccess, onError) {
+        const form = document.getElementById(formId);
+        const fileInput = document.getElementById(fileInputId);
+        
+        if (!form || !fileInput) {
+            console.error('Form or file input not found');
+            return;
+        }
+        
+        const validation = validateCSVFile(fileInput);
+        
+        if (validation.isValid) {
+            if (typeof onSuccess === 'function') {
+                onSuccess(form, fileInput);
+            } else {
+                form.submit();
+            }
+        } else {
+            if (typeof onError === 'function') {
+                onError(validation.message);
+            } else {
+                alert(validation.message);
+            }
+        }
+    }
+
+    /**
+     * Handle Excel file upload with validation (kept for backward compatibility)
+     * @deprecated Use handleCSVUpload instead
+     */
     function handleExcelUpload(formId, fileInputId, onSuccess, onError) {
+        return handleCSVUpload(formId, fileInputId, onSuccess, onError);
+    }
+
+    // Legacy function handler - keeping for old code
+    const _legacyHandleExcelUpload = function(formId, fileInputId, onSuccess, onError) {
         const form = document.getElementById(formId);
         const fileInput = document.getElementById(fileInputId);
 

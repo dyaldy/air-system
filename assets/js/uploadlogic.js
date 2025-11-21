@@ -22,12 +22,12 @@ if (uploadBtn) {
             return;
         }
 
-        // Validate file type (Only allow .xlsx)
+        // Validate file type (Only allow .csv)
         if (
-            file.type !==
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            file.type !== "text/csv" &&
+            !file.name.endsWith(".csv")
         ) {
-            alert("Format file tidak valid! Hanya file .xlsx yang diperbolehkan.");
+            alert("Format file tidak valid! Hanya file .csv yang diperbolehkan.");
             return;
         }
 
