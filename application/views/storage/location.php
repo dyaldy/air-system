@@ -920,6 +920,8 @@
                 imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + item.type_image;
             } else if (category === 'fitting') {
                 imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + item.type_image;
+            } else if (category === 'solenoid') {
+                imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + item.type_image;
             }
 
             if (imageUrl) {
