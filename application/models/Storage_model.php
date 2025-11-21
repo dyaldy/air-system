@@ -301,8 +301,9 @@ class Storage_model extends CI_Model
      */
     public function get_storage_overview($search_term = null)
     {
-        $this->db->select('category, type_id, SUM(amount) as total_amount, COUNT(location_id) as location_count');
-        $this->db->group_by(array('category', 'type_id'));
+        // Use REPLACE to group regular and project items together by removing _PROJECT suffix
+        $this->db->select("category, REPLACE(type_id, '_PROJECT', '') as type_id, SUM(amount) as total_amount, COUNT(DISTINCT location_id) as location_count");
+        $this->db->group_by(array('category', "REPLACE(type_id, '_PROJECT', '')"));
         $this->db->having('SUM(amount) >', 0);
 
         if ($search_term) {
