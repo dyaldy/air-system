@@ -75,9 +75,9 @@
                             <a class="nav-link" href="<?= site_url('fitting/type'); ?>">Fitting</a>
                         </li>
 
-                        <!-- Link to Solenoid Controller (under development) -->
+                        <!-- Link to Solenoid Controller (goes to type selection) -->
                         <li class="nav-item">
-                            <a class="nav-link disabled" href="#" style="opacity: 0.6;">Solenoid (under development)</a>
+                            <a class="nav-link" href="<?= site_url('solenoid/type'); ?>">Solenoid</a>
                         </li>
 
                         <!-- Link to Manifold Controller (under development) -->
