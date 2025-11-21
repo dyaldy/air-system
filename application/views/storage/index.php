@@ -1375,6 +1375,12 @@
         const typeImage = document.getElementById('storeTypeImage');
         const typeImageLabel = document.getElementById('storeTypeImageLabel');
 
+        // Don't show image container for manifold
+        if (category === 'manifold') {
+            typeImageContainer.style.display = 'none';
+            return;
+        }
+
         // Fetch type image from server
         fetch(`<?= site_url('storage/get_type_image'); ?>?category=${category}&type_id=${typeId}`)
             .then(response => response.json())
@@ -1414,6 +1420,12 @@
         const typeImageContainer = document.getElementById('takeTypeImageContainer');
         const typeImage = document.getElementById('takeTypeImage');
         const typeImageLabel = document.getElementById('takeTypeImageLabel');
+
+        // Don't show image container for manifold
+        if (category === 'manifold') {
+            typeImageContainer.style.display = 'none';
+            return;
+        }
 
         // Fetch type image from server
         fetch(`<?= site_url('storage/get_type_image'); ?>?category=${category}&type_id=${typeId}`)

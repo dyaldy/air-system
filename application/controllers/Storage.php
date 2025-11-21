@@ -25,6 +25,7 @@ require_once FCPATH . 'vendor/autoload.php';
  * @property Pneumatic_model $Pneumatic_model
  * @property Fitting_model $Fitting_model
  * @property Solenoid_model $Solenoid_model
+ * @property Manifold_model $Manifold_model
  * @property Project_batch_model $Project_batch_model
  */
 class Storage extends CI_Controller
@@ -68,6 +69,7 @@ class Storage extends CI_Controller
             'Fitting_type_model',
             'Solenoid_model',
             'Solenoid_type_model',
+            'Manifold_model',
             'Project_batch_model'
         ]);
         $this->load->library(['form_validation', 'session', 'pagination']);
@@ -193,6 +195,9 @@ class Storage extends CI_Controller
                     $result = $query->row_array();
                     $type_image = $result['image'];
                 }
+            } elseif ($item['category'] === 'manifold') {
+                // Manifold doesn't have type images, use default
+                $type_image = null;
             }
 
             $item['type_image'] = $type_image;
@@ -216,6 +221,7 @@ class Storage extends CI_Controller
         $data['pneumatic_items'] = $this->get_pneumatics_with_images();
         $data['fitting_items'] = $this->get_fittings_with_images();
         $data['solenoid_items'] = $this->get_solenoids_with_images();
+        $data['manifold_items'] = $this->get_manifolds_with_images();
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -272,6 +278,16 @@ class Storage extends CI_Controller
             $solenoid = $this->Solenoid_model->getById($type_id);
             if (!$solenoid) {
                 $this->session->set_flashdata('error', 'Solenoid item not found!');
+                redirect('storage/store');
+                return;
+            }
+        }
+
+        // Validate if manifold exists (for manifold category)
+        if ($category === 'manifold') {
+            $manifold = $this->Manifold_model->getById($type_id);
+            if (!$manifold) {
+                $this->session->set_flashdata('error', 'Manifold item not found!');
                 redirect('storage/store');
                 return;
             }
@@ -1677,6 +1693,20 @@ class Storage extends CI_Controller
     }
 
     /**
+     * Get manifolds (no type images for manifolds)
+     * 
+     * @return array Array of manifold items
+     */
+    private function get_manifolds_with_images(): array
+    {
+        $this->db->select("m.*, '' as type_image");
+        $this->db->from('as_manifold m');
+        $this->db->order_by('m.updated_at', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
      * Get storage items with type images
      * 
      * @return array Array of storage items with type images
@@ -1726,6 +1756,9 @@ class Storage extends CI_Controller
                     $result = $query->row_array();
                     $type_image = $result['image'];
                 }
+            } elseif ($item['category'] === 'manifold') {
+                // Manifold doesn't have type images, use default
+                $type_image = null;
             }
 
             $item['type_image'] = $type_image;

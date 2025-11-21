@@ -905,6 +905,12 @@
         const typeImage = document.getElementById('quickActionTypeImage');
         const typeImageLabel = document.getElementById('quickActionTypeImageLabel');
 
+        // Don't show image container for manifold
+        if (category === 'manifold') {
+            typeImageContainer.style.display = 'none';
+            return;
+        }
+
         // Find the storage item to get type image
         const storageData = <?= json_encode($storage_items ?? []); ?>;
         const baseTypeId = typeId.replace('_PROJECT', '');

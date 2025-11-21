@@ -80,9 +80,9 @@
                             <a class="nav-link" href="<?= site_url('solenoid/type'); ?>">Solenoid</a>
                         </li>
 
-                        <!-- Link to Manifold Controller (under development) -->
+                        <!-- Link to Manifold Controller -->
                         <li class="nav-item">
-                            <a class="nav-link disabled" href="#" style="opacity: 0.6;">Manifold (under development)</a>
+                            <a class="nav-link" href="<?= site_url('manifold'); ?>">Manifold</a>
                         </li>
 
                         <!-- Link to Regulator Controller (under development) -->

@@ -51,7 +51,7 @@
                         <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
                         <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid (under development)</option>
-                        <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold (under development)</option>
+                        <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold</option>
                         <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
                     </select>
                     <?php if (form_error('category')): ?>
@@ -570,12 +570,20 @@
                 (item.type_id === typeId || item.type_id === typeId + '_PROJECT')
             );
 
+            // Don't show image container for manifold
+            if (category === 'manifold') {
+                typeImageContainer.style.display = 'none';
+                return;
+            }
+
             if (item && item.type_image) {
                 let imageUrl = null;
                 if (category === 'pneumatic') {
                     imageUrl = '<?= base_url('assets/img/pneumatic_types/'); ?>' + item.type_image;
                 } else if (category === 'fitting') {
                     imageUrl = '<?= base_url('assets/img/fitting_types/'); ?>' + item.type_image;
+                } else if (category === 'solenoid') {
+                    imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + item.type_image;
                 }
 
                 if (imageUrl) {

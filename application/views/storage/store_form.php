@@ -63,7 +63,7 @@
                         <option value="pneumatic" <?= set_select('category', 'pneumatic'); ?>>Pneumatic</option>
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
                         <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid</option>
-                        <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold (under development)</option>
+                        <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold</option>
                         <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
                     </select>
                     <?php if (form_error('category')): ?>
@@ -179,6 +179,8 @@
         const fittingItems = <?= json_encode($fitting_items ?? []); ?>;
         // Solenoid items data from PHP
         const solenoidItems = <?= json_encode($solenoid_items ?? []); ?>;
+        // Manifold items data from PHP
+        const manifoldItems = <?= json_encode($manifold_items ?? []); ?>;
 
         function updateTypeOptions() {
             const category = document.getElementById('category').value;
@@ -239,7 +241,18 @@
                     }
                     typeSelect.appendChild(option);
                 });
-            } else if (category === 'manifold' || category === 'regulator') {
+            } else if (category === 'manifold') {
+                // Populate with manifold items
+                manifoldItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.manifold_id;
+                    option.textContent = `${item.manifold_id} (Block: ${item.block})`;
+                    if (option.value === '<?= set_value('type_id'); ?>') {
+                        option.selected = true;
+                    }
+                    typeSelect.appendChild(option);
+                });
+            } else if (category === 'regulator') {
                 // For categories under development, allow manual input
                 const option = document.createElement('option');
                 option.value = 'manual';
@@ -314,6 +327,10 @@
                         imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + item.type_image;
                         typeName = item.type || typeId;
                     }
+                } else if (category === 'manifold') {
+                    // Manifold doesn't have images, don't show image container
+                    typeImageContainer.style.display = 'none';
+                    return;
                 }
 
                 if (imageUrl) {
