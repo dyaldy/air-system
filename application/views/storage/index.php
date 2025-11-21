@@ -696,30 +696,12 @@
         // Show type image
         displayTakeTypeImage(category, baseTypeId);
 
-        // Check if both regular and project versions exist
-        Promise.all([
-                fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + baseTypeId),
-                fetch('<?= site_url('storage/get_stock'); ?>?category=' + category + '&type_id=' + baseTypeId + '_PROJECT')
-            ]).then(responses => Promise.all(responses.map(r => r.json())))
-            .then(([regularData, projectData]) => {
-                const hasRegular = regularData.success && regularData.stock_locations.length > 0;
-                const hasProject = projectData.success && projectData.stock_locations.length > 0;
+        // Always show branch selection for consistency across all items
+        const branchSelection = document.getElementById('takeBranchSelection');
+        branchSelection.style.display = 'block';
 
-                // Show branch selection only if both types exist
-                const branchSelection = document.getElementById('takeBranchSelection');
-                if (hasRegular && hasProject) {
-                    branchSelection.style.display = 'block';
-                } else {
-                    branchSelection.style.display = 'none';
-                    // Auto-select available branch
-                    if (hasProject && !hasRegular) {
-                        document.getElementById('takeProjectBranch').checked = true;
-                    }
-                }
-
-                // Load initial locations based on available stock
-                loadTakeLocations();
-            });
+        // Load initial locations (will default to regular branch)
+        loadTakeLocations();
 
         // Add event listeners for branch selection
         document.getElementById('takeRegularBranch').addEventListener('change', loadTakeLocations);
