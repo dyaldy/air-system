@@ -570,13 +570,19 @@ class Solenoid extends CI_Controller
                     continue;
                 }
 
+                // Generate solenoid_id using the same format as generateSolenoidId method
+                $formattedType = strtolower(str_replace(' ', '-', trim($type)));
+                $formattedSubtype = strtolower(str_replace(' ', '-', trim($subtype)));
+                $solenoidId = 'sol-' . $formattedType . '-' . $formattedSubtype;
+
                 $insertData[] = [
-                    'type'       => strtoupper(trim($type)),
-                    'subtype'    => trim($subtype),
-                    'min_stock'  => null,
-                    'created_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                    'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                    'editor'     => $this->session->userdata('user_data')['nik']
+                    'solenoid_id' => $solenoidId,
+                    'type'        => strtoupper(trim($type)),
+                    'subtype'     => trim($subtype),
+                    'min_stock'   => null,
+                    'created_at'  => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'updated_at'  => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'editor'      => $this->session->userdata('user_data')['nik']
                 ];
             }
 
