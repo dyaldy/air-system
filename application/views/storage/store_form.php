@@ -64,7 +64,7 @@
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
                         <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid</option>
                         <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold</option>
-                        <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
+                        <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator</option>
                     </select>
                     <?php if (form_error('category')): ?>
                         <div class="invalid-feedback"><?= form_error('category'); ?></div>
@@ -181,6 +181,8 @@
         const solenoidItems = <?= json_encode($solenoid_items ?? []); ?>;
         // Manifold items data from PHP
         const manifoldItems = <?= json_encode($manifold_items ?? []); ?>;
+        // Regulator items data from PHP
+        const regulatorItems = <?= json_encode($regulator_items ?? []); ?>;
 
         function updateTypeOptions() {
             const category = document.getElementById('category').value;
@@ -253,7 +255,18 @@
                     typeSelect.appendChild(option);
                 });
             } else if (category === 'regulator') {
-                // For categories under development, allow manual input
+                // Populate with regulator items
+                regulatorItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.regulator_id;
+                    option.textContent = `${item.regulator_id} (Type: ${item.type})`;
+                    if (option.value === '<?= set_value('type_id'); ?>') {
+                        option.selected = true;
+                    }
+                    typeSelect.appendChild(option);
+                });
+            } else if (category) {
+                // For other categories under development, allow manual input
                 const option = document.createElement('option');
                 option.value = 'manual';
                 option.textContent = 'Masukkan secara manual di bawah';
@@ -327,8 +340,8 @@
                         imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + item.type_image;
                         typeName = item.type || typeId;
                     }
-                } else if (category === 'manifold') {
-                    // Manifold doesn't have images, don't show image container
+                } else if (category === 'manifold' || category === 'regulator') {
+                    // Manifold and Regulator don't have images, don't show image container
                     typeImageContainer.style.display = 'none';
                     return;
                 }

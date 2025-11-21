@@ -85,9 +85,9 @@
                             <a class="nav-link" href="<?= site_url('manifold'); ?>">Manifold</a>
                         </li>
 
-                        <!-- Link to Regulator Controller (under development) -->
+                        <!-- Link to Regulator Controller -->
                         <li class="nav-item">
-                            <a class="nav-link disabled" href="#" style="opacity: 0.6;">Regulator (under development)</a>
+                            <a class="nav-link" href="<?= site_url('regulator'); ?>">Regulator</a>
                         </li>
 
                         <!-- Link to Storage Controller -->

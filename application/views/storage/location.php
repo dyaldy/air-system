@@ -905,8 +905,8 @@
         const typeImage = document.getElementById('quickActionTypeImage');
         const typeImageLabel = document.getElementById('quickActionTypeImageLabel');
 
-        // Don't show image container for manifold
-        if (category === 'manifold') {
+        // Don't show image container for manifold or regulator
+        if (category === 'manifold' || category === 'regulator') {
             typeImageContainer.style.display = 'none';
             return;
         }

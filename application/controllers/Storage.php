@@ -70,6 +70,7 @@ class Storage extends CI_Controller
             'Solenoid_model',
             'Solenoid_type_model',
             'Manifold_model',
+            'Regulator_model',
             'Project_batch_model'
         ]);
         $this->load->library(['form_validation', 'session', 'pagination']);
@@ -222,6 +223,7 @@ class Storage extends CI_Controller
         $data['fitting_items'] = $this->get_fittings_with_images();
         $data['solenoid_items'] = $this->get_solenoids_with_images();
         $data['manifold_items'] = $this->get_manifolds_with_images();
+        $data['regulator_items'] = $this->get_regulators_with_images();
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -288,6 +290,16 @@ class Storage extends CI_Controller
             $manifold = $this->Manifold_model->getById($type_id);
             if (!$manifold) {
                 $this->session->set_flashdata('error', 'Manifold item not found!');
+                redirect('storage/store');
+                return;
+            }
+        }
+
+        // Validate if regulator exists (for regulator category)
+        if ($category === 'regulator') {
+            $regulator = $this->Regulator_model->getRegulator($type_id);
+            if (!$regulator) {
+                $this->session->set_flashdata('error', 'Regulator item not found!');
                 redirect('storage/store');
                 return;
             }
@@ -1702,6 +1714,18 @@ class Storage extends CI_Controller
         $this->db->select("m.*, '' as type_image");
         $this->db->from('as_manifold m');
         $this->db->order_by('m.updated_at', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Get regulators with images (no images for regulator)
+     */
+    private function get_regulators_with_images(): array
+    {
+        $this->db->select("r.*, '' as type_image");
+        $this->db->from('as_regulator r');
+        $this->db->order_by('r.updated_at', 'DESC');
         $query = $this->db->get();
         return $query->result_array();
     }

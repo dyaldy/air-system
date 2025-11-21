@@ -52,7 +52,7 @@
                         <option value="fitting" <?= set_select('category', 'fitting'); ?>>Fitting</option>
                         <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid (under development)</option>
                         <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold</option>
-                        <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator (under development)</option>
+                        <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator</option>
                     </select>
                     <?php if (form_error('category')): ?>
                         <div class="invalid-feedback"><?= form_error('category'); ?></div>
@@ -570,8 +570,8 @@
                 (item.type_id === typeId || item.type_id === typeId + '_PROJECT')
             );
 
-            // Don't show image container for manifold
-            if (category === 'manifold') {
+            // Don't show image container for manifold or regulator
+            if (category === 'manifold' || category === 'regulator') {
                 typeImageContainer.style.display = 'none';
                 return;
             }

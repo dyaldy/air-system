@@ -459,6 +459,15 @@ class Storage_model extends CI_Model
         $this->db->where('s.amount < m.min_stock');
         $manifold_low_stock = $this->db->get()->result_array();
 
-        return array_merge($pneumatic_low_stock, $fitting_low_stock, $solenoid_low_stock, $manifold_low_stock);
+        // Get regulator items below min stock
+        $this->db->select('s.location_id, s.category, s.type_id, s.amount, r.min_stock, r.type as regulator_type');
+        $this->db->from('as_storage s');
+        $this->db->join('as_regulator r', 's.type_id = r.regulator_id', 'inner');
+        $this->db->where('s.category', 'regulator');
+        $this->db->where('r.min_stock IS NOT NULL');
+        $this->db->where('s.amount < r.min_stock');
+        $regulator_low_stock = $this->db->get()->result_array();
+
+        return array_merge($pneumatic_low_stock, $fitting_low_stock, $solenoid_low_stock, $manifold_low_stock, $regulator_low_stock);
     }
 }
