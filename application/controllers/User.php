@@ -3,16 +3,14 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require 'vendor/autoload.php';
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use TCPDF;
 
 /**
  * User controller for air-system.
  *
- * Manage users: listing, search/filter/sort, CRUD operations, and Excel import/export.
+ * Manage users: listing, search/filter/sort, CRUD operations, and CSV import/export with PDF download.
  * This controller handles all user management operations including data validation,
- * pagination, filtering, and Excel import/export functionality.
+ * pagination, filtering, and CSV import/export with PDF functionality.
  *
  * @package AirSystem
  * @subpackage Controllers
@@ -89,7 +87,7 @@ class User extends CI_Controller
      */
     public function index(): void
     {
-        // Handle possible Excel file upload like ASRS implementation
+        // Handle possible CSV file upload like ASRS implementation
         $this->handleFileUpload();
         $this->handleSessionState();
 
@@ -228,7 +226,7 @@ class User extends CI_Controller
     }
 
     /**
-     * Downloads user data as Excel file.
+     * Downloads user data as CSV file.
      *
      * @return void
      */
@@ -237,16 +235,34 @@ class User extends CI_Controller
         $users = $this->User_model->getUser(1000, 0); // Get all users
 
         try {
-            $this->generateExcelFile($users);
+            $this->generateCSVFile($users);
         } catch (Exception $e) {
-            log_message('error', 'Excel download error: ' . $e->getMessage());
+            log_message('error', 'CSV download error: ' . $e->getMessage());
             set_message(['danger', 'Error creating file: ' . $e->getMessage()]);
             redirect('user');
         }
     }
 
     /**
-     * Downloads Excel template for user upload.
+     * Downloads user data as PDF file.
+     *
+     * @return void
+     */
+    public function downloadPDF(): void
+    {
+        $users = $this->User_model->getUser(1000, 0); // Get all users
+
+        try {
+            $this->generatePDFFile($users);
+        } catch (Exception $e) {
+            log_message('error', 'PDF download error: ' . $e->getMessage());
+            set_message(['danger', 'Error creating file: ' . $e->getMessage()]);
+            redirect('user');
+        }
+    }
+
+    /**
+     * Downloads CSV template for user upload.
      *
      * @return void
      */
@@ -262,7 +278,7 @@ class User extends CI_Controller
     }
 
     /**
-     * Handles Excel file upload and user import.
+     * Handles CSV file upload and user import.
      *
      * @return void
      */
@@ -275,81 +291,136 @@ class User extends CI_Controller
      */
     public function upload(): void
     {
-        // Delegate to the central handler which expects a file in \\$_FILES['file']
+        // Delegate to the central handler which expects a file in \$_FILES['file']
         $this->handleFileUpload();
     }
 
     ## Private Helper Methods
 
     /**
-     * Generates Excel file for download.
+     * Generates CSV file for download.
      *
      * @param array $users Array of user data
      * @return void
      */
-    private function generateExcelFile(array $users): void
+    private function generateCSVFile(array $users): void
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $filename = 'data_pengguna_air_system_' . date('Y-m-d_H-i-s') . '.csv';
 
-        // Set headers
-        $sheet->setCellValue('A1', 'NIK');
-        $sheet->setCellValue('B1', 'Nama');
-        $sheet->setCellValue('C1', 'Dibuat');
-        $sheet->setCellValue('D1', 'Diperbarui');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-        // Style headers using common helper
-        apply_excel_header_style($sheet, 'A1:D1');
+        $output = fopen('php://output', 'w');
 
-        // Add data
-        $row = 2;
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Write header row
+        fputcsv($output, ['NIK', 'Nama', 'Dibuat', 'Diperbarui']);
+
+        // Write data rows
         foreach ($users as $user) {
-            $sheet->setCellValue("A{$row}", $user['nik']);
-            $sheet->setCellValue("B{$row}", $user['name']);
-            $sheet->setCellValue("C{$row}", date('d M Y H:i:s', strtotime($user['created_at'])));
-            $sheet->setCellValue("D{$row}", date('d M Y H:i:s', strtotime($user['updated_at'])));
-            $row++;
+            fputcsv($output, [
+                $user['nik'],
+                $user['name'],
+                date('d M Y H:i:s', strtotime($user['created_at'])),
+                date('d M Y H:i:s', strtotime($user['updated_at']))
+            ]);
         }
 
-        // Auto-size columns using common helper
-        auto_size_excel_columns($sheet, 'A', 'D');
-
-        // Output file using common helper
-        $filename = 'data_pengguna_air_system_' . date('Y-m-d_H-i-s') . '.xlsx';
-        output_excel_file($spreadsheet, $filename);
+        fclose($output);
+        exit;
     }
 
     /**
-     * Generates Excel template for upload.
+     * Generates PDF file for download.
+     *
+     * @param array $users Array of user data
+     * @return void
+     */
+    private function generatePDFFile(array $users): void
+    {
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Air System');
+        $pdf->SetAuthor('Air System');
+        $pdf->SetTitle('Data Pengguna');
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Set font
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Data Pengguna Air System', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Table header
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->SetFillColor(66, 139, 202);
+        $pdf->SetTextColor(255, 255, 255);
+
+        $pdf->Cell(40, 7, 'NIK', 1, 0, 'C', 1);
+        $pdf->Cell(60, 7, 'Nama', 1, 0, 'C', 1);
+        $pdf->Cell(40, 7, 'Dibuat', 1, 0, 'C', 1);
+        $pdf->Cell(40, 7, 'Diperbarui', 1, 1, 'C', 1);
+
+        // Table data
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetTextColor(0, 0, 0);
+        $fill = false;
+
+        foreach ($users as $user) {
+            $pdf->SetFillColor(245, 245, 245);
+            $pdf->Cell(40, 6, $user['nik'], 1, 0, 'C', $fill);
+            $pdf->Cell(60, 6, $user['name'], 1, 0, 'L', $fill);
+            $pdf->Cell(40, 6, date('d M Y H:i:s', strtotime($user['created_at'])), 1, 0, 'C', $fill);
+            $pdf->Cell(40, 6, date('d M Y H:i:s', strtotime($user['updated_at'])), 1, 1, 'C', $fill);
+            $fill = !$fill;
+        }
+
+        $filename = 'data_pengguna_air_system_' . date('Y-m-d_H-i-s') . '.pdf';
+        $pdf->Output($filename, 'D');
+        exit;
+    }
+
+    /**
+     * Generates CSV template for upload.
      *
      * @return void
      */
     private function generateTemplateFile(): void
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $filename = 'template_pengguna_air_system.csv';
 
-        // Set headers
-        $sheet->setCellValue('A1', 'NIK');
-        $sheet->setCellValue('B1', 'Nama');
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // Write header row
+        fputcsv($output, ['NIK', 'Nama']);
 
         // Add example data
-        $sheet->setCellValue('A2', '123456789');
-        $sheet->setCellValue('B2', 'John Doe');
+        fputcsv($output, ['123456789', 'John Doe']);
 
-        // Style headers using common helper
-        apply_excel_header_style($sheet, 'A1:B1');
-
-        // Auto-size columns using common helper
-        auto_size_excel_columns($sheet, 'A', 'B');
-
-        // Output file using common helper
-        $filename = 'template_pengguna_air_system.xlsx';
-        output_excel_file($spreadsheet, $filename);
+        fclose($output);
+        exit;
     }
 
     /**
-     * Process uploaded Excel file and insert valid user records (mirrors ASRS implementation).
+     * Process uploaded CSV file and insert valid user records (mirrors ASRS implementation).
      *
      * This method will run when a file is POSTed to the index route.
      *
@@ -373,9 +444,27 @@ class User extends CI_Controller
         $file = $_FILES['file']['tmp_name'];
 
         try {
-            $spreadsheet = @IOFactory::load($file);
-            $sheet = $spreadsheet->getActiveSheet();
-            $data = $sheet->toArray(null, true, true, true);
+            // Read CSV file
+            $handle = fopen($file, 'r');
+            if ($handle === false) {
+                throw new Exception('Unable to open CSV file');
+            }
+
+            // Skip BOM if present
+            $bom = fread($handle, 3);
+            if ($bom !== chr(0xEF) . chr(0xBB) . chr(0xBF)) {
+                rewind($handle);
+            }
+
+            $data = [];
+            while (($row = fgetcsv($handle)) !== false) {
+                $data[] = $row;
+            }
+            fclose($handle);
+
+            if (empty($data)) {
+                throw new Exception('CSV file is empty');
+            }
             array_shift($data); // remove header row
 
             $skippedData = [];
@@ -383,18 +472,18 @@ class User extends CI_Controller
 
             foreach ($data as $row) {
                 // Validate required fields
-                if (!$row['A']) {
+                if (count($row) < 2 || empty($row[0])) {
                     $skippedData[] = "NIK tidak boleh kosong";
                     continue;
                 }
 
-                if (!$row['B']) {
+                if (empty($row[1])) {
                     $skippedData[] = "Nama tidak boleh kosong";
                     continue;
                 }
 
-                $rowNik = trim($row['A'] ?? '');
-                $rowName = ucwords(strtolower(trim($row['B'] ?? '')));
+                $rowNik = trim($row[0] ?? '');
+                $rowName = ucwords(strtolower(trim($row[1] ?? '')));
 
                 // Validate NIK format
                 if (!ctype_digit($rowNik)) {
@@ -446,7 +535,7 @@ class User extends CI_Controller
             redirect('user');
         } catch (Exception $e) {
             log_message('error', 'File upload error: ' . $e->getMessage());
-            set_message(['danger', 'Terjadi kesalahan dalam membaca file Excel.']);
+            set_message(['danger', 'Terjadi kesalahan dalam membaca file CSV.']);
         }
     }
 }

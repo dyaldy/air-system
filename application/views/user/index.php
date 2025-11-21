@@ -134,8 +134,11 @@
                         </form>
                     <?php endif; ?>
 
-                    <!-- Download Button -->
-                    <a href="<?= site_url('user/download'); ?>" class="btn btn-primary <?= $hasFilters ? '' : 'rounded-start-pill' ?>">Download</a>
+                    <!-- Download Buttons -->
+                    <div class="btn-group" role="group">
+                        <a href="<?= site_url('user/download'); ?>" class="btn btn-primary <?= $hasFilters ? '' : 'rounded-start-pill' ?>" title="Download CSV">Download CSV</a>
+                        <a href="<?= site_url('user/downloadPDF'); ?>" class="btn btn-danger" title="Download PDF">Download PDF</a>
+                    </div>
 
                     <!-- Upload Modal Trigger -->
                     <button type="button" class="btn btn-primary rounded-end-pill" data-bs-toggle="modal" data-bs-target="#uploadModal">
@@ -171,8 +174,8 @@
                 </div>
                 <form id="uploadForm" action="" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="formFile" class="form-label">Pilih File Excel</label>
-                        <input class="form-control" type="file" id="formFile" name="file" accept=".xlsx,.xls" required>
+                        <label for="formFile" class="form-label">Pilih File CSV</label>
+                        <input class="form-control" type="file" id="formFile" name="file" accept=".csv" required>
                     </div>
                 </form>
             </div>
