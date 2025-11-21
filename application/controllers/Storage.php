@@ -297,7 +297,7 @@ class Storage extends CI_Controller
 
         // Validate if regulator exists (for regulator category)
         if ($category === 'regulator') {
-            $regulator = $this->Regulator_model->getRegulator($type_id);
+            $regulator = $this->Regulator_model->getById($type_id);
             if (!$regulator) {
                 $this->session->set_flashdata('error', 'Regulator item not found!');
                 redirect('storage/store');
