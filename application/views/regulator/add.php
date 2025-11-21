@@ -1,44 +1,81 @@
-<?php if ($this->session->flashdata('action')) : ?>
-    <div class="cust-notification m-3">
-        <div class="alert alert-<?= $this->session->flashdata('action')[0]; ?> alert-dismissible fade show" id="notification" role="alert">
-            <?= $this->session->flashdata('action')[1]; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- Card -->
+<div class="card mx-auto rounded-5 shadow border-0 mb-5 w-75" style="margin-top: 5rem;">
+    <!-- Card Header -->
+    <div class="card-header bg-transparent border-0 px-4 pt-3 pb-1">
+        <!-- Container -->
+        <div class="d-flex align-items-center justify-content-between">
+            <!-- Title -->
+            <h4 class="m-0">Tambah Regulator Air System</h4>
+
+            <!-- Back Button-->
+            <?php
+            // Determine back URL: use referer if available and from regulator pages, otherwise default to index
+            $backUrl = site_url('regulator');
+            if (
+                !empty($_SERVER['HTTP_REFERER']) &&
+                (strpos($_SERVER['HTTP_REFERER'], site_url('regulator')) !== false)
+            ) {
+                $backUrl = $_SERVER['HTTP_REFERER'];
+            }
+            ?>
+            <a href="<?= $backUrl; ?>" class="btn btn-secondary rounded-pill">Kembali</a>
         </div>
     </div>
-<?php endif; ?>
 
-<div class="card mx-auto rounded-5 shadow border-0 mb-5" style="margin-top: 5rem; max-width: 600px;">
-    <div class="card-header bg-white border-bottom px-4 py-4">
-        <h3 class="m-0">Tambah Regulator</h3>
-    </div>
-
-    <div class="card-body p-4">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> Regulator ID akan dibuat otomatis dengan format: <strong>reg-{type}</strong><br>
-            Contoh: Type "AR2000" → ID akan menjadi "reg-ar2000"
-        </div>
-
-        <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
-
-        <form action="<?= site_url('regulator/add'); ?>" method="post">
+    <!-- Card Body -->
+    <div class="card-body p-4 pt-3">
+        <form action="" method="post">
+            <!-- Note about auto-generated ID -->
             <div class="mb-3">
-                <label for="type" class="form-label">Type <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="type" name="type" value="<?= set_value('type'); ?>" required maxlength="20">
-                <small class="text-muted">Contoh: AR2000, AR3000, dll</small>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Regulator ID akan dibuat otomatis berdasarkan format: reg-type
+                </div>
             </div>
 
+            <!-- Type Input Section -->
             <div class="mb-3">
-                <label for="min_stock" class="form-label">Minimum Stock <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="min_stock" name="min_stock" value="<?= set_value('min_stock', 5); ?>" required min="0">
-                <small class="text-muted">Jumlah minimum stock untuk peringatan</small>
+                <label for="type" class="form-label">Type</label>
+                <div class="position-relative">
+                    <input id="type" type="text" class="form-control rounded-pill pe-5 <?= form_error('type') ? 'is-invalid' : '' ?>" name="type" placeholder="AR2000" value="<?= set_value('type'); ?>" onkeyup="toggleClear('type', 'clear-button-type')" autocomplete="off" maxlength="20">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-type" onclick="clearInput('type', 'clear-button-type')" aria-hidden="true">
+                    <?= form_error('type', "<div class='invalid-feedback'>", "</div>"); ?>
+                </div>
+                <small class="form-text text-muted">Maksimal 20 karakter</small>
             </div>
 
-            <div class="d-flex gap-2 justify-content-end">
-                <a href="<?= site_url('regulator'); ?>" class="btn btn-secondary">Batal</a>
-                <button type="submit" class="btn btn-primary">Simpan</button>
+            <!-- Minimum Stock Input Section -->
+            <div class="mb-3">
+                <label for="min_stock" class="form-label">Minimum Stock (Opsional)</label>
+                <div class="position-relative">
+                    <input id="min_stock" type="number" class="form-control rounded-pill pe-5 <?= form_error('min_stock') ? 'is-invalid' : '' ?>" name="min_stock" placeholder="10" value="<?= set_value('min_stock'); ?>" onkeyup="toggleClear('min_stock', 'clear-button-min_stock')" autocomplete="off" min="0">
+                    <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button-min_stock" onclick="clearInput('min_stock', 'clear-button-min_stock')" aria-hidden="true">
+                    <?= form_error('min_stock', "<div class='invalid-feedback'>", "</div>"); ?>
+                </div>
+                <small class="form-text text-muted">Kosongkan jika tidak ingin menggunakan minimum stock</small>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary rounded-pill">Tambah</button>
             </div>
         </form>
     </div>
 </div>
 
+<script>
+    /**
+     * Input-clear configuration mapping for form inputs with clear buttons.
+     * 
+     * @type {Array<{id: string, button: string}>}
+     */
+    window.inputConfigs = [{
+            id: 'type',
+            button: 'clear-button-type'
+        },
+        {
+            id: 'min_stock',
+            button: 'clear-button-min_stock'
+        }
+    ];
+</script>
 <script src="<?= base_url('assets/js/forminput.js'); ?>"></script>

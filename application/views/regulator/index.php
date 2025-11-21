@@ -22,26 +22,25 @@
             <div class="col-12 col-lg-6">
                 <div class="d-flex gap-2 align-items-center">
                     <!-- Search + Filters Form -->
-                    <form action="<?= site_url('regulator/index'); ?>" method="get" class="flex-grow-1" id="search-form">
+                    <form action="" method="post" class="flex-grow-1" id="search-form">
                         <div class="input-group">
                             <!-- make the input area a positioned container so absolute children are anchored inside it -->
                             <div class="position-relative flex-grow-1">
-                                <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, type..." name="search" value="<?= $search ?? ''; ?>" id="search-bar" autocomplete="off">
+                                <input type="text" class="form-control rounded-start-pill pe-5" placeholder="Cari berdasarkan ID, type..." name="keyword" value="<?= $searchKeyword ?>" id="search-bar" onkeyup="displayClear()" autocomplete="off">
                                 <img src="<?= base_url('assets/img/delete.png'); ?>" alt="delete" class="action-button clear-button" id="clear-button" onclick="clearKeyword()">
                             </div>
 
+                            <input type="hidden" name="find" value="1">
                             <button class="btn btn-secondary rounded-end-pill px-4" type="submit">Cari</button>
                         </div>
 
                         <div class="mt-2 d-flex gap-2">
                             <!-- Type Filter -->
-                            <select class="form-select form-select-sm" name="type" id="type-filter" aria-label="Filter Type">
+                            <select class="form-select form-select-sm" id="type-filter" aria-label="Filter Type">
                                 <option value="">Semua Type</option>
-                                <?php
-                                $types = array_unique(array_column($regulators, 'type'));
-                                foreach ($types as $type) :
-                                ?>
-                                    <option value="<?= $type; ?>" <?= ($filter_type ?? '') === $type ? 'selected' : ''; ?>><?= $type; ?></option>
+                                <?php foreach (($type_options ?? []) as $type) : ?>
+                                    <?php $selected = (!empty($filterKeyword['type']) && in_array($type, (array)$filterKeyword['type'])) ? 'selected' : ''; ?>
+                                    <option value="<?= $type; ?>" <?= $selected; ?>><?= $type; ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -54,140 +53,194 @@
         </div>
     </div>
 
-    <!-- Table Body -->
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>
-                        <a href="?sort_by=regulator_id&sort_order=<?= ($sort_by === 'regulator_id' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?= $search ? '&search=' . urlencode($search) : ''; ?><?= $filter_type ? '&type=' . urlencode($filter_type) : ''; ?>" class="text-decoration-none text-dark">
-                            Regulator ID <?= $sort_by === 'regulator_id' ? ($sort_order === 'ASC' ? '▲' : '▼') : ''; ?>
-                        </a>
-                    </th>
-                    <th>
-                        <a href="?sort_by=type&sort_order=<?= ($sort_by === 'type' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?= $search ? '&search=' . urlencode($search) : ''; ?><?= $filter_type ? '&type=' . urlencode($filter_type) : ''; ?>" class="text-decoration-none text-dark">
-                            Type <?= $sort_by === 'type' ? ($sort_order === 'ASC' ? '▲' : '▼') : ''; ?>
-                        </a>
-                    </th>
-                    <th>
-                        <a href="?sort_by=min_stock&sort_order=<?= ($sort_by === 'min_stock' && $sort_order === 'ASC') ? 'DESC' : 'ASC'; ?><?= $search ? '&search=' . urlencode($search) : ''; ?><?= $filter_type ? '&type=' . urlencode($filter_type) : ''; ?>" class="text-decoration-none text-dark">
-                            Min Stock <?= $sort_by === 'min_stock' ? ($sort_order === 'ASC' ? '▲' : '▼') : ''; ?>
-                        </a>
-                    </th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($regulators)) : ?>
+    <?php if (empty($regulators)) : ?>
+        <!-- No Data Alert -->
+        <div class="alert alert-warning m-4" role="alert">
+            <h5 class="alert-heading">Tidak Ada Data</h5>
+            <p>Regulator tidak ditemukan. Coba sesuaikan kata kunci pencarian atau filter Anda.</p>
+        </div>
+    <?php else : ?>
+        <!-- Data Table Container -->
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-borderless table-hover table-striped mb-0">
+                <!-- Table Header -->
+                <thead>
                     <tr>
-                        <td colspan="4" class="text-center py-4">Tidak ada data regulator</td>
+                        <!-- Regulator ID Column -->
+                        <th scope="col" class="text-center ps-lg-5 ps-4">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Regulator ID</span>
+                                <?php if ($sortKeyword[0] === 'regulator_id') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('regulator_id-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan ID (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan ID">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('regulator_id-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan ID (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
+
+                        <!-- Type Column -->
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Type</span>
+                                <?php if ($sortKeyword[0] === 'type') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Type">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('type-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Type (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
+
+                        <!-- Min Stock Column -->
+                        <th scope="col" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span>Min Stock</span>
+                                <?php if ($sortKeyword[0] === 'min_stock') : ?>
+                                    <?php if ($sortKeyword[1] === 'ASC') : ?>
+                                        <img src="<?= base_url('assets/img/sort-asc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('min_stock-DESC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Min Stock (Descending)">
+                                    <?php else : ?>
+                                        <img src="<?= base_url('assets/img/sort-desc.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('')" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset urutan Min Stock">
+                                    <?php endif ?>
+                                <?php else : ?>
+                                    <img src="<?= base_url('assets/img/sort-default.png'); ?>" alt="sort" class="cursor-pointer" width="10px" onclick="sortTable('min_stock-ASC')" data-bs-toggle="tooltip" data-bs-placement="top" title="Urutkan berdasarkan Min Stock (Ascending)">
+                                <?php endif ?>
+                            </div>
+                        </th>
+
+                        <!-- Edit Column -->
+                        <th scope="col" class="text-center pe-lg-5 pe-4">Edit</th>
                     </tr>
-                <?php else : ?>
+                </thead>
+
+                <!-- Table Body -->
+                <tbody>
                     <?php foreach ($regulators as $regulator) : ?>
                         <tr>
-                            <td><?= $regulator['regulator_id']; ?></td>
-                            <td><?= $regulator['type']; ?></td>
-                            <td><?= $regulator['min_stock']; ?></td>
-                            <td>
-                                <a href="<?= site_url('regulator/edit/' . $regulator['regulator_id']); ?>" class="btn btn-sm btn-warning">Edit</a>
+                            <th scope="row" class="text-center ps-lg-5 ps-4"><?= $regulator['regulator_id']; ?></th>
+                            <td class="text-center"><?= $regulator['type']; ?></td>
+                            <td class="text-center"><?= $regulator['min_stock'] ? $regulator['min_stock'] : '-'; ?></td>
+                            <td class="text-center pe-lg-5 pe-4">
+                                <a href="<?= site_url('regulator/edit/' . urlencode($regulator['regulator_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit regulator">
+                                    <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
+                                </a>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Card Footer with Pagination -->
-    <div class="card-footer bg-white border-top px-lg-5 px-4 py-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                Showing <?= !empty($regulators) ? (($current_page - 1) * $per_page + 1) : 0; ?>
-                to <?= min($current_page * $per_page, $total_rows); ?>
-                of <?= $total_rows; ?> entries
-            </div>
-            <div>
-                <?= $pagination; ?>
-            </div>
+                    <?php endforeach ?>
+                </tbody>
+            </table>
         </div>
 
-        <!-- Download & Upload Buttons -->
-        <div class="mt-3 d-flex gap-2">
-            <a href="<?= site_url('regulator/download'); ?>" class="btn btn-success btn-sm">
-                <i class="fas fa-download"></i> Download CSV
-            </a>
-            <a href="<?= site_url('regulator/downloadPDF'); ?>" class="btn btn-danger btn-sm">
-                <i class="fas fa-file-pdf"></i> Download PDF
-            </a>
-            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <i class="fas fa-upload"></i> Upload CSV
-            </button>
-            <a href="<?= site_url('regulator/download_template'); ?>" class="btn btn-secondary btn-sm">
-                <i class="fas fa-download"></i> Download Template
-            </a>
+        <!-- Card Footer with Pagination and Controls -->
+        <div class="card-footer bg-white border-0 px-lg-5 px-4 py-3">
+            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+                <!-- Record Count Display -->
+                <div class="text-muted">
+                    Menampilkan <strong><?= count($regulators); ?> dari <?= $total_rows; ?></strong> regulator
+                </div>
+
+                <!-- Pagination Links -->
+                <?= $pagination['links']; ?>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <!-- Reset All Filters -->
+                    <?php if ($hasFilters) : ?>
+                        <form action="" method="post" class="d-inline">
+                            <input type="hidden" name="reset" value="1">
+                            <button type="submit" class="btn btn-outline-secondary rounded-start-pill">Reset Filter</button>
+                        </form>
+                    <?php endif; ?>
+
+                    <!-- Storage Links -->
+                    <a href="<?= site_url('storage/store'); ?>" class="btn btn-success <?= $hasFilters ? '' : 'rounded-start-pill' ?>" title="Store Regulator Items">Store</a>
+                    <a href="<?= site_url('storage/take'); ?>" class="btn btn-warning" title="Take Regulator Items">Take</a>
+
+                    <!-- Download Buttons -->
+                    <div class="btn-group" role="group">
+                        <a href="<?= site_url('regulator/download'); ?>" class="btn btn-primary" title="Download CSV">Download CSV</a>
+                        <a href="<?= site_url('regulator/downloadPDF'); ?>" class="btn btn-danger" title="Download PDF">Download PDF</a>
+                    </div>
+
+                    <!-- Upload Modal Trigger -->
+                    <button type="button" class="btn btn-primary rounded-end-pill" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        Upload
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
 
-<!-- Upload CSV Modal -->
+<!-- Upload Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="uploadModalLabel">Upload CSV Regulator</h5>
+                <h5 class="modal-title" id="uploadModalLabel">Upload Data Regulator</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="uploadForm" enctype="multipart/form-data">
+                <div class="alert alert-info">
+                    <strong>Ketentuan Upload:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>WAJIB menggunakan template yang sudah disediakan.</li>
+                        <li>Download template <a href="<?= site_url('regulator/download_template'); ?>">disini</a>.</li>
+                        <li>Ketentuan pengisian tabel:
+                            <ol>
+                                <li>Regulator ID akan dibuat otomatis berdasarkan format: reg-type.</li>
+                                <li>Type maksimal 20 karakter.</li>
+                                <li>Type harus unik.</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </div>
+                <form id="uploadForm" action="" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="csv_file" class="form-label">Pilih File CSV</label>
-                        <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
-                    </div>
-                    <div class="alert alert-info">
-                        <small>
-                            <strong>Format CSV:</strong><br>
-                            - Column 1: Type<br>
-                            - Column 2: Min Stock (optional, default 5)<br>
-                            <br>
-                            Download template untuk contoh format yang benar.
-                        </small>
+                        <label for="formFile" class="form-label">Pilih File CSV</label>
+                        <input class="form-control" type="file" id="formFile" name="file" accept=".csv" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" onclick="uploadCSV()">Upload</button>
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="uploadForm" class="btn btn-success rounded-pill" id="uploadBtn">Upload Data</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function clearKeyword() {
-        document.getElementById('search-bar').value = '';
-        document.getElementById('search-form').submit();
-    }
+    (function() {
+        function applyRegulatorFilters() {
+            const type = document.getElementById('type-filter')?.value || '';
 
-    function uploadCSV() {
-        const form = document.getElementById('uploadForm');
-        const formData = new FormData(form);
+            const filterObj = {};
+            if (type) filterObj.type = [type];
 
-        fetch('<?= site_url('regulator/upload'); ?>', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat upload file.');
-            });
-    }
+            // Build transient POST form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'filter';
+            input.value = JSON.stringify(filterObj);
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        const typeEl = document.getElementById('type-filter');
+
+        if (typeEl) typeEl.addEventListener('change', applyRegulatorFilters);
+    })();
 </script>

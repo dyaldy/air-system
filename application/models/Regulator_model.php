@@ -5,30 +5,118 @@ class Regulator_model extends CI_Model
 {
     private $table = 'as_regulator';
 
-    public function addRegulator($data)
+    /**
+     * Get regulators with filtering, sorting and pagination (ASRS pattern)
+     */
+    public function getRegulator($limit, $offset, $search = null, $filter = null, $sort = null)
     {
-        return $this->db->insert($this->table, $data);
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('regulator_id', $search);
+            $this->db->or_like('type', $search);
+            $this->db->group_end();
+        }
+
+        if (!empty($filter)) {
+            $filterParts = explode('-', $filter, 2);
+            if (count($filterParts) == 2) {
+                $column = $filterParts[0];
+                $value  = $filterParts[1];
+                if ($column === 'type') {
+                    $this->db->like('type', $value);
+                }
+            }
+        }
+
+        if (!empty($sort)) {
+            $sortParts = explode('-', $sort, 2);
+            if (count($sortParts) == 2) {
+                $column = $sortParts[0];
+                $order  = strtoupper($sortParts[1]);
+                $allowed = ['regulator_id', 'type', 'min_stock', 'created_at', 'updated_at'];
+                if (in_array($column, $allowed) && in_array($order, ['ASC', 'DESC'])) {
+                    $this->db->order_by($column, $order);
+                }
+            }
+        } else {
+            $this->db->order_by('updated_at', 'DESC');
+        }
+
+        $this->db->limit($limit, $offset);
+        $query = $this->db->get($this->table);
+        return $query->result_array();
     }
 
-    public function editRegulator($old_regulator_id, $data)
+    /**
+     * Get filter options for dropdown (ASRS pattern)
+     */
+    public function getRegulatorFilter($column, $search = null, $filter = null)
     {
-        $this->db->where('regulator_id', $old_regulator_id);
-        return $this->db->update($this->table, $data);
+        $this->db->select($column);
+        $this->db->distinct();
+
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('regulator_id', $search);
+            $this->db->or_like('type', $search);
+            $this->db->group_end();
+        }
+
+        if (!empty($filter)) {
+            $filterParts = explode('-', $filter, 2);
+            if (count($filterParts) == 2) {
+                $filterColumn = $filterParts[0];
+                $filterValue  = $filterParts[1];
+                if ($filterColumn === 'type' && $column !== 'type') {
+                    $this->db->like('type', $filterValue);
+                }
+            }
+        }
+
+        $this->db->order_by($column, 'ASC');
+        $query = $this->db->get($this->table);
+        return array_column($query->result_array(), $column);
     }
 
-    public function deleteRegulator($regulator_id)
+    /**
+     * Count regulators with filters (ASRS pattern)
+     */
+    public function countRegulator($search = null, $filter = null)
     {
-        $this->db->where('regulator_id', $regulator_id);
-        return $this->db->delete($this->table);
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('regulator_id', $search);
+            $this->db->or_like('type', $search);
+            $this->db->group_end();
+        }
+
+        if (!empty($filter)) {
+            $filterParts = explode('-', $filter, 2);
+            if (count($filterParts) == 2) {
+                $column = $filterParts[0];
+                $value  = $filterParts[1];
+                if ($column === 'type') {
+                    $this->db->like('type', $value);
+                }
+            }
+        }
+
+        return $this->db->count_all_results($this->table);
     }
 
-    public function getRegulator($regulator_id)
+    /**
+     * Get single regulator by ID
+     */
+    public function getById($regulatorId)
     {
-        $this->db->where('regulator_id', $regulator_id);
+        $this->db->where('regulator_id', $regulatorId);
         $query = $this->db->get($this->table);
         return $query->row_array();
     }
 
+    /**
+     * Get all regulators for export
+     */
     public function getAllRegulator()
     {
         $this->db->order_by('updated_at', 'DESC');
@@ -36,51 +124,75 @@ class Regulator_model extends CI_Model
         return $query->result_array();
     }
 
-    public function countRegulator()
+    /**
+     * Add new regulator
+     */
+    public function addRegulator()
     {
-        return $this->db->count_all($this->table);
+        $type = $this->input->post('type');
+        $regulatorId = 'reg-' . strtolower(str_replace(' ', '', $type));
+
+        $data = [
+            'regulator_id' => $regulatorId,
+            'type'         => $type,
+            'min_stock'    => $this->input->post('min_stock') ?: 5,
+            'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+            'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+        ];
+
+        return $this->db->insert($this->table, $data);
     }
 
-    public function getRegulatorFilter($limit, $offset, $filter_type = null, $search = null, $sort_by = 'updated_at', $sort_order = 'DESC')
+    /**
+     * Edit existing regulator
+     */
+    public function editRegulator($regulatorId)
     {
-        if ($filter_type) {
-            $this->db->like('type', $filter_type);
-        }
+        $data = [
+            'min_stock'  => $this->input->post('min_stock') ?: 5,
+            'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+        ];
 
-        if ($search) {
-            $this->db->group_start();
-            $this->db->like('regulator_id', $search);
-            $this->db->or_like('type', $search);
-            $this->db->group_end();
-        }
+        $this->db->where('regulator_id', $regulatorId);
+        return $this->db->update($this->table, $data);
+    }
 
-        $allowed_sort = ['regulator_id', 'type', 'min_stock', 'created_at', 'updated_at'];
-        if (!in_array($sort_by, $allowed_sort)) {
-            $sort_by = 'updated_at';
-        }
+    /**
+     * Delete regulator
+     */
+    public function deleteRegulator($regulatorId)
+    {
+        $this->db->where('regulator_id', $regulatorId);
+        return $this->db->delete($this->table);
+    }
 
-        $sort_order = strtoupper($sort_order) === 'ASC' ? 'ASC' : 'DESC';
+    /**
+     * Batch insert for CSV upload
+     */
+    public function insertBatch($data)
+    {
+        return $this->db->insert_batch($this->table, $data);
+    }
 
-        $this->db->order_by($sort_by, $sort_order);
-        $this->db->limit($limit, $offset);
-
-        $query = $this->db->get($this->table);
-        return $query->result_array();
+    /**
+     * Check if regulator ID already exists
+     */
+    public function isRegulatorIdExists($regulatorId)
+    {
+        $this->db->where('regulator_id', $regulatorId);
+        return $this->db->count_all_results($this->table) > 0;
     }
 
     /**
      * Generate regulator_id in format: reg-{type}
-     * Example: reg-AR2000, reg-AR3000
      */
     public function generateRegulatorId($type)
     {
-        // Convert type to lowercase and remove spaces
-        $type_clean = strtolower(str_replace(' ', '', $type));
-        return 'reg-' . $type_clean;
+        return 'reg-' . strtolower(str_replace(' ', '', $type));
     }
 
     /**
-     * Check if regulator with same type already exists
+     * Check if regulator with same type already exists (for validation)
      */
     public function check_regulator_combination($type)
     {
