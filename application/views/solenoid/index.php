@@ -148,7 +148,7 @@
                             <td class="text-center"><?= $solenoid['subtype']; ?></td>
                             <td class="text-center"><?= $solenoid['min_stock'] ? $solenoid['min_stock'] : '-'; ?></td>
                             <td class="text-center pe-lg-5 pe-4">
-                                <a href="<?= site_url('solenoid/edit/' . urlencode($solenoid['solenoid_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit solenoid">
+                                <a href="<?= site_url('solenoid/edit/' . base64_encode($solenoid['solenoid_id'])); ?>" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit solenoid">
                                     <img src="<?= base_url('assets/img/edit.png'); ?>" alt="edit" class="action-button">
                                 </a>
                             </td>

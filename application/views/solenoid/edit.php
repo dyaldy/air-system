@@ -62,7 +62,7 @@
             <!-- Save and Delete Button -->
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary rounded-pill">Simpan</button>
-                <a href="<?= site_url('solenoid/delete/') . urlencode($solenoid['solenoid_id']); ?>" onclick="return confirm('Apakah anda yakin ingin menghapus solenoid ini?')" class="btn btn-danger rounded-pill">Hapus</a>
+                <a href="<?= site_url('solenoid/delete/') . base64_encode($solenoid['solenoid_id']); ?>" onclick="return confirm('Apakah anda yakin ingin menghapus solenoid ini?')" class="btn btn-danger rounded-pill">Hapus</a>
             </div>
         </form>
     </div>

@@ -254,17 +254,21 @@ class Solenoid extends CI_Controller
      */
     public function edit(string $solenoidId): void
     {
-        $solenoid = $this->Solenoid_model->getById(urldecode($solenoidId));
+        // Decode the base64-encoded solenoid ID to handle special characters like slashes
+        // Base64 encoding is used because Apache blocks URL-encoded slashes (%2F)
+        $solenoidId = base64_decode($solenoidId);
+
+        $solenoid = $this->Solenoid_model->getById($solenoidId);
 
         if (!$solenoid) {
             show_404();
         }
 
         if ($this->input->method() === 'post') {
-            $this->setValidationRules(true, urldecode($solenoidId));
+            $this->setValidationRules(true, $solenoidId);
 
             if ($this->form_validation->run()) {
-                $this->Solenoid_model->editSolenoid(urldecode($solenoidId));
+                $this->Solenoid_model->editSolenoid($solenoidId);
                 set_message(['success', 'Data solenoid berhasil diperbarui!']);
                 redirect('solenoid');
             }
@@ -288,7 +292,11 @@ class Solenoid extends CI_Controller
      */
     public function delete(string $solenoidId): void
     {
-        $solenoid = $this->Solenoid_model->getById(urldecode($solenoidId));
+        // Decode the base64-encoded solenoid ID to handle special characters like slashes
+        // Base64 encoding is used because Apache blocks URL-encoded slashes (%2F)
+        $solenoidId = base64_decode($solenoidId);
+
+        $solenoid = $this->Solenoid_model->getById($solenoidId);
 
         if (!$solenoid) {
             set_message(['danger', 'Data solenoid tidak ditemukan!']);
