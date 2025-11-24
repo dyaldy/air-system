@@ -297,15 +297,22 @@ class Storage_model extends CI_Model
     }
 
     /**
-     * Get storage overview grouped by category and type
+     * Get storage overview grouped by category and type with filters and sorting
+     * 
+     * @param string|null $search_term Search keyword
+     * @param array $filters Associative array of filters (category, type, stock)
+     * @param array $sort Associative array with 'by' and 'order' keys
+     * @return array Storage overview data
      */
-    public function get_storage_overview($search_term = null)
+    public function get_storage_overview($search_term = null, $filters = [], $sort = [])
     {
         // Use REPLACE to group regular and project items together by removing _PROJECT suffix
         $this->db->select("category, REPLACE(type_id, '_PROJECT', '') as type_id, SUM(amount) as total_amount, COUNT(DISTINCT location_id) as location_count");
+        $this->db->from('as_storage');
         $this->db->group_by(array('category', "REPLACE(type_id, '_PROJECT', '')"));
         $this->db->having('SUM(amount) >', 0);
 
+        // Apply search term filter
         if ($search_term) {
             $this->db->group_start();
             $this->db->like('type_id', $search_term);
@@ -313,8 +320,113 @@ class Storage_model extends CI_Model
             $this->db->group_end();
         }
 
-        $this->db->order_by('category, type_id');
-        $query = $this->db->get('as_storage');
+        // Apply category filter
+        if (!empty($filters['category'])) {
+            $this->db->where('category', $filters['category']);
+        }
+
+        // Apply type filter (standard vs project)
+        if (!empty($filters['type'])) {
+            if ($filters['type'] === 'project') {
+                $this->db->like('type_id', '_PROJECT');
+            } elseif ($filters['type'] === 'standard') {
+                $this->db->not_like('type_id', '_PROJECT');
+            }
+        }
+
+        // Get results before applying stock filter (stock filter needs post-processing)
+        $results = $this->db->get()->result_array();
+
+        // Apply stock level filter
+        if (!empty($filters['stock'])) {
+            $results = array_filter($results, function ($item) use ($filters) {
+                $total = $item['total_amount'] ?? 0;
+                switch ($filters['stock']) {
+                    case 'out':
+                        return $total == 0;
+                    case 'low':
+                        return $total > 0 && $total <= 10; // Consider low stock as <= 10
+                    case 'in':
+                        return $total > 10;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Apply sorting
+        $sort_by = $sort['by'] ?? 'category';
+        $sort_order = $sort['order'] ?? 'asc';
+
+        usort($results, function ($a, $b) use ($sort_by, $sort_order) {
+            $val_a = $a[$sort_by] ?? '';
+            $val_b = $b[$sort_by] ?? '';
+
+            $comparison = 0;
+            if (is_numeric($val_a) && is_numeric($val_b)) {
+                $comparison = $val_a - $val_b;
+            } else {
+                $comparison = strcasecmp($val_a, $val_b);
+            }
+
+            return $sort_order === 'desc' ? -$comparison : $comparison;
+        });
+
+        return $results;
+    }
+
+    /**
+     * Get unique categories from storage
+     * 
+     * @return array List of unique categories
+     */
+    public function get_unique_categories()
+    {
+        $this->db->distinct();
+        $this->db->select('category');
+        $this->db->from('as_storage');
+        $this->db->order_by('category', 'ASC');
+        $query = $this->db->get();
+        return array_column($query->result_array(), 'category');
+    }
+
+    /**
+     * Get unique locations with optional filters
+     * 
+     * @param string|null $search_term Search keyword
+     * @param array $filters Associative array of filters
+     * @return array List of locations
+     */
+    public function get_locations_with_filters($search_term = null, $filters = [])
+    {
+        $this->db->distinct();
+        $this->db->select('location_id');
+        $this->db->from('as_storage');
+
+        // Apply search term filter
+        if ($search_term) {
+            $this->db->group_start();
+            $this->db->like('type_id', $search_term);
+            $this->db->or_like('category', $search_term);
+            $this->db->group_end();
+        }
+
+        // Apply category filter
+        if (!empty($filters['category'])) {
+            $this->db->where('category', $filters['category']);
+        }
+
+        // Apply type filter (standard vs project)
+        if (!empty($filters['type'])) {
+            if ($filters['type'] === 'project') {
+                $this->db->like('type_id', '_PROJECT');
+            } elseif ($filters['type'] === 'standard') {
+                $this->db->not_like('type_id', '_PROJECT');
+            }
+        }
+
+        $this->db->order_by('location_id');
+        $query = $this->db->get();
         return $query->result_array();
     }
 

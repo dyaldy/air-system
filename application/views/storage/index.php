@@ -28,13 +28,13 @@
         <!-- Search Bar -->
         <div class="row mb-3">
             <div class="col-12">
-                <form method="get" action="" class="d-flex gap-2">
+                <form method="get" action="<?= site_url('storage'); ?>" class="d-flex gap-2">
                     <input type="text" name="keyword" class="form-control" placeholder="Cari penyimpanan..." value="<?= htmlspecialchars($keyword); ?>">
                     <button type="submit" name="find" value="1" class="btn btn-info">
                         <i class="fas fa-search"></i> Cari
                     </button>
                     <?php if ($keyword): ?>
-                        <a href="<?= site_url('storage'); ?>" class="btn btn-outline-secondary">
+                        <a href="<?= site_url('storage?reset=1'); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i> Reset
                         </a>
                     <?php endif; ?>
@@ -47,6 +47,19 @@
             <div class="col-12 col-lg-6">
                 <h3 class="text-dark m-0">Overview Penyimpanan</h3>
                 <p class="text-muted mb-0">Kelola inventaris Anda di semua lokasi penyimpanan</p>
+                <?php if ($keyword || !empty(array_filter($filters))): ?>
+                    <small class="text-info">
+                        <i class="fas fa-info-circle"></i>
+                        <?php
+                        $active_filters = [];
+                        if ($keyword) $active_filters[] = "pencarian: \"$keyword\"";
+                        if (!empty($filters['category'])) $active_filters[] = "kategori: " . $filters['category'];
+                        if (!empty($filters['type'])) $active_filters[] = "tipe: " . $filters['type'];
+                        if (!empty($filters['stock'])) $active_filters[] = "stok: " . $filters['stock'];
+                        echo "Filter aktif: " . implode(", ", $active_filters);
+                        ?>
+                    </small>
+                <?php endif; ?>
             </div>
 
             <!-- Action Buttons -->
@@ -111,17 +124,93 @@
             </div>
         </div>
 
+        <!-- Filter Bar -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-body py-2">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <strong><i class="fas fa-filter"></i> Filter:</strong>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="category-filter" class="form-select form-select-sm">
+                                    <option value="">Semua Kategori</option>
+                                    <?php if (!empty($categories)): ?>
+                                        <?php foreach ($categories as $cat): ?>
+                                            <option value="<?= htmlspecialchars($cat); ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : ''; ?>>
+                                                <?= ucfirst(htmlspecialchars($cat)); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="type-filter" class="form-select form-select-sm">
+                                    <option value="">Semua Tipe</option>
+                                    <option value="standard" <?= ($filters['type'] ?? '') === 'standard' ? 'selected' : ''; ?>>Standard</option>
+                                    <option value="project" <?= ($filters['type'] ?? '') === 'project' ? 'selected' : ''; ?>>Project</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="stock-filter" class="form-select form-select-sm">
+                                    <option value="">Semua Stok</option>
+                                    <option value="in" <?= ($filters['stock'] ?? '') === 'in' ? 'selected' : ''; ?>>Stok Cukup (>10)</option>
+                                    <option value="low" <?= ($filters['stock'] ?? '') === 'low' ? 'selected' : ''; ?>>Stok Rendah (≤10)</option>
+                                    <option value="out" <?= ($filters['stock'] ?? '') === 'out' ? 'selected' : ''; ?>>Habis</option>
+                                </select>
+                            </div>
+                            <div class="col-auto ms-auto">
+                                <strong><i class="fas fa-sort"></i> Urutkan:</strong>
+                            </div>
+                            <div class="col-md-2">
+                                <select id="sort-by" class="form-select form-select-sm">
+                                    <option value="category" <?= ($sort['by'] ?? 'category') === 'category' ? 'selected' : ''; ?>>Kategori</option>
+                                    <option value="type_id" <?= ($sort['by'] ?? '') === 'type_id' ? 'selected' : ''; ?>>ID Tipe</option>
+                                    <option value="total_amount" <?= ($sort['by'] ?? '') === 'total_amount' ? 'selected' : ''; ?>>Total Stok</option>
+                                    <option value="location_count" <?= ($sort['by'] ?? '') === 'location_count' ? 'selected' : ''; ?>>Jumlah Lokasi</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" id="sort-order" class="btn btn-sm btn-outline-secondary" data-order="<?= $sort['order'] ?? 'asc'; ?>">
+                                    <i class="fas fa-sort-amount-<?= ($sort['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?>"></i>
+                                    <?= ($sort['order'] ?? 'asc') === 'asc' ? 'Naik' : 'Turun'; ?>
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" id="apply-filter" class="btn btn-sm btn-primary" onclick="applyFiltersNow();">
+                                    <i class="fas fa-check"></i> Terapkan
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <a href="<?= site_url('storage?reset=1'); ?>" class="btn btn-sm btn-outline-danger" title="Reset semua filter dan sorting">
+                                    <i class="fas fa-times"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Inventory Overview -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            Overview Inventaris
-                            <?php if ($keyword): ?>
-                                <small class="text-muted">(difilter untuk: "<?= htmlspecialchars($keyword); ?>")</small>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                Overview Inventaris
+                                <?php if ($keyword): ?>
+                                    <small class="text-muted">(difilter untuk: "<?= htmlspecialchars($keyword); ?>")</small>
+                                <?php endif; ?>
+                            </h5>
+                            <?php if (!empty($storage_overview)): ?>
+                                <small class="text-muted">
+                                    Menampilkan <?= count($storage_overview); ?> item
+                                </small>
                             <?php endif; ?>
-                        </h5>
+                        </div>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($storage_overview)): ?>
@@ -129,25 +218,45 @@
                                 <table class="table table-striped table-hover">
                                     <thead class="table-dark">
                                         <tr>
+                                            <th>No</th>
                                             <th>Kategori</th>
                                             <th>ID Tipe</th>
                                             <th>Total Stok</th>
                                             <th>Lokasi</th>
+                                            <th>Status</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($storage_overview as $item): ?>
+                                        <?php $no = 1;
+                                        foreach ($storage_overview as $item): ?>
                                             <tr>
+                                                <td><?= $no++; ?></td>
                                                 <td>
                                                     <span class="badge bg-primary"><?= htmlspecialchars($item['category']); ?></span>
                                                 </td>
-                                                <td><?= htmlspecialchars($item['type_id']); ?></td>
+                                                <td>
+                                                    <?= htmlspecialchars($item['type_id']); ?>
+                                                    <?php if (strpos($item['type_id'], '_PROJECT') !== false): ?>
+                                                        <span class="badge bg-warning text-dark ms-1">PROJECT</span>
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td>
                                                     <strong><?= number_format($item['total_amount'] ?? 0); ?></strong>
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-info"><?= $item['location_count']; ?> lokasi</span>
+                                                </td>
+                                                <td>
+                                                    <?php
+                                                    $total = $item['total_amount'] ?? 0;
+                                                    if ($total == 0): ?>
+                                                        <span class="badge bg-danger">Habis</span>
+                                                    <?php elseif ($total <= 10): ?>
+                                                        <span class="badge bg-warning text-dark">Stok Rendah</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-success">Stok Cukup</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm" role="group">
@@ -1725,5 +1834,99 @@
                 return false;
             });
         });
+
+        // Initialize filter and sort functionality
+        initializeFilterSort();
     });
+
+    // Filter and Sort Functionality
+    function initializeFilterSort() {
+        const categoryFilter = document.getElementById('category-filter');
+        const typeFilter = document.getElementById('type-filter');
+        const stockFilter = document.getElementById('stock-filter');
+        const sortBy = document.getElementById('sort-by');
+        const sortOrder = document.getElementById('sort-order');
+        const applyButton = document.getElementById('apply-filter');
+
+        // Apply button handler
+        if (applyButton) {
+            applyButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                applyFilters();
+            });
+        }
+
+        // Allow Enter key in filters to apply
+        [categoryFilter, typeFilter, stockFilter, sortBy].forEach(function(element) {
+            if (element) {
+                element.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyFilters();
+                    }
+                });
+            }
+        });
+
+        // Sort order toggle button
+        if (sortOrder) {
+            sortOrder.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Toggle sort order
+                const currentOrder = this.getAttribute('data-order');
+                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+                this.setAttribute('data-order', newOrder);
+
+                // Update button text and icon
+                const icon = this.querySelector('i');
+                const text = this.childNodes[this.childNodes.length - 1];
+                if (newOrder === 'asc') {
+                    icon.className = 'fas fa-sort-amount-up';
+                    text.textContent = ' Naik';
+                } else {
+                    icon.className = 'fas fa-sort-amount-down';
+                    text.textContent = ' Turun';
+                }
+
+                // Don't auto-apply, let user click Apply button
+            });
+        }
+    }
+
+    function applyFiltersNow() {
+        var category = document.getElementById('category-filter').value;
+        var type = document.getElementById('type-filter').value;
+        var stock = document.getElementById('stock-filter').value;
+        var sortBy = document.getElementById('sort-by').value;
+        var sortOrder = document.getElementById('sort-order').getAttribute('data-order');
+
+        // Build URL
+        var params = [];
+
+        // Preserve keyword
+        var keyword = '<?= $keyword; ?>';
+        if (keyword) {
+            params.push('keyword=' + encodeURIComponent(keyword));
+        }
+
+        // Add filters
+        if (category) params.push('category=' + encodeURIComponent(category));
+        if (type) params.push('type=' + encodeURIComponent(type));
+        if (stock) params.push('stock=' + encodeURIComponent(stock));
+
+        // Add sort
+        if (sortBy) params.push('sort=' + encodeURIComponent(sortBy));
+        if (sortOrder) params.push('order=' + encodeURIComponent(sortOrder));
+
+        var url = '<?= site_url("storage"); ?>';
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+
+        window.location.href = url;
+    }
+
+    function applyFilters() {
+        applyFiltersNow();
+    }
 </script>

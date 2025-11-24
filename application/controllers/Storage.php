@@ -94,34 +94,79 @@ class Storage extends CI_Controller
         $keyword = $this->input->get('keyword');
         if ($this->input->get('find') && $keyword !== null) {
             $this->session->set_userdata('keyword', $keyword);
-            $this->session->unset_userdata(['sort', 'filter']);
             redirect('storage?keyword=' . urlencode($keyword));
         }
 
-        // Handle reset (if no keyword in URL)
-        if (!$this->input->get('keyword')) {
-            $this->session->unset_userdata(['keyword', 'sort', 'filter']);
+        // Handle filter and sort from GET parameters
+        $category_filter = $this->input->get('category');
+        $type_filter = $this->input->get('type');
+        $stock_filter = $this->input->get('stock');
+        $sort_by = $this->input->get('sort');
+        $sort_order = $this->input->get('order') ?: 'asc';
+
+        // Store filters in session
+        if ($category_filter !== null) {
+            $this->session->set_userdata('storage_category_filter', $category_filter);
+        }
+        if ($type_filter !== null) {
+            $this->session->set_userdata('storage_type_filter', $type_filter);
+        }
+        if ($stock_filter !== null) {
+            $this->session->set_userdata('storage_stock_filter', $stock_filter);
+        }
+        if ($sort_by !== null) {
+            $this->session->set_userdata('storage_sort_by', $sort_by);
+            $this->session->set_userdata('storage_sort_order', $sort_order);
+        }
+
+        // Handle reset
+        if ($this->input->get('reset') === '1') {
+            $this->session->unset_userdata([
+                'keyword',
+                'storage_category_filter',
+                'storage_type_filter',
+                'storage_stock_filter',
+                'storage_sort_by',
+                'storage_sort_order'
+            ]);
+            redirect('storage');
         }
 
         $data['title'] = 'Storage Overview';
         $data['user_data'] = $this->session->userdata('user_data');
 
         try {
-            // Get storage overview data using available methods
+            // Get filter and sort parameters from session
             $keyword = $this->session->userdata('keyword');
-            $data['storage_overview'] = $this->Storage_model->get_storage_overview($keyword);
+            $filters = [
+                'category' => $this->session->userdata('storage_category_filter'),
+                'type' => $this->session->userdata('storage_type_filter'),
+                'stock' => $this->session->userdata('storage_stock_filter')
+            ];
+            $sort = [
+                'by' => $this->session->userdata('storage_sort_by') ?: 'category',
+                'order' => $this->session->userdata('storage_sort_order') ?: 'asc'
+            ];
 
-            // Use search-aware methods for locations and transactions when keyword is present
-            if ($keyword) {
-                $data['locations'] = $this->Storage_model->get_locations_with_search($keyword);
+            // Get storage overview data with filters and sorting
+            $data['storage_overview'] = $this->Storage_model->get_storage_overview($keyword, $filters, $sort);
+
+            // Get unique categories for filter dropdown
+            $data['categories'] = $this->Storage_model->get_unique_categories();
+
+            // Use search-aware methods for locations and transactions
+            if ($keyword || !empty(array_filter($filters))) {
+                $data['locations'] = $this->Storage_model->get_locations_with_filters($keyword, $filters);
                 $data['recent_transactions'] = $this->Report_model->get_transactions_with_search($keyword, 7);
             } else {
                 $data['locations'] = $this->Storage_model->get_all_locations();
                 $data['recent_transactions'] = $this->Report_model->get_all_transactions(7);
             }
 
-            // Get search and filter data from session
+            // Pass filter and sort data to view
             $data['keyword'] = $keyword ?: '';
+            $data['filters'] = $filters;
+            $data['sort'] = $sort;
 
             render_view('storage/index', $data);
         } catch (Exception $e) {
