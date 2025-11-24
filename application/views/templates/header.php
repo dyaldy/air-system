@@ -90,6 +90,11 @@
                             <a class="nav-link" href="<?= site_url('regulator'); ?>">Regulator</a>
                         </li>
 
+                        <!-- Link to Hose Controller -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= site_url('hose'); ?>">Hose</a>
+                        </li>
+
                         <!-- Link to Storage Controller -->
                         <li class="nav-item">
                             <a class="nav-link" href="<?= site_url('storage'); ?>">Penyimpanan</a>

@@ -65,6 +65,7 @@
                         <option value="solenoid" <?= set_select('category', 'solenoid'); ?>>Solenoid</option>
                         <option value="manifold" <?= set_select('category', 'manifold'); ?>>Manifold</option>
                         <option value="regulator" <?= set_select('category', 'regulator'); ?>>Regulator</option>
+                        <option value="hose" <?= set_select('category', 'hose'); ?>>Hose</option>
                     </select>
                     <?php if (form_error('category')): ?>
                         <div class="invalid-feedback"><?= form_error('category'); ?></div>
@@ -183,6 +184,8 @@
         const manifoldItems = <?= json_encode($manifold_items ?? []); ?>;
         // Regulator items data from PHP
         const regulatorItems = <?= json_encode($regulator_items ?? []); ?>;
+        // Hose items data from PHP
+        const hoseItems = <?= json_encode($hose_items ?? []); ?>;
 
         function updateTypeOptions() {
             const category = document.getElementById('category').value;
@@ -265,6 +268,17 @@
                     }
                     typeSelect.appendChild(option);
                 });
+            } else if (category === 'hose') {
+                // Populate with hose items
+                hoseItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.hose_id;
+                    option.textContent = `${item.hose_id} (Diameter: ${item.diameter})`;
+                    if (option.value === '<?= set_value('type_id'); ?>') {
+                        option.selected = true;
+                    }
+                    typeSelect.appendChild(option);
+                });
             } else if (category) {
                 // For other categories under development, allow manual input
                 const option = document.createElement('option');
@@ -340,8 +354,8 @@
                         imageUrl = '<?= base_url('assets/img/solenoid_types/'); ?>' + item.type_image;
                         typeName = item.type || typeId;
                     }
-                } else if (category === 'manifold' || category === 'regulator') {
-                    // Manifold and Regulator don't have images, don't show image container
+                } else if (category === 'manifold' || category === 'regulator' || category === 'hose') {
+                    // Manifold, Regulator, and Hose don't have images, don't show image container
                     typeImageContainer.style.display = 'none';
                     return;
                 }

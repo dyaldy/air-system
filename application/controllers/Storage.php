@@ -71,6 +71,7 @@ class Storage extends CI_Controller
             'Solenoid_type_model',
             'Manifold_model',
             'Regulator_model',
+            'Hose_model',
             'Project_batch_model'
         ]);
         $this->load->library(['form_validation', 'session', 'pagination']);
@@ -224,6 +225,7 @@ class Storage extends CI_Controller
         $data['solenoid_items'] = $this->get_solenoids_with_images();
         $data['manifold_items'] = $this->get_manifolds_with_images();
         $data['regulator_items'] = $this->get_regulators_with_images();
+        $data['hose_items'] = $this->get_hoses_with_images();
         $data['locations'] = $this->Storage_model->get_all_locations();
 
         // Set validation rules
@@ -300,6 +302,16 @@ class Storage extends CI_Controller
             $regulator = $this->Regulator_model->getById($type_id);
             if (!$regulator) {
                 $this->session->set_flashdata('error', 'Regulator item not found!');
+                redirect('storage/store');
+                return;
+            }
+        }
+
+        // Validate if hose exists (for hose category)
+        if ($category === 'hose') {
+            $hose = $this->Hose_model->getById($type_id);
+            if (!$hose) {
+                $this->session->set_flashdata('error', 'Hose item not found!');
                 redirect('storage/store');
                 return;
             }
@@ -1794,6 +1806,18 @@ class Storage extends CI_Controller
         $this->db->select("r.*, '' as type_image");
         $this->db->from('as_regulator r');
         $this->db->order_by('r.updated_at', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Get hoses with images (no images for hose)
+     */
+    private function get_hoses_with_images(): array
+    {
+        $this->db->select("h.*, '' as type_image");
+        $this->db->from('as_hose h');
+        $this->db->order_by('h.updated_at', 'DESC');
         $query = $this->db->get();
         return $query->result_array();
     }

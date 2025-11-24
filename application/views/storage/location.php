@@ -905,8 +905,8 @@
         const typeImage = document.getElementById('quickActionTypeImage');
         const typeImageLabel = document.getElementById('quickActionTypeImageLabel');
 
-        // Don't show image container for manifold or regulator
-        if (category === 'manifold' || category === 'regulator') {
+        // Don't show image container for manifold, regulator, or hose
+        if (category === 'manifold' || category === 'regulator' || category === 'hose') {
             typeImageContainer.style.display = 'none';
             return;
         }

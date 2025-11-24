@@ -1618,8 +1618,8 @@
         const typeImage = document.getElementById('storeTypeImage');
         const typeImageLabel = document.getElementById('storeTypeImageLabel');
 
-        // Don't show image container for manifold or regulator
-        if (category === 'manifold' || category === 'regulator') {
+        // Don't show image container for manifold, regulator, or hose
+        if (category === 'manifold' || category === 'regulator' || category === 'hose') {
             typeImageContainer.style.display = 'none';
             return;
         }
@@ -1664,8 +1664,8 @@
         const typeImage = document.getElementById('takeTypeImage');
         const typeImageLabel = document.getElementById('takeTypeImageLabel');
 
-        // Don't show image container for manifold or regulator
-        if (category === 'manifold' || category === 'regulator') {
+        // Don't show image container for manifold, regulator, or hose
+        if (category === 'manifold' || category === 'regulator' || category === 'hose') {
             typeImageContainer.style.display = 'none';
             return;
         }
