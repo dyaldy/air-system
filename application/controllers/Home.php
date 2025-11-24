@@ -71,6 +71,13 @@ class Home extends CI_Controller
             $data['total_fittings'] = 0;
         }
 
+        // Get total storage items (active storage locations)
+        try {
+            $data['total_storage_items'] = $this->Storage_model->countStorageLocations() ?? 0;
+        } catch (Exception $e) {
+            $data['total_storage_items'] = 0;
+        }
+
         // Get low stock alerts
         try {
             $data['low_stock_items'] = $this->Storage_model->get_low_stock_items();

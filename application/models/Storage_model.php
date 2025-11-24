@@ -137,6 +137,19 @@ class Storage_model extends CI_Model
     }
 
     /**
+     * Count unique storage locations (distinct location_id)
+     * 
+     * @return int Number of distinct storage locations
+     */
+    public function countStorageLocations()
+    {
+        $this->db->distinct();
+        $this->db->select('location_id');
+        $this->db->from('as_storage');
+        return $this->db->count_all_results();
+    }
+
+    /**
      * Get storage by location
      */
     public function get_storage_by_location($location_id)
