@@ -144,7 +144,7 @@ class Regulator extends CI_Controller
             fputcsv($output, [
                 $regulator['regulator_id'],
                 $regulator['type'],
-                $regulator['min_stock'] ?? 5,
+                $regulator['min_stock'] ?? '',
                 $regulator['created_at'],
                 $regulator['updated_at']
             ]);
@@ -158,25 +158,58 @@ class Regulator extends CI_Controller
     {
         $regulators = $this->Regulator_model->getAllRegulator();
         require_once(APPPATH . '../vendor/autoload.php');
-        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        $pdf->SetCreator(PDF_CREATOR);
+        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Air System');
         $pdf->SetAuthor('Air System');
         $pdf->SetTitle('Data Regulator');
-        $pdf->SetHeaderData('', 0, 'Data Regulator', date('Y-m-d H:i:s'));
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set margins
+        $pdf->SetMargins(10, 10, 10);
+        $pdf->SetAutoPageBreak(true, 10);
+
+        // Add a page
         $pdf->AddPage();
 
-        $html = '<h1>Data Regulator</h1><table border="1" cellpadding="4">';
-        $html .= '<thead><tr style="background-color:#f0f0f0;"><th>Regulator ID</th><th>Type</th><th>Min Stock</th></tr></thead><tbody>';
+        // Set font
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'Data Regulator', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Table header
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->SetFillColor(66, 139, 202);
+        $pdf->SetTextColor(255, 255, 255);
+
+        $pdf->Cell(70, 7, 'Regulator ID', 1, 0, 'C', 1);
+        $pdf->Cell(60, 7, 'Type', 1, 0, 'C', 1);
+        $pdf->Cell(50, 7, 'Created At', 1, 0, 'C', 1);
+        $pdf->Cell(50, 7, 'Updated At', 1, 0, 'C', 1);
+        $pdf->Cell(40, 7, 'Editor', 1, 1, 'C', 1);
+
+        // Table data
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetTextColor(0, 0, 0);
+        $fill = false;
 
         foreach ($regulators as $regulator) {
-            $html .= '<tr><td>' . htmlspecialchars($regulator['regulator_id']) . '</td>';
-            $html .= '<td>' . htmlspecialchars($regulator['type']) . '</td>';
-            $html .= '<td>' . htmlspecialchars($regulator['min_stock'] ?? 5) . '</td></tr>';
+            $pdf->SetFillColor(245, 245, 245);
+            $pdf->Cell(70, 6, $regulator['regulator_id'], 1, 0, 'L', $fill);
+            $pdf->Cell(60, 6, $regulator['type'], 1, 0, 'L', $fill);
+            $pdf->Cell(50, 6, $regulator['created_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(50, 6, $regulator['updated_at'], 1, 0, 'C', $fill);
+            $pdf->Cell(40, 6, $regulator['editor'], 1, 1, 'C', $fill);
+            $fill = !$fill;
         }
 
-        $html .= '</tbody></table>';
-        $pdf->writeHTML($html, true, false, true, false, '');
-        $pdf->Output('regulator_data_' . date('YmdHis') . '.pdf', 'D');
+        $filename = 'Data Regulator ' . date('Y-m-d H-i-s') . '.pdf';
+        $pdf->Output($filename, 'D');
+        exit;
     }
 
     public function upload(): void
@@ -250,9 +283,10 @@ class Regulator extends CI_Controller
                 $insertData[] = [
                     'regulator_id' => $regulatorId,
                     'type'         => $type,
-                    'min_stock'    => 5,
+                    'min_stock'    => null,
                     'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
                     'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+                    'editor'       => $this->session->userdata('username'),
                 ];
             }
 

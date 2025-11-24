@@ -132,12 +132,14 @@ class Regulator_model extends CI_Model
         $type = $this->input->post('type');
         $regulatorId = 'reg-' . strtolower(str_replace(' ', '', $type));
 
+        $minStock = $this->input->post('min_stock');
         $data = [
             'regulator_id' => $regulatorId,
             'type'         => $type,
-            'min_stock'    => $this->input->post('min_stock') ?: 5,
+            'min_stock'    => ($minStock !== '' && $minStock !== null) ? (int)$minStock : null,
             'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
             'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+            'editor'       => $this->session->userdata('username'),
         ];
 
         return $this->db->insert($this->table, $data);
@@ -148,9 +150,11 @@ class Regulator_model extends CI_Model
      */
     public function editRegulator($regulatorId)
     {
+        $minStock = $this->input->post('min_stock');
         $data = [
-            'min_stock'  => $this->input->post('min_stock') ?: 5,
+            'min_stock'  => ($minStock !== '' && $minStock !== null) ? (int)$minStock : null,
             'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
+            'editor'     => $this->session->userdata('username'),
         ];
 
         $this->db->where('regulator_id', $regulatorId);
