@@ -109,7 +109,7 @@
                     <p class="text-muted small mb-0">Perbandingan aktivitas penyimpanan vs pengambilan dalam 7 hari terakhir</p>
                 </div>
                 <div class="card-body p-4">
-                    <div style="position: relative; height: 300px;">
+                    <div style="position: relative; height: 250px;">
                         <canvas id="activityChart"></canvas>
                     </div>
                     <div class="mt-3 text-center">
@@ -117,6 +117,37 @@
                             <i class="fas fa-plus-circle text-success me-1"></i>Penyimpanan
                             <i class="fas fa-minus-circle text-danger ms-3 me-1"></i>Pengambilan
                         </small>
+                    </div>
+
+                    <!-- Summary Statistics for 7 days -->
+                    <div class="row mt-3 border-top pt-3">
+                        <?php
+                        $total_store_trans = 0;
+                        $total_store_items = 0;
+                        $total_retrieve_trans = 0;
+                        $total_retrieve_items = 0;
+
+                        foreach ($activity_trend as $day) {
+                            $total_store_trans += $day['store'];
+                            $total_store_items += $day['store_amount'];
+                            $total_retrieve_trans += $day['retrieve'];
+                            $total_retrieve_items += $day['retrieve_amount'];
+                        }
+                        ?>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-success fw-bold"><?= number_format($total_store_trans); ?> transaksi</div>
+                                <small class="text-muted">Penyimpanan</small>
+                                <div class="text-success mt-1"><?= number_format($total_store_items); ?> item</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-danger fw-bold"><?= number_format($total_retrieve_trans); ?> transaksi</div>
+                                <small class="text-muted">Pengambilan</small>
+                                <div class="text-danger mt-1"><?= number_format($total_retrieve_items); ?> item</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -510,7 +541,7 @@
             }
         });
 
-        // Activity Trend Chart (7 days) - Store vs Retrieve
+        // Activity Trend Chart (7 days) - Store vs Retrieve with detailed information
         const activityCtx = document.getElementById('activityChart').getContext('2d');
         const activityData = <?= json_encode($activity_trend ?? []); ?>;
 
@@ -562,12 +593,53 @@
                     },
                     tooltip: {
                         callbacks: {
+                            title: function(context) {
+                                return 'Tanggal: ' + context[0].label;
+                            },
                             label: function(context) {
-                                const label = context.dataset.label || '';
-                                const value = context.parsed.y;
-                                return label + ': ' + value + ' aktivitas';
+                                const dataIndex = context.dataIndex;
+                                const dataPoint = activityData[dataIndex];
+                                const isStore = context.datasetIndex === 0;
+
+                                if (isStore) {
+                                    const count = dataPoint.store;
+                                    const amount = dataPoint.store_amount || 0;
+                                    return 'Penyimpanan: ' + count + ' transaksi (' + amount.toLocaleString() + ' item)';
+                                } else {
+                                    const count = dataPoint.retrieve;
+                                    const amount = dataPoint.retrieve_amount || 0;
+                                    return 'Pengambilan: ' + count + ' transaksi (' + amount.toLocaleString() + ' item)';
+                                }
+                            },
+                            afterLabel: function(context) {
+                                const dataIndex = context.dataIndex;
+                                const dataPoint = activityData[dataIndex];
+                                const isStore = context.datasetIndex === 0;
+
+                                const categories = isStore ? dataPoint.store_by_category : dataPoint.retrieve_by_category;
+
+                                if (categories && Object.keys(categories).length > 0) {
+                                    let lines = ['', 'Rincian per Kategori:'];
+
+                                    for (const [category, data] of Object.entries(categories)) {
+                                        const categoryName = category === 'pneumatic' ? 'Pneumatic' :
+                                            category === 'fitting' ? 'Fitting' :
+                                            category.charAt(0).toUpperCase() + category.slice(1);
+                                        lines.push('  • ' + categoryName + ': ' + data.count + ' transaksi (' + data.amount.toLocaleString() + ' item)');
+                                    }
+
+                                    return lines;
+                                }
+
+                                return '';
                             }
-                        }
+                        },
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        displayColors: true,
+                        boxPadding: 6
                     }
                 },
                 scales: {
@@ -590,6 +662,14 @@
                             precision: 0,
                             font: {
                                 size: 12
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Transaksi',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
                             }
                         }
                     }

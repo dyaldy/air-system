@@ -130,38 +130,78 @@ class Home extends CI_Controller
             $data['recent_activities'] = [];
         }
 
-        // Get activity trend for the last 7 days (separate store/retrieve)
+        // Get activity trend for the last 7 days (separate store/retrieve with amounts and categories)
         try {
             $activity_trend = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = date('Y-m-d', strtotime("-{$i} days"));
 
-                // Count store activities
-                $this->db->select('COUNT(*) as store_count');
+                // Get store activities with amounts and categories
+                $this->db->select('COUNT(*) as store_count, SUM(amount) as store_amount, category');
                 $this->db->from('as_report');
                 $this->db->where('DATE(datetime)', $date);
                 $this->db->where('action', 'store');
+                $this->db->group_by('category');
                 $store_query = $this->db->get();
-                $store_result = $store_query->row_array();
+                $store_results = $store_query->result_array();
 
-                // Count retrieve activities
-                $this->db->select('COUNT(*) as retrieve_count');
+                // Get retrieve activities with amounts and categories
+                $this->db->select('COUNT(*) as retrieve_count, SUM(amount) as retrieve_amount, category');
                 $this->db->from('as_report');
                 $this->db->where('DATE(datetime)', $date);
                 $this->db->where('action !=', 'store');
+                $this->db->group_by('category');
                 $retrieve_query = $this->db->get();
-                $retrieve_result = $retrieve_query->row_array();
+                $retrieve_results = $retrieve_query->result_array();
+
+                // Calculate totals
+                $total_store_count = 0;
+                $total_store_amount = 0;
+                $store_by_category = [];
+                foreach ($store_results as $row) {
+                    $total_store_count += (int)$row['store_count'];
+                    $total_store_amount += (int)$row['store_amount'];
+                    $store_by_category[$row['category']] = [
+                        'count' => (int)$row['store_count'],
+                        'amount' => (int)$row['store_amount']
+                    ];
+                }
+
+                $total_retrieve_count = 0;
+                $total_retrieve_amount = 0;
+                $retrieve_by_category = [];
+                foreach ($retrieve_results as $row) {
+                    $total_retrieve_count += (int)$row['retrieve_count'];
+                    $total_retrieve_amount += (int)$row['retrieve_amount'];
+                    $retrieve_by_category[$row['category']] = [
+                        'count' => (int)$row['retrieve_count'],
+                        'amount' => (int)$row['retrieve_amount']
+                    ];
+                }
 
                 $activity_trend[] = [
                     'date' => date('d/m', strtotime($date)),
-                    'store' => (int)($store_result['store_count'] ?? 0),
-                    'retrieve' => (int)($retrieve_result['retrieve_count'] ?? 0),
-                    'total' => (int)($store_result['store_count'] ?? 0) + (int)($retrieve_result['retrieve_count'] ?? 0)
+                    'store' => $total_store_count,
+                    'store_amount' => $total_store_amount,
+                    'store_by_category' => $store_by_category,
+                    'retrieve' => $total_retrieve_count,
+                    'retrieve_amount' => $total_retrieve_amount,
+                    'retrieve_by_category' => $retrieve_by_category,
+                    'total' => $total_store_count + $total_retrieve_count
                 ];
             }
             $data['activity_trend'] = $activity_trend;
         } catch (Exception $e) {
-            $data['activity_trend'] = array_fill(0, 7, ['date' => '', 'store' => 0, 'retrieve' => 0, 'total' => 0]);
+            $data['activity_trend'] = array_fill(0, 7, [
+                'date' => '',
+                'store' => 0,
+                'store_amount' => 0,
+                'store_by_category' => [],
+                'retrieve' => 0,
+                'retrieve_amount' => 0,
+                'retrieve_by_category' => [],
+                'total' => 0
+            ]);
         }
 
         // Get user information
