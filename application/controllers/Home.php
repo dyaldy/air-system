@@ -214,7 +214,6 @@ class Home extends CI_Controller
         // Get user information
         $userData = $this->session->userdata('user_data');
         $data['user_name'] = $userData['name'] ?? 'Guest';
-        $data['user_level'] = $userData['user_level'] ?? 'UNKNOWN';
 
         // Get current date and time in Indonesian format
         $months = [

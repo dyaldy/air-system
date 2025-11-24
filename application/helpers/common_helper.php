@@ -204,14 +204,6 @@ if (!function_exists('reset_controller_session')) {
     }
 }
 
-
-
-
-
-
-
-
-
 if (!function_exists('format_datetime_indonesian')) {
     /**
      * Format datetime to Indonesian format.

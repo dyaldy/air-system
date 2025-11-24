@@ -163,33 +163,6 @@ window.AirSystemUtils = (function() {
         return handleCSVUpload(formId, fileInputId, onSuccess, onError);
     }
 
-    // Legacy function handler - keeping for old code
-    const _legacyHandleExcelUpload = function(formId, fileInputId, onSuccess, onError) {
-        const form = document.getElementById(formId);
-        const fileInput = document.getElementById(fileInputId);
-
-        if (!form || !fileInput) {
-            console.error('Form or file input element not found');
-            return;
-        }
-
-        const validation = validateExcelFile(fileInput);
-        
-        if (validation.isValid) {
-            if (typeof onSuccess === 'function') {
-                onSuccess(form, fileInput);
-            } else {
-                form.submit();
-            }
-        } else {
-            if (typeof onError === 'function') {
-                onError(validation.message);
-            } else {
-                alert(validation.message);
-            }
-        }
-    }
-
     /**
      * Apply filters by building and submitting a POST form
      * @param {Object} filterData - Filter data as key-value pairs

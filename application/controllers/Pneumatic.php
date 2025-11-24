@@ -497,10 +497,6 @@ class Pneumatic extends CI_Controller
         exit;
     }
 
-
-
-
-
     /**
      * Handle file upload posted to index (ASRS-style).
      * This mirrors the upload handling in ASRS User controller but for pneumatic data.

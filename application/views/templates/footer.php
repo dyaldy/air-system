@@ -18,10 +18,8 @@
 
     <!-- Load common utilities first (required by other scripts) -->
     <script src="<?= base_url('assets/js/common.js') ?>"></script>
-    <script src="<?= base_url('assets/js/filter-manager.js') ?>"></script>
 
     <!-- Load existing utilities -->
-    <script src="<?= base_url('assets/js/tooltip.js') ?>"></script>
     <script src="<?= base_url('assets/js/popoverlogic.js') ?>"></script>
     <script src="<?= base_url('assets/js/notificationlogic.js') ?>"></script>
     <script src="<?= base_url('assets/js/forminput.js') ?>"></script>
