@@ -148,8 +148,23 @@ class Storage extends CI_Controller
                 'order' => $this->session->userdata('storage_sort_order') ?: 'asc'
             ];
 
-            // Get storage overview data with filters and sorting
-            $data['storage_overview'] = $this->Storage_model->get_storage_overview($keyword, $filters, $sort);
+            // Get all items for count
+            $all_items = $this->Storage_model->get_storage_overview($keyword, $filters, $sort);
+            $totalRows = count($all_items);
+
+            // Setup pagination using common helper
+            $config = setup_pagination(site_url('storage/index'), $totalRows, self::CONFIG['pagination']['items_per_page']);
+            $this->pagination->initialize($config);
+
+            // Get page number (use_page_numbers is true)
+            $page = (int) ($this->uri->segment(3) ?: 1);
+            $startData = ($page - 1) * self::CONFIG['pagination']['items_per_page'];
+
+            // Slice array for current page
+            $data['storage_overview'] = array_slice($all_items, $startData, self::CONFIG['pagination']['items_per_page']);
+            $data['pagination'] = ['links' => $this->pagination->create_links()];
+            $data['total_rows'] = $totalRows;
+            $data['start_index'] = $startData;
 
             // Get unique categories for filter dropdown
             $data['categories'] = $this->Storage_model->get_unique_categories();

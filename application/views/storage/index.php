@@ -228,7 +228,8 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php $no = 1;
+                                        <?php
+                                        $no = ($start_index ?? 0) + 1;
                                         foreach ($storage_overview as $item): ?>
                                             <tr>
                                                 <td><?= $no++; ?></td>
@@ -287,6 +288,14 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Pagination -->
+                            <?php if (!empty($pagination['links'])): ?>
+                                <div class="mt-3 d-flex justify-content-center">
+                                    <?= $pagination['links']; ?>
+                                </div>
+                            <?php endif; ?>
+
                         <?php else: ?>
                             <div class="alert alert-info">
                                 <?php if ($keyword): ?>
