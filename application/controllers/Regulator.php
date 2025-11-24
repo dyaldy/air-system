@@ -138,7 +138,7 @@ class Regulator extends CI_Controller
 
         $output = fopen('php://output', 'w');
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        fputcsv($output, ['Regulator ID', 'Type', 'Min Stock', 'Created At', 'Updated At']);
+        fputcsv($output, ['Regulator ID', 'Type', 'Min Stock', 'Created At', 'Updated At', 'Editor']);
 
         foreach ($regulators as $regulator) {
             fputcsv($output, [
@@ -146,7 +146,8 @@ class Regulator extends CI_Controller
                 $regulator['type'],
                 $regulator['min_stock'] ?? '',
                 $regulator['created_at'],
-                $regulator['updated_at']
+                $regulator['updated_at'],
+                $regulator['editor'] ?? ''
             ]);
         }
 
@@ -286,7 +287,7 @@ class Regulator extends CI_Controller
                     'min_stock'    => null,
                     'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
                     'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                    'editor'       => $this->session->userdata('username'),
+                    'editor'       => $this->session->userdata('user_data')['nik'],
                 ];
             }
 

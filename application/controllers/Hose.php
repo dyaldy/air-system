@@ -138,7 +138,7 @@ class Hose extends CI_Controller
 
         $output = fopen('php://output', 'w');
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        fputcsv($output, ['Hose ID', 'Diameter', 'Min Stock', 'Created At', 'Updated At']);
+        fputcsv($output, ['Hose ID', 'Diameter', 'Min Stock', 'Created At', 'Updated At', 'Editor']);
 
         foreach ($hoses as $hose) {
             fputcsv($output, [
@@ -146,7 +146,8 @@ class Hose extends CI_Controller
                 $hose['diameter'],
                 $hose['min_stock'] ?? '',
                 $hose['created_at'],
-                $hose['updated_at']
+                $hose['updated_at'],
+                $hose['editor'] ?? ''
             ]);
         }
 
@@ -286,7 +287,7 @@ class Hose extends CI_Controller
                     'min_stock'  => null,
                     'created_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
                     'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-                    'editor'     => $this->session->userdata('username'),
+                    'editor'     => $this->session->userdata('user_data')['nik'],
                 ];
             }
 

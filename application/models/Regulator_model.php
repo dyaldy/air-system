@@ -139,7 +139,7 @@ class Regulator_model extends CI_Model
             'min_stock'    => ($minStock !== '' && $minStock !== null) ? (int)$minStock : null,
             'created_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
             'updated_at'   => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-            'editor'       => $this->session->userdata('username'),
+            'editor'       => $this->session->userdata('user_data')['nik'],
         ];
 
         return $this->db->insert($this->table, $data);
@@ -154,7 +154,7 @@ class Regulator_model extends CI_Model
         $data = [
             'min_stock'  => ($minStock !== '' && $minStock !== null) ? (int)$minStock : null,
             'updated_at' => mdate('%Y-%m-%d %H:%i:%s', now('Asia/Jakarta')),
-            'editor'     => $this->session->userdata('username'),
+            'editor'     => $this->session->userdata('user_data')['nik'],
         ];
 
         $this->db->where('regulator_id', $regulatorId);
