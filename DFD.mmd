@@ -1,0 +1,73 @@
+flowchart TD
+    %% Styles
+    classDef entity fill:#bbdefb,stroke:#1565c0,stroke-width:2px;
+    classDef process fill:#e1bee7,stroke:#4a148c,stroke-width:2px,rx:10,ry:10;
+    classDef store fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
+
+    %% ==========================================
+    %% Level 0: Context Diagram
+    %% ==========================================
+    subgraph Level0 [Level 0: Context Diagram]
+        direction LR
+        User0[User / Admin]:::entity
+        System0((0.0<br/>Air System)):::process
+        
+        User0 -->|Login Credentials<br/>Store/Take Requests<br/>Item Details<br/>User Data<br/>Report Filters| System0
+        System0 -->|Auth Status<br/>Dashboard Stats<br/>Low Stock Alerts<br/>Transaction Logs<br/>Operation Success/Error| User0
+    end
+
+    %% ==========================================
+    %% Level 1: Detailed DFD
+    %% ==========================================
+    subgraph Level1 [Level 1: Data Flow Diagram]
+        direction TB
+        
+        %% External Entity
+        User1[User / Admin]:::entity
+
+        %% Processes
+        P1((1.0<br/>Authentication)):::process
+        P2((2.0<br/>Dashboard &<br/>Monitoring)):::process
+        P3((3.0<br/>Storage<br/>Operations)):::process
+        P4((4.0<br/>Inventory<br/>Management)):::process
+        P5((5.0<br/>User<br/>Management)):::process
+        P6((6.0<br/>Reporting)):::process
+
+        %% Data Stores
+        D1[(D1 Users)]:::store
+        D2[(D2 Storage)]:::store
+        D3[(D3 Items)]:::store
+        D4[(D4 Project Batches)]:::store
+        D5[(D5 Reports)]:::store
+
+        %% 1.0 Auth Flows
+        User1 -->|NIK| P1
+        P1 <-->|Validate User| D1
+        P1 -->|Session Token| User1
+
+        %% 2.0 Dashboard Flows
+        User1 -->|Request View| P2
+        P2 <-->|Count/Check Stock| D2
+        P2 <-->|Count Items| D3
+        P2 -->|Stats & Alerts| User1
+
+        %% 3.0 Storage Flows
+        User1 -->|Store/Take Request| P3
+        P3 -->|Update Quantity| D2
+        P3 <-->|Manage Batches| D4
+        P3 -->|Log Transaction| D5
+        P3 -->|Confirmation| User1
+
+        %% 4.0 Inventory Flows
+        User1 -->|Item Details| P4
+        P4 -->|CRUD Operations| D3
+
+        %% 5.0 User Mgmt Flows
+        User1 -->|User Details| P5
+        P5 -->|CRUD Operations| D1
+
+        %% 6.0 Reporting Flows
+        User1 -->|Filter Criteria| P6
+        P6 <-->|Fetch Logs| D5
+        P6 -->|Generated Report| User1
+    end
