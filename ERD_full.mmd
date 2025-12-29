@@ -1,0 +1,171 @@
+erDiagram
+    as_user {
+        int nik PK "int(9)"
+        varchar name "varchar(30)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_fitting_types {
+        int id PK "int(10)"
+        varchar type UK "varchar(30)"
+        varchar image "varchar(255)"
+        datetime created_at
+        datetime updated_at
+    }
+
+    as_fitting_subtypes {
+        int id PK "int(10)"
+        varchar parent_type FK "varchar(30)"
+        varchar subtype "varchar(15)"
+        text description
+        varchar image "varchar(255)"
+        datetime created_at
+        datetime updated_at
+    }
+
+    as_fitting {
+        varchar fitting_id PK "varchar(50)"
+        varchar type FK "varchar(30)"
+        varchar subtype FK "varchar(15)"
+        decimal D1 "decimal(8,2)"
+        decimal D2 "decimal(8,2)"
+        decimal D3 "decimal(8,2)"
+        varchar R_DRAT "varchar(20)"
+        int min_stock "int(11)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_pneumatic_types {
+        int id PK "int(10)"
+        varchar type UK "varchar(15)"
+        varchar image "varchar(255)"
+        datetime created_at
+        datetime updated_at
+    }
+
+    as_pneumatic {
+        varchar pneumatic_id PK "varchar(30)"
+        varchar type FK "varchar(15)"
+        int bore "int(11)"
+        int stroke "int(11)"
+        int min_stock "int(11)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_solenoid_types {
+        int id PK "int(10)"
+        varchar type UK "varchar(15)"
+        varchar image "varchar(255)"
+        datetime created_at
+        datetime updated_at
+    }
+
+    as_solenoid {
+        varchar solenoid_id PK "varchar(50)"
+        varchar type FK "varchar(15)"
+        varchar subtype "varchar(15)"
+        int min_stock "int(11)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_hose {
+        varchar hose_id PK "varchar(100)"
+        varchar diameter UK "varchar(20)"
+        int min_stock "int(11)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_manifold {
+        varchar manifold_id PK "varchar(50)"
+        int block "int(11)"
+        int min_stock "int(11)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_regulator {
+        varchar regulator_id PK "varchar(30)"
+        varchar type UK "varchar(20)"
+        int min_stock "int(11)"
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_storage {
+        char location_id PK "char(3)"
+        varchar category PK "varchar(15)"
+        varchar type_id PK "varchar(50)"
+        int amount "int(11)"
+        longtext storage_data
+        datetime created_at
+        datetime updated_at
+        int editor FK "int(9)"
+    }
+
+    as_project_batches {
+        varchar batch_id PK "varchar(50)"
+        varchar location_id FK "varchar(17) - Link to Storage"
+        varchar category FK "varchar(15) - Link to Storage"
+        varchar type_id FK "varchar(50) - Link to Storage"
+        varchar project_name "varchar(100)"
+        text project_notes
+        int batch_quantity "int(11)"
+        int remaining_quantity "int(11)"
+        datetime created_at
+        int created_by FK "int(9)"
+    }
+
+    as_report {
+        varchar storing_id PK "varchar(35)"
+        varchar location_id FK "varchar(17) - Link to Storage"
+        datetime datetime
+        varchar category FK "varchar(15) - Link to Storage"
+        varchar type_id FK "varchar(50) - Link to Storage"
+        varchar batch_id FK "varchar(50)"
+        varchar action "varchar(10)"
+        int amount "int(11)"
+        text comment
+        varchar note "varchar(255)"
+        int nik FK "int(9)"
+    }
+
+    as_fitting_types ||--|{ as_fitting : "defines type"
+    as_fitting_types ||--|{ as_fitting_subtypes : "has subtypes"
+    as_fitting_subtypes ||--|{ as_fitting : "defines subtype"
+
+    as_pneumatic_types ||--|{ as_pneumatic : "defines type"
+    as_solenoid_types ||--|{ as_solenoid : "defines type"
+
+    as_user ||--o{ as_project_batches : "created_by"
+    as_user ||--o{ as_report : "nik"
+    as_user ||--o{ as_storage : "editor"
+    as_user ||--o{ as_fitting : "editor"
+    as_user ||--o{ as_pneumatic : "editor"
+    as_user ||--o{ as_solenoid : "editor"
+    as_user ||--o{ as_hose : "editor"
+    as_user ||--o{ as_manifold : "editor"
+    as_user ||--o{ as_regulator : "editor"
+
+    as_project_batches ||--o{ as_report : "batch_id"
+    
+    as_storage ||--o{ as_project_batches : "has batches"
+    as_storage ||--o{ as_report : "logs transactions"
+
+    as_storage }|--|| as_fitting : "stores"
+    as_storage }|--|| as_pneumatic : "stores"
+    as_storage }|--|| as_solenoid : "stores"
+    as_storage }|--|| as_hose : "stores"
+    as_storage }|--|| as_manifold : "stores"
+    as_storage }|--|| as_regulator : "stores"
