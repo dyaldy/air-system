@@ -1,0 +1,112 @@
+sequenceDiagram
+    actor User
+    participant View as View (UI)
+    participant Auth as Auth Controller
+    participant Home as Home Controller
+    participant Storage as Storage Controller
+    participant S_Model as Storage_model
+    participant P_Model as Project_batch_model
+    participant R_Model as Report_model
+    participant DB as Database
+
+    %% ==========================================
+    %% 1. Login Process
+    %% ==========================================
+    Note over User, DB: Authentication Flow
+    User->>View: Access Login Page
+    User->>View: Enter NIK
+    View->>Auth: POST /auth/index (nik)
+    Auth->>DB: User_model->getByNik(nik)
+    DB-->>Auth: Return User Data
+    
+    alt User Not Found
+        Auth-->>View: Set Flashdata Error
+        View-->>User: Show "NIK tidak terdaftar"
+    else User Found
+        Auth->>Auth: Set Session Data
+        Auth-->>View: Redirect to Home
+        View-->>User: Show Dashboard
+    end
+
+    %% ==========================================
+    %% 2. Dashboard Loading
+    %% ==========================================
+    Note over User, DB: Dashboard & Alerts
+    User->>Home: GET /home
+    Home->>DB: Count Users, Pneumatics, Fittings
+    Home->>S_Model: get_low_stock_items()
+    S_Model->>DB: Query items < min_stock
+    DB-->>S_Model: Return Low Stock List
+    Home-->>View: Render Dashboard (Stats + Alerts)
+
+    %% ==========================================
+    %% 3. Store Item (Regular & Project)
+    %% ==========================================
+    Note over User, DB: Storage Operation - Store
+    User->>View: Fill Store Form (Location, Item, Qty)
+    opt Is Project?
+        User->>View: Check "Project Item", Enter Project Name
+    end
+    View->>Storage: POST /storage/store
+    
+    Storage->>Storage: Validate Input
+    
+    alt Validation Failed
+        Storage-->>View: Redirect with Error
+    else Validation Passed
+        
+        alt Is Project Item
+            Storage->>P_Model: create_batch(location, type, project_name, qty...)
+            P_Model->>DB: INSERT into as_project_batches
+            DB-->>P_Model: Return batch_id
+        end
+
+        Storage->>S_Model: store_items(location, type, qty...)
+        S_Model->>DB: UPDATE as_storage SET amount = amount + qty
+        
+        Storage->>R_Model: log_store_transaction(...)
+        R_Model->>DB: INSERT into as_report
+        
+        Storage-->>View: Redirect to Location View
+        View-->>User: Show Success Message
+    end
+
+    %% ==========================================
+    %% 4. Take Item (Regular & Project)
+    %% ==========================================
+    Note over User, DB: Storage Operation - Take
+    User->>View: Click "Take" on Item
+    View->>Storage: POST /storage/take
+    
+    alt Is Project Batch
+        Storage->>P_Model: take_from_specific_batch(batch_id, qty)
+        P_Model->>DB: UPDATE as_project_batches SET remaining_qty...
+        
+        alt Batch Update Failed
+            P_Model-->>Storage: Return Error
+            Storage-->>View: Show Error
+        end
+    end
+
+    Storage->>S_Model: take_items(location, type, qty...)
+    S_Model->>DB: Check Current Stock
+    
+    alt Insufficient Stock / Update Failed
+        S_Model-->>Storage: Return Error
+        
+        opt Is Project Batch
+            Note right of Storage: Rollback Batch Update
+            Storage->>P_Model: add_back_to_batch(batch_id, qty)
+            P_Model->>DB: UPDATE as_project_batches (Restore Qty)
+        end
+        
+        Storage-->>View: Show Error
+    else Sufficient Stock
+        S_Model->>DB: UPDATE as_storage SET amount = amount - qty
+        
+        Storage->>R_Model: log_take_transaction(...)
+        R_Model->>DB: INSERT into as_report
+        
+        Storage-->>View: Redirect to Location View
+        View-->>User: Show Success Message
+    end
