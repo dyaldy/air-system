@@ -5,69 +5,69 @@ flowchart TD
     classDef store fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
 
     %% ==========================================
-    %% Level 0: Context Diagram
+    %% Level 0: Diagram Konteks
     %% ==========================================
-    subgraph Level0 [Level 0: Context Diagram]
+    subgraph Level0 [Level 0: Diagram Konteks]
         direction LR
-        User0[User / Admin]:::entity
+        User0[Pengguna / Admin]:::entity
         System0((0.0<br/>Air System)):::process
         
-        User0 -->|Login Credentials<br/>Store/Take Requests<br/>Item Details<br/>User Data<br/>Report Filters| System0
-        System0 -->|Auth Status<br/>Dashboard Stats<br/>Low Stock Alerts<br/>Transaction Logs<br/>Operation Success/Error| User0
+        User0 -->|Kredensial Login<br/>Permintaan Simpan/Ambil<br/>Detail Barang<br/>Data Pengguna<br/>Filter Laporan| System0
+        System0 -->|Status Autentikasi<br/>Statistik Dashboard<br/>Peringatan Stok Rendah<br/>Log Transaksi<br/>Operasi Sukses/Gagal| User0
     end
 
     %% ==========================================
-    %% Level 1: Detailed DFD
+    %% Level 1: Diagram Alir Data
     %% ==========================================
-    subgraph Level1 [Level 1: Data Flow Diagram]
+    subgraph Level1 [Level 1: Diagram Alir Data]
         direction TB
         
         %% External Entity
-        User1[User / Admin]:::entity
+        User1[Pengguna / Admin]:::entity
 
         %% Processes
-        P1((1.0<br/>Authentication)):::process
-        P2((2.0<br/>Dashboard &<br/>Monitoring)):::process
-        P3((3.0<br/>Storage<br/>Operations)):::process
-        P4((4.0<br/>Inventory<br/>Management)):::process
-        P5((5.0<br/>User<br/>Management)):::process
-        P6((6.0<br/>Reporting)):::process
+        P1((1.0<br/>Autentikasi)):::process
+        P2((2.0<br/>Dashboard &<br/>Pemantauan)):::process
+        P3((3.0<br/>Operasi<br/>Penyimpanan)):::process
+        P4((4.0<br/>Manajemen<br/>Barang)):::process
+        P5((5.0<br/>Administrasi<br/>Pengguna)):::process
+        P6((6.0<br/>Pelaporan &<br/>Analitik)):::process
 
         %% Data Stores
-        D1[(D1 Users)]:::store
-        D2[(D2 Storage)]:::store
-        D3[(D3 Items)]:::store
-        D4[(D4 Project Batches)]:::store
-        D5[(D5 Reports)]:::store
+        D1[(D1 Pengguna)]:::store
+        D2[(D2 Penyimpanan)]:::store
+        D3[(D3 Barang)]:::store
+        D4[(D4 Batch Proyek)]:::store
+        D5[(D5 Laporan)]:::store
 
         %% 1.0 Auth Flows
         User1 -->|NIK| P1
-        P1 <-->|Validate User| D1
-        P1 -->|Session Token| User1
+        P1 <-->|Validasi Pengguna| D1
+        P1 -->|Token Sesi| User1
 
         %% 2.0 Dashboard Flows
-        User1 -->|Request View| P2
-        P2 <-->|Count/Check Stock| D2
-        P2 <-->|Count Items| D3
-        P2 -->|Stats & Alerts| User1
+        User1 -->|Minta Tampilan| P2
+        P2 <-->|Hitung/Cek Stok| D2
+        P2 <-->|Hitung Barang| D3
+        P2 -->|Statistik & Peringatan| User1
 
         %% 3.0 Storage Flows
-        User1 -->|Store/Take Request| P3
-        P3 -->|Update Quantity| D2
-        P3 <-->|Manage Batches| D4
-        P3 -->|Log Transaction| D5
-        P3 -->|Confirmation| User1
+        User1 -->|Permintaan Simpan/Ambil| P3
+        P3 -->|Perbarui Kuantitas| D2
+        P3 <-->|Kelola Batch| D4
+        P3 -->|Catat Transaksi| D5
+        P3 -->|Konfirmasi| User1
 
         %% 4.0 Inventory Flows
-        User1 -->|Item Details| P4
-        P4 -->|CRUD Operations| D3
+        User1 -->|Detail Barang| P4
+        P4 -->|Operasi CRUD| D3
 
         %% 5.0 User Mgmt Flows
-        User1 -->|User Details| P5
-        P5 -->|CRUD Operations| D1
+        User1 -->|Detail Pengguna| P5
+        P5 -->|Operasi CRUD| D1
 
         %% 6.0 Reporting Flows
-        User1 -->|Filter Criteria| P6
-        P6 <-->|Fetch Logs| D5
-        P6 -->|Generated Report| User1
+        User1 -->|Kriteria Filter| P6
+        P6 <-->|Ambil Log| D5
+        P6 -->|Laporan Terbentuk| User1
     end

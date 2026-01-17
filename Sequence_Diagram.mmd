@@ -1,112 +1,118 @@
 sequenceDiagram
-    actor User
-    participant View as View (UI)
-    participant Auth as Auth Controller
-    participant Home as Home Controller
-    participant Storage as Storage Controller
+    actor User as Pengguna
+    participant View as Tampilan (UI)
+    participant Auth as Kontroler Autentikasi
+    participant Home as Kontroler Beranda
+    participant Storage as Kontroler Penyimpanan
     participant S_Model as Storage_model
     participant P_Model as Project_batch_model
     participant R_Model as Report_model
-    participant DB as Database
+    participant DB as Basis Data
 
     %% ==========================================
-    %% 1. Login Process
+    %% 1. Proses Login
     %% ==========================================
-    Note over User, DB: Authentication Flow
-    User->>View: Access Login Page
-    User->>View: Enter NIK
+    Note over User, DB: Alur Autentikasi
+    User->>View: Akses Halaman Login
+    User->>View: Masukkan NIK
     View->>Auth: POST /auth/index (nik)
     Auth->>DB: User_model->getByNik(nik)
-    DB-->>Auth: Return User Data
+    DB-->>Auth: Mengembalikan Data Pengguna
     
-    alt User Not Found
-        Auth-->>View: Set Flashdata Error
-        View-->>User: Show "NIK tidak terdaftar"
-    else User Found
-        Auth->>Auth: Set Session Data
-        Auth-->>View: Redirect to Home
-        View-->>User: Show Dashboard
+    alt Pengguna Tidak Ditemukan
+        Auth-->>View: Set Pesan Error (Flashdata)
+        View-->>User: Tampilkan "NIK tidak terdaftar"
+    else Pengguna Ditemukan
+        Auth->>Auth: Set Data Sesi
+        Auth-->>View: Alihkan ke Beranda
+        View-->>User: Tampilkan Dashboard
     end
 
     %% ==========================================
-    %% 2. Dashboard Loading
+    %% 2. Memuat Dashboard
     %% ==========================================
-    Note over User, DB: Dashboard & Alerts
+    Note over User, DB: Dashboard & Peringatan
     User->>Home: GET /home
-    Home->>DB: Count Users, Pneumatics, Fittings
+    Home->>DB: Hitung Pengguna, Pneumatic, Fitting
+    Home->>DB: Storage_model->countStorageLocations()
     Home->>S_Model: get_low_stock_items()
-    S_Model->>DB: Query items < min_stock
-    DB-->>S_Model: Return Low Stock List
-    Home-->>View: Render Dashboard (Stats + Alerts)
+    S_Model->>DB: Query item < min_stock
+    DB-->>S_Model: Kembalikan Daftar Stok Rendah
+    Home-->>View: Render Dashboard (Statistik + Peringatan)
 
     %% ==========================================
-    %% 3. Store Item (Regular & Project)
+    %% 3. Simpan Barang (Reguler & Proyek)
     %% ==========================================
-    Note over User, DB: Storage Operation - Store
-    User->>View: Fill Store Form (Location, Item, Qty)
-    opt Is Project?
-        User->>View: Check "Project Item", Enter Project Name
+    Note over User, DB: Operasi Penyimpanan - Simpan
+    User->>View: Isi Formulir Simpan (Lokasi, Barang, Jml)
+    opt Apakah Proyek?
+        User->>View: Centang "Barang Proyek", Masukkan Nama Proyek
     end
     View->>Storage: POST /storage/store
     
-    Storage->>Storage: Validate Input
+    Storage->>Storage: Validasi Input & Keberadaan Barang
     
-    alt Validation Failed
-        Storage-->>View: Redirect with Error
-    else Validation Passed
+    alt Validasi Gagal
+        Storage-->>View: Alihkan dengan Error
+    else Validasi Berhasil
         
-        alt Is Project Item
-            Storage->>P_Model: create_batch(location, type, project_name, qty...)
-            P_Model->>DB: INSERT into as_project_batches
-            DB-->>P_Model: Return batch_id
+        alt Adalah Barang Proyek
+            Storage->>P_Model: create_batch(lokasi, tipe, nama_proyek, jml...)
+            P_Model->>DB: INSERT ke as_project_batches
+            DB-->>P_Model: Kembalikan batch_id
         end
 
-        Storage->>S_Model: store_items(location, type, qty...)
-        S_Model->>DB: UPDATE as_storage SET amount = amount + qty
+        Storage->>S_Model: store_items(lokasi, kategori, type_id, jml...)
+        S_Model->>DB: Cek apakah penyimpanan ada
+        alt Ada
+             S_Model->>DB: UPDATE as_storage SET amount = amount + qty
+        else Baru
+             S_Model->>DB: INSERT ke as_storage
+        end
         
         Storage->>R_Model: log_store_transaction(...)
-        R_Model->>DB: INSERT into as_report
+        R_Model->>DB: INSERT ke as_report
         
-        Storage-->>View: Redirect to Location View
-        View-->>User: Show Success Message
+        Storage-->>View: Alihkan ke Tampilan Lokasi
+        View-->>User: Tampilkan Pesan Sukses
     end
 
     %% ==========================================
-    %% 4. Take Item (Regular & Project)
+    %% 4. Ambil Barang (Reguler & Proyek)
     %% ==========================================
-    Note over User, DB: Storage Operation - Take
-    User->>View: Click "Take" on Item
+    Note over User, DB: Operasi Penyimpanan - Ambil
+    User->>View: Klik "Ambil" pada Barang
     View->>Storage: POST /storage/take
     
-    alt Is Project Batch
-        Storage->>P_Model: take_from_specific_batch(batch_id, qty)
+    alt Adalah Batch Proyek (terdeteksi dari _project di lokasi atau batch_id)
+        Storage->>P_Model: take_from_specific_batch(batch_id, jml)
         P_Model->>DB: UPDATE as_project_batches SET remaining_qty...
         
-        alt Batch Update Failed
-            P_Model-->>Storage: Return Error
-            Storage-->>View: Show Error
+        alt Update Batch Gagal
+            P_Model-->>Storage: Kembalikan Error
+            Storage-->>View: Tampilkan Error
         end
     end
 
-    Storage->>S_Model: take_items(location, type, qty...)
-    S_Model->>DB: Check Current Stock
+    Storage->>S_Model: take_items(lokasi, kategori, type_id, jml...)
+    S_Model->>DB: Cek Stok Saat Ini
     
-    alt Insufficient Stock / Update Failed
-        S_Model-->>Storage: Return Error
+    alt Stok Tidak Cukup / Update Gagal
+        S_Model-->>Storage: Kembalikan Error
         
-        opt Is Project Batch
-            Note right of Storage: Rollback Batch Update
-            Storage->>P_Model: add_back_to_batch(batch_id, qty)
-            P_Model->>DB: UPDATE as_project_batches (Restore Qty)
+        opt Adalah Batch Proyek
+            Note right of Storage: Rollback Update Batch
+            Storage->>P_Model: add_back_to_batch(batch_id, jml)
+            P_Model->>DB: UPDATE as_project_batches (Kembalikan Jml)
         end
         
-        Storage-->>View: Show Error
-    else Sufficient Stock
+        Storage-->>View: Tampilkan Error
+    else Stok Cukup
         S_Model->>DB: UPDATE as_storage SET amount = amount - qty
         
         Storage->>R_Model: log_take_transaction(...)
-        R_Model->>DB: INSERT into as_report
+        R_Model->>DB: INSERT ke as_report
         
-        Storage-->>View: Redirect to Location View
-        View-->>User: Show Success Message
+        Storage-->>View: Alihkan ke Tampilan Lokasi
+        View-->>User: Tampilkan Pesan Sukses
     end
