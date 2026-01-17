@@ -1,152 +1,141 @@
-flowchart TD
-    %% Global Styles
-    classDef db fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
-    classDef decision fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
-    classDef startend fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,rx:10,ry:10;
-
-    %% Nodes
-    Start((Start)):::startend
-    Login[Login Page]
-    Auth{Authenticate?}:::decision
-    Dashboard[Dashboard / Home]
-    
-    %% Dashboard Features
-    subgraph Dashboard_Features [Dashboard Overview]
-        D_Stats[View Quick Stats]
-        D_Alerts[Check Low Stock Alerts]
-    end
-
-    %% Main Modules
-    subgraph Modules
-        M_Storage[Storage Management]
-        M_Inventory[Inventory Management]
-        M_Users[User Management]
-        M_Report[Reports / Logs]
-    end
-
-    %% Storage Process (Includes Project Batches)
-    subgraph Storage_Process [Storage & Project Operations]
-        S_List[List Locations / Items]
-        S_Action{Action?}:::decision
-        
-        %% Store Branch
-        S_Store[Store Item]:::process
-        S_IsProjectStore{Is Project?}:::decision
-        S_CreateBatch[Create/Update Project Batch]:::process
-        
-        %% Take Branch
-        S_Take[Take Item]:::process
-        S_IsProjectTake{Is Project?}:::decision
-        S_UpdateBatch[Update Project Batch]:::process
-        S_CheckStock{Sufficient Stock?}:::decision
-        
-        %% DB Updates
-        S_DB_Storage[(Update as_storage)]:::db
-        S_DB_Project[(Update as_project_batches)]:::db
-        S_DB_Log[(Log to as_report)]:::db
-    end
-
-    %% Inventory Process
-    subgraph Inventory_Process [Item Management]
-        I_List[List Items]
-        I_Action{Action?}:::decision
-        I_Add[Add New Item]:::process
-        I_Edit[Edit Item]:::process
-        I_Delete[Delete Item]:::process
-        I_DB[(Update Item Tables)]:::db
-    end
-
-    %% User Process
-    subgraph User_Process [User Administration]
-        U_List[List Users]
-        U_Action{Action?}:::decision
-        U_Add[Add User]:::process
-        U_Edit[Edit User]:::process
-        U_Delete[Delete User]:::process
-        U_Import[Import CSV]:::process
-        U_Export[Export CSV/PDF]:::process
-        U_DB[(Update as_user)]:::db
-    end
-
-    %% Report Process
-    subgraph Report_Process [Reporting & Analytics]
-        R_List[View Transaction History]
-        R_Action{Action?}:::decision
-        R_Filter[Filter Data]:::process
-        R_Stats[Generate Statistics]:::process
-        R_Summary[Daily Summary]:::process
-    end
-
-    %% Main Flow
-    Start --> Login
-    Login --> Auth
-    Auth -- Invalid --> Login
-    Auth -- Valid --> Dashboard
-    
-    Dashboard -- Logout --> Login
-
-    Dashboard --> D_Stats
-    Dashboard --> D_Alerts
-
-    Dashboard --> M_Storage
-    Dashboard --> M_Inventory
-    Dashboard --> M_Users
-    Dashboard --> M_Report
-
-    %% Storage Connections
+---
+config:
+  layout: dagre
+---
+flowchart LR
+ subgraph Dashboard_Features["Ringkasan Dashboard"]
+        D_Stats["Lihat Statistik Cepat"]
+        D_Alerts["Cek Peringatan Stok Rendah"]
+  end
+ subgraph Modules["Modul"]
+        M_Storage["Manajemen Penyimpanan"]
+        M_Inventory["Manajemen Inventaris"]
+        M_Users["Manajemen Pengguna"]
+        M_Report["Laporan / Log"]
+  end
+ subgraph Storage_Process["Operasi Penyimpanan & Proyek"]
+        S_List["Daftar Lokasi / Barang"]
+        S_Action{"Tindakan?"}
+        S_Store["Simpan Barang"]
+        S_IsProjectStore{"Apakah Proyek?"}
+        S_CreateBatch["Buat/Update Batch Proyek"]
+        S_Take["Ambil Barang"]
+        S_IsProjectTake{"Apakah Proyek?"}
+        S_UpdateBatch["Update Batch Proyek"]
+        S_CheckStock{"Stok Cukup?"}
+        S_DB_Storage[("Update as_storage")]
+        S_DB_Project[("Update as_project_batches")]
+        S_DB_Log[("Log ke as_report")]
+  end
+ subgraph Inventory_Process["Manajemen Barang"]
+        I_List["Daftar Barang"]
+        I_Action{"Tindakan?"}
+        I_Add["Tambah Barang Baru"]
+        I_Edit["Edit Barang"]
+        I_Delete["Hapus Barang"]
+        I_DB[("Update Tabel Barang")]
+  end
+ subgraph User_Process["Administrasi Pengguna"]
+        U_List["Daftar Pengguna"]
+        U_Action{"Tindakan?"}
+        U_Add["Tambah Pengguna"]
+        U_Edit["Edit Pengguna"]
+        U_Delete["Hapus Pengguna"]
+        U_Import["Impor CSV"]
+        U_Export["Ekspor CSV/PDF"]
+        U_DB[("Update as_user")]
+  end
+ subgraph Report_Process["Pelaporan & Analitik"]
+        R_List["Lihat Riwayat Transaksi"]
+        R_Action{"Tindakan?"}
+        R_Filter["Filter Data"]
+        R_Stats["Buat Statistik"]
+        R_Summary["Ringkasan Harian"]
+  end
+    Start(["Mulai"]) --> Login["Halaman Login"]
+    Login --> Auth{"Autentikasi?"}
+    Auth -- Tidak Valid --> Login
+    Auth -- Valid --> Dashboard["Dashboard / Beranda"]
+    Dashboard -- Keluar --> Login
+    Dashboard --> D_Stats & D_Alerts & M_Storage & M_Inventory & M_Users & M_Report
     M_Storage --> S_List
     S_List --> S_Action
-    
-    %% Store Path
-    S_Action -- Store --> S_Store
+    S_Action -- Simpan --> S_Store
     S_Store --> S_IsProjectStore
-    S_IsProjectStore -- Yes --> S_CreateBatch
-    S_IsProjectStore -- No --> S_DB_Storage
+    S_IsProjectStore -- Ya --> S_CreateBatch
+    S_IsProjectStore -- Tidak --> S_DB_Storage
     S_CreateBatch --> S_DB_Project
     S_DB_Project --> S_DB_Storage
-    
-    %% Take Path
-    S_Action -- Take --> S_Take
+    S_Action -- Ambil --> S_Take
     S_Take --> S_CheckStock
-    S_CheckStock -- No --> S_List
-    S_CheckStock -- Yes --> S_IsProjectTake
-    S_IsProjectTake -- Yes --> S_UpdateBatch
-    S_IsProjectTake -- No --> S_DB_Storage
+    S_CheckStock -- Tidak --> S_List
+    S_CheckStock -- Ya --> S_IsProjectTake
+    S_IsProjectTake -- Ya --> S_UpdateBatch
+    S_IsProjectTake -- Tidak --> S_DB_Storage
     S_UpdateBatch --> S_DB_Project
-    S_DB_Project --> S_DB_Storage
-    
-    %% Logging
     S_DB_Storage --> S_DB_Log
-
-    %% Inventory Connections
     M_Inventory --> I_List
     I_List --> I_Action
-    I_Action -- Add --> I_Add
-    I_Action -- Edit --> I_Edit
-    I_Action -- Delete --> I_Delete
+    I_Action -- Tambah --> I_Add
+    I_Action -- Ubah --> I_Edit
+    I_Action -- Hapus --> I_Delete
     I_Add --> I_DB
     I_Edit --> I_DB
     I_Delete --> I_DB
-
-    %% User Connections
     M_Users --> U_List
     U_List --> U_Action
-    U_Action -- Add --> U_Add
-    U_Action -- Edit --> U_Edit
-    U_Action -- Delete --> U_Delete
-    U_Action -- Import --> U_Import
-    U_Action -- Export --> U_Export
-    
+    U_Action -- Tambah --> U_Add
+    U_Action -- Ubah --> U_Edit
+    U_Action -- Hapus --> U_Delete
+    U_Action -- Impor --> U_Import
+    U_Action -- Ekspor --> U_Export
     U_Add --> U_DB
     U_Edit --> U_DB
     U_Delete --> U_DB
     U_Import --> U_DB
-
-    %% Report Connections
     M_Report --> R_List
     R_List --> R_Action
     R_Action -- Filter --> R_Filter
-    R_Action -- Stats --> R_Stats
-    R_Action -- Summary --> R_Summary
+    R_Action -- Statistik --> R_Stats
+    R_Action -- Ringkasan --> R_Summary
     R_Filter --> R_List
+    S_DB_Log --> End(["Selesai"])
+    I_DB --> End
+    U_DB --> End
+    R_Stats --> End
+    R_Summary --> End
+
+     S_Action:::decision
+     S_Store:::process
+     S_IsProjectStore:::decision
+     S_CreateBatch:::process
+     S_Take:::process
+     S_IsProjectTake:::decision
+     S_UpdateBatch:::process
+     S_CheckStock:::decision
+     S_DB_Storage:::db
+     S_DB_Project:::db
+     S_DB_Log:::db
+     I_Action:::decision
+     I_Add:::process
+     I_Edit:::process
+     I_Delete:::process
+     I_DB:::db
+     U_Action:::decision
+     U_Add:::process
+     U_Edit:::process
+     U_Delete:::process
+     U_Import:::process
+     U_Export:::process
+     U_DB:::db
+     R_Action:::decision
+     R_Filter:::process
+     R_Stats:::process
+     R_Summary:::process
+     Start:::startend
+     Auth:::decision
+     End:::startend
+    classDef db fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef decision fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    classDef startend fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
