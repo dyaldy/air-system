@@ -1,0 +1,83 @@
+@startuml User_Management_Sequence
+!theme plain
+autonumber
+
+actor "Admin" as Admin
+boundary "Tampilan User" as View
+control "User Controller" as Controller
+entity "User_model" as Model
+database "Basis Data" as DB
+
+title Manajemen Pengguna (User Management)
+
+group 1. Lihat Daftar Pengguna
+    Admin -> Controller : GET /user
+    activate Controller
+    Controller -> Model : getUser(limit, start, search...)
+    activate Model
+    Model -> DB : SELECT * FROM as_user
+    activate DB
+    DB --> Model : Data Rows
+    deactivate DB
+    Model --> Controller : List Users
+    deactivate Model
+    Controller --> View : Render Tabel Pengguna
+    deactivate Controller
+    View --> Admin : Tampilkan Daftar
+end
+
+group 2. Tambah / Edit Pengguna
+    Admin -> View : Submit Form (NIK, Nama, dll)
+    View -> Controller : POST /user/edit/{nik}
+    activate Controller
+    
+    Controller -> Controller : Form Validation
+    alt Validasi Gagal
+        Controller --> View : Reload Form + Error
+    else Validasi Sukses
+        alt Edit Mode (.editUser)
+            Controller -> Model : editUser(nik)
+            activate Model
+            Model -> DB : UPDATE as_user
+            DB --> Model : Success
+            deactivate Model
+        else Add Mode (.addUser)
+             note right of Controller: Jika fitur Add User diaktifkan
+        end
+        Controller -> Controller : set_message('Success')
+        Controller --> View : Redirect 'user'
+    end
+    deactivate Controller
+end
+
+group 3. Import Data (CSV)
+    Admin -> View : Upload File CSV
+    View -> Controller : POST /user (via handleFileUpload)
+    activate Controller
+    Controller -> Controller : Parse & Validate CSV
+    loop Setiap Baris CSV
+        Controller -> Model : insert / update user
+        activate Model
+        Model -> DB : INSERT / UPDATE
+        deactivate Model
+    end
+    Controller --> View : Redirect dengan Pesan Hasil
+    deactivate Controller
+end
+
+group 4. Hapus Pengguna
+    Admin -> Controller : DELETE /user/delete/{nik}
+    activate Controller
+    Controller -> Model : getByNik(nik)
+    alt User Ditemukan
+        Controller -> Model : deleteUser(nik)
+        activate Model
+        Model -> DB : DELETE FROM as_user
+        deactivate Model
+        Controller --> View : Redirect 'user' (Success)
+    else User Tidak Ada
+        Controller --> View : Redirect 'user' (Error)
+    end
+    deactivate Controller
+end
+@enduml

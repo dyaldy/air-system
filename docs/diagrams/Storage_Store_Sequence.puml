@@ -1,0 +1,72 @@
+@startuml Storage_Store_Sequence
+!theme plain
+autonumber
+
+actor "Pengguna" as User
+boundary "Tampilan Store" as View
+control "Storage Controller" as Storage
+entity "Item Models\n(Pneumatic, etc)" as Master_Model
+entity "Project_batch_model" as P_Model
+entity "Storage_model" as S_Model
+entity "Report_model" as R_Model
+database "Basis Data" as DB
+
+title Operasi Penyimpanan Barang (Store)
+
+User -> View : Input (Lokasi, Kategori, Tipe, Jml, Note)
+opt Barang Proyek
+    User -> View : Centang "Proyek", Input Nama Proyek
+end
+View -> Storage : POST /storage/store
+activate Storage
+
+group 1. Validasi Keberadaan Barang
+    note right of Storage: Cek apakah tipe barang ada di Master Data
+    Storage -> Master_Model : getById(type_id)
+    activate Master_Model
+    Master_Model -> DB : Check Item Validity
+    activate DB
+    DB --> Master_Model : Item Row / Null
+    deactivate DB
+    Master_Model --> Storage : Result
+    deactivate Master_Model
+    
+    opt Item Tidak Ditemukan
+        Storage --> View : Redirect Error "Item not found"
+    end
+end
+
+group 2. Proses Batch Proyek (Jika Ada)
+    alt Is Project Item?
+        note right of Storage: Append "_PROJECT" to type_id
+        Storage -> Storage : type_id = type_id + "_PROJECT"
+        Storage -> P_Model : create_batch(...)
+        activate P_Model
+        P_Model -> DB : INSERT as_project_batches
+        P_Model --> Storage : return batch_id
+        deactivate P_Model
+    end
+end
+
+group 3. Update Storage & Log
+    Storage -> S_Model : store_items(..., type_id_project, ...)
+    activate S_Model
+    S_Model -> DB : Check if storage row exists
+    alt Row Exists
+        S_Model -> DB : UPDATE as_storage (amount + qty)
+    else New Row
+        S_Model -> DB : INSERT as_storage
+    end
+    S_Model --> Storage : Success
+    deactivate S_Model
+
+    Storage -> R_Model : log_store_transaction()
+    activate R_Model
+    R_Model -> DB : INSERT as_report
+    deactivate R_Model
+end
+
+Storage --> View : Redirect ke Lokasi (Success)
+deactivate Storage
+View --> User : Tampilkan Pesan Sukses
+@enduml

@@ -1,0 +1,53 @@
+@startuml Auth_Sequence
+!theme plain
+autonumber
+
+actor "Pengguna" as User
+boundary "Tampilan Login" as View
+control "Auth Controller" as Auth
+entity "User_model" as U_Model
+database "Basis Data" as DB
+
+title Alur Autentikasi (Login)
+
+User -> Auth : GET /auth/index
+activate Auth
+Auth -> Auth : Cek Session ('user_data')
+alt Session Ada (Sudah Login)
+    Auth --> User : Redirect ke 'home'
+else Session Kosong
+    Auth --> View : Load View 'auth/index'
+end
+deactivate Auth
+
+User -> View : Masukkan NIK & Submit
+View -> Auth : POST /auth/index (nik)
+activate Auth
+
+Auth -> Auth : Form Validation
+alt Validasi Gagal (Format Salah/Kosong)
+    Auth --> View : Reload View dengan Error
+    View --> User : Tampilkan Pesan Error
+else Validasi Sukses
+    Auth -> Auth : _login()
+    Auth -> U_Model : getByNik(nik)
+    activate U_Model
+    U_Model -> DB : SELECT * FROM as_user WHERE nik = ?
+    activate DB
+    DB --> U_Model : Result Row / Null
+    deactivate DB
+    U_Model --> Auth : Data Pengguna / False
+    deactivate U_Model
+
+    alt Pengguna Tidak Ditemukan
+        Auth -> Auth : set_message('NIK tidak terdaftar')
+        Auth --> View : Redirect 'auth' (Reload)
+        View --> User : Tampilkan Flashdata Error
+    else Pengguna Ditemukan
+        Auth -> Auth : set_userdata() (Buat Sesi)
+        Auth --> User : Redirect 'home'
+    end
+end
+deactivate Auth
+
+@enduml

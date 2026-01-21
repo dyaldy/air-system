@@ -1,0 +1,49 @@
+@startuml Dashboard_Sequence
+!theme plain
+autonumber
+
+actor "Pengguna" as User
+boundary "Tampilan Dashboard" as View
+control "Home Controller" as Home
+entity "User_model" as U_Model
+entity "Item Models" as I_Model
+entity "Storage_model" as S_Model
+entity "Report_model" as R_Model
+database "Basis Data" as DB
+
+title Memuat Dashboard System
+
+User -> Home : GET /home
+activate Home
+Home -> Home : check_user_authentication()
+
+group 1. Card Stats (Counts)
+    Home -> U_Model : countUser()
+    Home -> I_Model : countPneumatic(), countFitting()...
+    Home -> S_Model : countStorageLocations()
+    Home -> DB : SELECT SUM(amount) FROM as_storage
+    activate DB
+    DB --> Home : Total Quantity Stored
+    deactivate DB
+end
+
+group 2. Inventory Alerts & Charts
+    Home -> S_Model : get_low_stock_items() (Stok < Min)
+    Home -> DB : Group By Category (Pie Chart Data)
+end
+
+group 3. Activity Tracking
+    Home -> DB : Count Today's Activity (as_report)
+    
+    Home -> DB : Get Recent Activities (Limit 5)
+    
+    loop Last 7 Days (Activity Trend)
+        Home -> DB : Count Store & Retrieve per Day
+        Home -> DB : Sum Amounts per Day
+    end
+end
+
+Home -> View : Load View 'home/index' (Data Lengkap)
+deactivate Home
+View --> User : Tampilkan Dashboard, Statistik, & Grafik
+@enduml

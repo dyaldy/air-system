@@ -1,0 +1,69 @@
+@startuml Storage_Take_Sequence
+!theme plain
+autonumber
+
+actor "Pengguna" as User
+boundary "Tampilan Take" as View
+control "Storage Controller" as Storage
+entity "Project_batch_model" as P_Model
+entity "Storage_model" as S_Model
+entity "Report_model" as R_Model
+database "Basis Data" as DB
+
+title Operasi Pengambilan Barang (Take)
+
+User -> View : Input (Lokasi, Tipe, Jml, [Batch ID])
+View -> Storage : POST /storage/take
+activate Storage
+
+group 1. Parse & Prepare
+    Storage -> Storage : Parse Location (Check if '_project')
+    opt Is Project
+        Storage -> Storage : Append "_PROJECT" to type_id
+    end
+end
+
+group 2. Handle Project Batch
+    alt Is Project & Batch ID Exists
+        Storage -> P_Model : take_from_specific_batch(batch_id, qty)
+        activate P_Model
+        P_Model -> DB : UPDATE batch_qty - qty
+        alt Insufficient Batch Qty
+            P_Model --> Storage : Error Result
+            Storage --> View : Redirect Error
+        end
+        P_Model --> Storage : Success Result
+        deactivate P_Model
+    end
+end
+
+group 3. Update Main Storage
+    Storage -> S_Model : take_items(location, ..., qty)
+    activate S_Model
+    S_Model -> DB : Check Available Stock
+    alt Stock Sufficient
+        S_Model -> DB : UPDATE as_storage SET amount - qty
+        S_Model --> Storage : Success
+    else Insufficient Stock
+        S_Model --> Storage : Fail ("Insufficient stock")
+    end
+    deactivate S_Model
+end
+
+group 4. Finalize or Rollback
+    alt Storage Update Failed
+        opt Was Project Batch
+            note right of Storage : Rollback Batch Update
+            Storage -> P_Model : add_back_to_batch(batch_id, qty)
+            P_Model -> DB : UPDATE batch_qty + qty
+        end
+        Storage --> View : Redirect Error (Flashdata)
+    else Success
+        Storage -> R_Model : log_take_transaction()
+        R_Model -> DB : INSERT as_report
+        Storage --> View : Redirect ke Lokasi (Success)
+    end
+end
+deactivate Storage
+
+@enduml

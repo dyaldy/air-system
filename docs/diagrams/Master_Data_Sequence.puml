@@ -1,0 +1,72 @@
+@startuml Master_Data_Sequence
+!theme plain
+autonumber
+
+actor "Admin" as Admin
+boundary "Tampilan Master" as View
+control "Pneumatic Controller" as Controller
+entity "Pneumatic_model" as Model
+entity "Type_model" as TypeModel
+database "Basis Data" as DB
+
+title Manajemen Data Master (Contoh: Pneumatic)
+
+group 1. Pemilihan Tipe (Visual Menu)
+    Admin -> Controller : GET /pneumatic/type
+    activate Controller
+    Controller -> TypeModel : getAllTypes()
+    activate TypeModel
+    TypeModel -> DB : Fetch Types & Images
+    DB --> TypeModel : Result
+    deactivate TypeModel
+    Controller --> View : Render Type Cards
+    deactivate Controller
+    View --> Admin : Tampilkan Pilihan Tipe
+end
+
+group 2. Lihat Data (Filtered List)
+    Admin -> View : Klik Kategori Tipe
+    View -> Controller : GET /pneumatic/index?type=XXX
+    activate Controller
+    Controller -> Controller : Set Session Filter
+    Controller -> Model : getPneumatic(filter, ...)
+    activate Model
+    Model -> DB : SELECT * FROM as_pneumatic WHERE type = 'XXX'
+    activate DB
+    DB --> Model : Data Rows
+    deactivate DB
+    Controller --> View : Render Tabel Data
+    deactivate Controller
+end
+
+group 3. Import CSV (Batch Upload)
+    Admin -> View : Upload CSV Template
+    View -> Controller : POST /pneumatic (handleFileUpload)
+    activate Controller
+    Controller -> Controller : Validasi Header CSV
+    loop Setiap Baris Data
+        Controller -> Model : Check if Exists
+        alt Data Baru
+            Controller -> Model : insertPneumatic()
+            Model -> DB : INSERT
+        else Data Update
+            Controller -> Model : updatePneumatic()
+            Model -> DB : UPDATE
+        end
+    end
+    Controller --> View : Redirect + Flash Message
+    deactivate Controller
+end
+
+group 4. Export Data (PDF/CSV)
+    Admin -> Controller : GET /pneumatic/downloadPDF
+    activate Controller
+    Controller -> Model : getAllPneumatics()
+    activate Model
+    Model -> DB : SELECT All
+    deactivate Model
+    Controller -> Controller : Generate PDF (TCPDF)
+    Controller --> Admin : File Download (.pdf)
+    deactivate Controller
+end
+@enduml
